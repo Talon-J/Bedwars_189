@@ -1,0 +1,25 @@
+name: BedWars
+version: 1.0
+main: me.camm.productions.bedwars.BedWars
+authors: [CAMM_H87]
+description: A plugin for Bedwars.
+commands:
+  setup:
+    usage: /setup
+    description: performs setup operations on the arena
+    permission: setup.do
+    permission-message: You do not have permission to setup the arena
+  register:
+    usage: /register
+    description: registers a or changes the team of a player
+    permission: register.do
+    permission-message: You do not have permission to join the game
+  start:
+    usage: /start
+    description: attempts to start the game
+    permission: game.do
+    permission-message: you do not have permission to start the game
+
+
+
+
