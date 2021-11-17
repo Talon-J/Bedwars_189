@@ -50,7 +50,7 @@ public class ExplosionHandler extends VectorToolBox implements Listener
             new ExplosionParticle(entity.getLocation(),world,plugin);
 
             listener.removeEntity(entity.getUniqueId());
-            plugin.getServer().broadcastMessage("[DEBUG] -REMOVE");
+            plugin.getServer().broadcastMessage("[DEBUG] -REMOVE (Explosion handler)");
         }
 
         if (entity.getType()==EntityType.FIREBALL||entity.getType()==EntityType.SMALL_FIREBALL)
@@ -90,17 +90,18 @@ public class ExplosionHandler extends VectorToolBox implements Listener
             //Might need external loop here for vector expansion
             double distance = 0;
 
-            while  (distance<8)
+            while  (distance<8)  //8 is arbitrarily the max distance tnt can break blocks.
             {
+                //it doesn't really matter if we iterate forward or backwards...I just wanted backwards :D
                 for (int rays=directions.size()-1;rays>0;rays--)
                 {
                     Block block = directions.get(rays).blockAtDistance(distance);
-                    boolean broken = directions.get(rays).conflict(block);
+                    boolean broken = directions.get(rays).conflict(block); //determine if the block should be broken.
 
 
                     if (broken)
                     {
-                        directions.get(rays).breakAtPosition(directions.get(rays).blockAtDistance(distance));
+                        directions.get(rays).breakAtPosition(directions.get(rays).blockAtDistance(distance)); //breaking the block
 
                         if (incendiary)
                             fireCandidates.add(block);  //consider the block for fire [Might not be air]
@@ -110,6 +111,7 @@ public class ExplosionHandler extends VectorToolBox implements Listener
                         directions.remove(rays);
 
                 }//for
+
                 //Advance the vectors and set blocks
                 distance += 0.5;
 

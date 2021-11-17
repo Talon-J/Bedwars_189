@@ -52,6 +52,7 @@ public class BedBug implements ILifeTimed
                 bug = world.spawn(loc,Silverfish.class);
                 bug.setCustomName(team.getTeamColor().getName()+"'s"+"Bed bug");
                 bug.setCustomNameVisible(true);
+                register();
             }
         }.runTask(arena.getPlugin());
         handleLifeTime();
@@ -75,6 +76,7 @@ public class BedBug implements ILifeTimed
             {
                 if (bug.isDead() || !bug.isValid())
                 {
+                    unregister();
                     cancel();
                     return;
                 }
@@ -82,6 +84,7 @@ public class BedBug implements ILifeTimed
                 aliveTime --;
                 if (aliveTime <=0)
                 {
+                    unregister();
                     remove();
                     cancel();
                 }
@@ -126,11 +129,11 @@ public class BedBug implements ILifeTimed
 
     @Override
     public void register() {
-
+       listener.addEntity(this);
     }
 
     @Override
     public void unregister() {
-
+     listener.removeEntity(this.getUUID());
     }
 }

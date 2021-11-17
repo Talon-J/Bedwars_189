@@ -2,7 +2,7 @@ package me.camm.productions.bedwars.Files.FileKeywords;
 
 
 //Enum for world file reading
-public enum WorldFileKeywords
+public enum WorldFileKeyword
 {
     WORLD("World",0),
     ARENA_BOUNDS("Bounds",1),
@@ -19,7 +19,7 @@ public enum WorldFileKeywords
     private final int index;
     private final String key;
 
-    WorldFileKeywords(String key, int index)
+    WorldFileKeyword(String key, int index)
     {
         this.index = index;
         this.key = key;
@@ -35,14 +35,14 @@ public enum WorldFileKeywords
         return this.key;
     }
 
-    public WorldFileKeywords[] getGeneratorOrder()
+    public WorldFileKeyword[] getGeneratorOrder()
     {
-        return new WorldFileKeywords[] {GENERATOR,GEN_TYPE,GEN_SPAWN,GEN_BOX};
+        return new WorldFileKeyword[] {GENERATOR,GEN_TYPE,GEN_SPAWN,GEN_BOX};
     }
 
-    public WorldFileKeywords[] getWorldOrder()
+    public WorldFileKeyword[] getWorldOrder()
     {
-        return new WorldFileKeywords[] {WORLD,ARENA_BOUNDS,SPEC_SPAWN,VOID};
+        return new WorldFileKeyword[] {WORLD,ARENA_BOUNDS,SPEC_SPAWN,VOID};
     }
 
 }

@@ -104,6 +104,7 @@ public class StringToolBox
         }
         ArrayList<Double> numbers = new ArrayList<>();
         StringTokenizer separatorCutter = new StringTokenizer(original, DataSeparatorKeys.SEPARATOR.getKey());
+
         while (separatorCutter.hasMoreTokens())
         {
             String value = separatorCutter.nextToken();

@@ -20,7 +20,7 @@ public class VelocityComponent {
 
     }
 
-    public void doCalculation()  //unfinished
+    public void doCalculation()  //unfinished. Need to refactor since physics is not entirely accurate. Note added 2021-11m-16d
     {
         //System.out.println("Invoked calculation method");
         Entity exploded = this.event.getEntity();
@@ -28,11 +28,14 @@ public class VelocityComponent {
 
         List<Entity> nearBy = exploded.getNearbyEntities(exploded.getLocation().getX(), exploded.getLocation().getY(), exploded.getLocation().getZ());
 
-        for (int slot = 0; slot < nearBy.size(); slot++) {
-            if (validType(nearBy.get(slot))) {
-                if ((exploded.getLocation().distance(nearBy.get(slot).getLocation()) <= 5) && isFireball)  //if the distance is <= 6 and is fireball
+        for (int slot = 0; slot < nearBy.size(); slot++) //for all of the nearby entities to the explosion..
+        {
+            if (validType(nearBy.get(slot)))   //So if the entity can be affected by velocity
+            {
+                if ((exploded.getLocation().distance(nearBy.get(slot).getLocation()) <= 5) && isFireball)  //if the distance is <= 5 and is fireball
                     constructFireVector(exploded.getLocation(), nearBy.get(slot).getLocation(), nearBy.get(slot));
 
+                // otherwise test if it is a tnt with a distance of less than or equal to 8 blocks...
                 else if ((exploded.getLocation().distance(nearBy.get(slot).getLocation()) <= 8) && (!isFireball))
                     constructTNTVector(exploded.getLocation(), nearBy.get(slot).getLocation(), nearBy.get(slot));
 
@@ -47,9 +50,26 @@ public class VelocityComponent {
                 type.getType() != EntityType.PRIMED_TNT && type.getType() != EntityType.DROPPED_ITEM;
     }
 
+    /*
+    What the old code is doing in terms of the vector construction:
+
+    1 - get the distances from the entity to the location of the explosion
+    2 - determine the angle that exists between the entity and the explosion location
+    3 - use the distances in step 1 to determine the magnitude of the initial vector based on location
+    4 - using a formula to alter the magnitude based on distance (So that it is proportional)
+    5 - getting the final magnitudes of the horizontal, and vertical components
+    6 - using those components to construct a Bukkit vector (Which actually is used to set the velocity of the entity)
+
+    We need to refactor this why?
+    - physics are not exact enough for the game
+    - crude not really readible (But does look really smart though)
+    - we basically just used trial and error. that's not good enough
+
+     */
+
     public void constructFireVector(Location origin, Location destination, Entity target)/////////////////tnt
     {
-        //System.out.println("Using fireball velocity");
+
         double distanceX, distanceY, distanceZ;
         boolean xNegative = false, yNegative = false, zNegative = false;
         boolean horizontalValid = true;
@@ -84,22 +104,41 @@ public class VelocityComponent {
             zNegative = true;
         }
 
-        //horizontal
-        if (distanceX != 0 && distanceZ != 0)  //if both are not 0
+        /*
+                            /  |
+                           /   | (z axis)
+                          /    |
+           hypotenuse    /     |  opposite
+   (horizontal axis)    /      |
+                       /       |
+                      /        |
+                     /---------\
+                      adjacent  \
+                  (x axis)       \ (y axis)
+                                  \ tangent
+
+         */
+
+        //horizontal section
+        if (distanceX != 0 && distanceZ != 0)  //if the distance is not 0 on the horizontal axis
         {
+            //basically the angle that the entity should blast off in
             horizontalAngle = Math.toDegrees(Math.atan(distanceZ / distanceX));
             horizontalDistance = Math.sqrt((distanceX * distanceX) + (distanceZ * distanceZ));
-        } else  //if there is at least zero
+        }
+        else  //if there is at least zero in the horizontal axis
         {
-            if (distanceX == 0 && distanceZ == 0) {
+            if (distanceX == 0 && distanceZ == 0)
+            {
                 horizontalDistance = 0;  //the entity should travel directly up
                 horizontalValid = false;  //so we know not to use trig to find the ratios
                 horizontalAngle = 0;
-            } else  //if the 2 distances are not 0, but 1 is [travel in 1 direction,but not the other]
+            }
+            else  //if the only 1 distance is 0, the other is not [travel in 1 direction,but not the other]
             {
                 if (distanceX == 0) //Adjacent [horizontal]
                 {
-                    horizontalAngle = 90;  // b/c cos90 = 0, but sin90 = 1
+                    horizontalAngle = 90;  // because cos90 = 0, but sin90 = 1
                     horizontalDistance = distanceZ;
                 } else  //if distanceX is not 0, then distanceZ is
                 {
@@ -143,11 +182,16 @@ public class VelocityComponent {
         }
 
 
-        if (deconstruct)  //if we should deconstruct the vector [deconstruct is true]
+        if (deconstruct)  //if we should deconstruct the vector [deconstruct is true] Since it won't mess with trig
         {
             /////////////////////////////////////////////////
             //FORMULA
             ////////////////////////////////////////////////
+
+            //This is just a formula that makes a slope starting from roughly (0,2) to (10,0)
+            //Use desmos to see the graph of the function.
+            //Yeah no, this was just trial and error. Not good.
+            //Although, worth holding on to though.
             totalDistance = 1.65 / ((0.01 * Math.pow(totalDistance, (0.5 * (Math.pow(totalDistance, 0.5)) + 2))) + 1);
 
 
@@ -163,6 +207,15 @@ public class VelocityComponent {
 
                 //Alter the velocities, make vertical more substantial
                 //Magnitude shift.
+                /*
+                Basically from some simple measurements, we found that a player fireball jumping
+                launched 12 blocks in the air, while the horizontal distance was less than that.
+                so that's why we are altering magnitudes.
+
+                This...isn't really true physics, functions more like it.
+
+
+                 */
                 placeHold = xComponent;  //placehold
 
                 xComponent *= 0.65;
@@ -171,6 +224,7 @@ public class VelocityComponent {
                 placeHold = zComponent;
                 zComponent *= 0.65;
                 yComponent = yComponent + (placeHold - zComponent);  //magnitude
+
 
                 if (yNegative)
                     yComponent *= -1;
@@ -183,17 +237,18 @@ public class VelocityComponent {
 
 
                 impartVelocity(xComponent, yComponent, zComponent, target);
-            } else {
-
-
+            }
+            else
+            {
                 if (yNegative)
                     yComponent *= -1;
 
-
+                 //the only knockback is upwards.
                 impartVelocity(0, yComponent, 0, target);
             }
         } else {
 
+            //there is no knockback in this case
             impartVelocity(0, 0, 0, target);
 
         }
@@ -351,6 +406,12 @@ public class VelocityComponent {
     {
         Vector velocity = new Vector(xComponent,yComponent,zComponent);
         targeted.setVelocity(velocity);
+        //We should add the given velocity to the velocity that they already have.
+        /*
+        Please confirm. further testing required.
+        (try falling some distance while tnt jumping? Cause some people are saying that it adds instead of sets
+        - explains some of the movements they are able to do at least in Hypixel.)
+         */
     }
 
 

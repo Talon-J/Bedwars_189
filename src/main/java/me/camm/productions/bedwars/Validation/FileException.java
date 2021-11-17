@@ -2,13 +2,13 @@ package me.camm.productions.bedwars.Validation;
 
 import org.bukkit.ChatColor;
 
-public class BedWarsFileException extends Exception
+public class FileException extends Exception
 {
 
     private final String fileOrigin;
     private final FileProblem problemType;
 
-    public BedWarsFileException(String fileOrigin, FileProblem problemType)
+    public FileException(String fileOrigin, FileProblem problemType)
     {
         this.fileOrigin = fileOrigin;
         this.problemType = problemType;

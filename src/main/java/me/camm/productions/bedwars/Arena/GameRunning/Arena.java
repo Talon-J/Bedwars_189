@@ -68,6 +68,10 @@ public class Arena
       this.teams = new HashMap<>();
 
           specSpawn = spectatorSpawn.getAsLocation(world);
+
+          //DEBUG TESTING. Please remove after.
+          spectatorSpawn.print();
+
           healthBoard = Bukkit.getScoreboardManager().getNewScoreboard();
 
          nameHealth = healthBoard.registerNewObjective(HEALTH_CATEGORY.getPhrase(),HEALTH_CRITERIA.getPhrase());

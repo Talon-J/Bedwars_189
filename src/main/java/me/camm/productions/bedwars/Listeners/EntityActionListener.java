@@ -424,7 +424,16 @@ public class EntityActionListener implements Listener
 
     public synchronized void addEntity(IGameTeamable entity)
     {
-        activeEntities.put(entity.getUUID(),entity);
+        try {
+            //TODO
+            //So fireballs and tnt shouldn't be registered here. Check the gameTNT and Fireball classes.
+
+            activeEntities.put(entity.getUUID(), entity);
+        }
+        catch (NullPointerException ignored)
+        {
+
+        }
     }
 
 

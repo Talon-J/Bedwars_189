@@ -14,6 +14,7 @@ import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -136,16 +137,10 @@ public class ItemHelper implements IPlayerUtil
         if (possible != null)
         {
             if (!isToolBetterThanPresent(possible,player))
-            {
                 return;
-            }
         }
 
         if (item==SHEARS && player.getShears() != null)
-            return;
-
-
-        if (!didPay(player,item,isInflated))
             return;
 
 
@@ -168,6 +163,10 @@ public class ItemHelper implements IPlayerUtil
                 }
 
                 player.setPurchasedArmor(possible == null ? player.getArmor() : possible);
+
+                if (!didPay(player,item,isInflated))
+                    return;
+
                 setArmor(newArmor, player.getRawPlayer());
 
             }
@@ -179,6 +178,10 @@ public class ItemHelper implements IPlayerUtil
                 bought = toSoldItem(item,player);
                 if (bought == null)
                     return;
+                if (!hasRoom(player.getRawPlayer().getInventory(),bought))
+                    return;
+                if (!didPay(player,item,isInflated))
+                    return;
 
                 if (item== GameItem.STICK)
                 {
@@ -187,6 +190,9 @@ public class ItemHelper implements IPlayerUtil
                    return;
                 }
                 BattleEnchantment enchantment = player.getTeam().getMeleeEnchant();
+
+
+
                 if (enchantment==null)
                     manager.set(bought,category,player.getRawPlayer());
                 else
@@ -194,8 +200,14 @@ public class ItemHelper implements IPlayerUtil
             }
             break;
 
-            default: {
+            default:
+            {
 
+                ItemStack boughtTool = toSoldItem(item, player);
+                if (!hasRoom(player.getRawPlayer().getInventory(),boughtTool))
+                    return;
+                if (!didPay(player,item,isInflated))
+                    return;
 
                 if (possible != null)
                 {
@@ -220,7 +232,7 @@ public class ItemHelper implements IPlayerUtil
                     player.setShears();
                 }
 
-                manager.set(toSoldItem(item, player), category, player.getRawPlayer());
+                manager.set(boughtTool, category, player.getRawPlayer());
                }
 
 
@@ -871,6 +883,14 @@ public class ItemHelper implements IPlayerUtil
         }
     }
 
+    public static boolean hasRoom(Inventory inv, ItemStack stack)
+    {
+        long freeSpace = Arrays.stream(inv.getContents()).filter(item -> {
+          return item == null || (item.equals(stack) && (item.getMaxStackSize() != item.getAmount()));
+        }).count();
+
+        return freeSpace >= 1;
+    }
 
 
 

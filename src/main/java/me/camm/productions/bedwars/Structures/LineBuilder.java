@@ -151,67 +151,71 @@ public class LineBuilder
     {
         Location draw = start.clone();
 
-        final int end = 3;
-        final int hatchRow = 1;
+        final int end = BASE_LENGTH.getMeasurement();  //3
+        final int hatchRow = HATCH_ROW.getMeasurement();   //1
 
         new BukkitRunnable()
         {
             int rows = 0;
 
 
-            public void run()
-            {
-                if (rows<PLATFORM_WIDTH.getMeasurement())
-                {
-                    switch (rows)
+            public void run() {
+
+
+                if (rows >= PLATFORM_WIDTH.getMeasurement()) {
+                    cancel();
+                    return;
+                }
+
+                breaker: {
+
+                    if (rows == 0|| rows == end)
                     {
-                        case 0:
-                        case end:
-                            Location primingLocation = draw.clone();
+                        Location primingLocation = draw.clone();
 
-                            if (isXLarger)
-                            {
-                                primingLocation.add(-xMultiplier,0,0);
-                                drawSolidX((PLATFORM_LENGTH.getMeasurement()+2),primingLocation,false);
-                                draw.add(0,0,zMultiplier);
-                            }
-                            else
-                            {
-                                primingLocation.add(0,0,-zMultiplier);
-                                drawSolidZ((PLATFORM_LENGTH.getMeasurement()+2),primingLocation,false);
-                                draw.add(xMultiplier,0,0);
-                            }
-                            rows++;
-                            break;
+                        if (isXLarger)
+                        {
+                            primingLocation.add(-xMultiplier,0,0);
+                            drawSolidX((PLATFORM_LENGTH.getMeasurement()+2),primingLocation,false);
+                            draw.add(0,0,zMultiplier);
+                        }
+                        else
+                        {
+                            primingLocation.add(0,0,-zMultiplier);
+                            drawSolidZ((PLATFORM_LENGTH.getMeasurement()+2),primingLocation,false);
+                            draw.add(xMultiplier,0,0);
+                        }
+                        rows++;
+                        break breaker;
 
-                        case hatchRow:
-                            if (isXLarger)
-                            {
-                                drawSegmentedX(draw, 2, 2);
-                                draw.add(0,0,zMultiplier);
-                            }
-                            else {
-                                drawSegmentedZ(draw, 2, 2);
-                                draw.add(xMultiplier,0,0);
-                            }
-                            rows ++;
-                            break;
-
-
-                        default:
-                            if (isXLarger) //x is the length, z is the width
-                            {
-                                drawSolidX(PLATFORM_LENGTH.getMeasurement(),draw,false);
-                                draw.add(0, 0, zMultiplier);
-                            }
-                            else
-                            {
-                                drawSolidZ(PLATFORM_LENGTH.getMeasurement(),draw,false);
-                                draw.add(xMultiplier,0,0);
-                            }
-                            rows++;
-                            break;
                     }
+
+                    if (rows == hatchRow)
+                    {
+                        if (isXLarger)
+                        {
+                            drawSegmentedX(draw, 2, 2);
+                            draw.add(0,0,zMultiplier);
+                        }
+                        else {
+                            drawSegmentedZ(draw, 2, 2);
+                            draw.add(xMultiplier,0,0);
+                        }
+                        rows ++;
+                        break breaker;
+                    }
+
+                    if (isXLarger) //x is the length, z is the width
+                    {
+                        drawSolidX(PLATFORM_LENGTH.getMeasurement(),draw,false);
+                        draw.add(0, 0, zMultiplier);
+                    }
+                    else
+                    {
+                        drawSolidZ(PLATFORM_LENGTH.getMeasurement(),draw,false);
+                        draw.add(xMultiplier,0,0);
+                    }
+                    rows++;
                 }
             }
         }.runTaskTimer(plugin,0, PERIOD.getMeasurement());

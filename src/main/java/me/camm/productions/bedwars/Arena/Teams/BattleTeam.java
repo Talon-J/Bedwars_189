@@ -108,8 +108,8 @@ public class BattleTeam
     {
         teamQuickBuy.sendNPCToAll();
         teamGroupBuy.sendNPCToAll();
-        teamQuickBuy.setRotation();
-        teamGroupBuy.setRotation();
+        teamQuickBuy.setRotationForAllPlayers();
+        teamGroupBuy.setRotationForAllPlayers();
     }
 
 

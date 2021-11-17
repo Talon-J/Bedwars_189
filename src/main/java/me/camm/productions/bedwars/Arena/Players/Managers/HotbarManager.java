@@ -3,11 +3,15 @@ package me.camm.productions.bedwars.Arena.Players.Managers;
 import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
 import me.camm.productions.bedwars.Util.Helpers.IArenaWorldHelper;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+
+import java.util.Arrays;
+import java.util.Objects;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.HOT_BAR_END;
 import static me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory.ARMOR;
@@ -17,6 +21,7 @@ import static me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory.MELEE
 /*
 TODO:
 - Add an inventory for when the player modifies their hotbar manager.
+- see if the manager is active or passive, code appropriately for that.
 
 
  */
@@ -85,16 +90,25 @@ public class HotbarManager implements IArenaWorldHelper
            if (layout[slot]==null)
                continue;
 
-           if (layout[slot]==category&&isSlotEmpty(inventory,slot))
+           if (layout[slot]==category)
            {
-               inventory.setItem(slot,item);
-               return;
+               if (isSlotEmpty(inventory,slot))
+               {
+                   inventory.setItem(slot, item);
+                   return;
+               }
+               else
+               {
+                  /*
+                  Not enough info. Is the manager "active" as in it will override existing items and
+                  replace them, putting them elsewhere, or is it passive as in it will only use slots that are empty?
+                   */
+
+               }
            }
+
        }
-       if (inventory.firstEmpty()!=-1)
-           inventory.addItem(item);
-       else
-           dropItem(player,item,plugin);
+
     }
 
     public boolean isSlotEmpty(Inventory inv, int slot)

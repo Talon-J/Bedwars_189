@@ -3,6 +3,8 @@ package me.camm.productions.bedwars.Entities.ActiveEntities;
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy.IGameAutonomous;
+import me.camm.productions.bedwars.Listeners.EntityActionListener;
+import org.bukkit.Location;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.LivingEntity;
 
@@ -15,7 +17,7 @@ public class Dragon implements IGameAutonomous
     private EnderDragon dragon;
     private final Arena arena;
 
-    public Dragon(BattleTeam team, Arena arena) {
+    public Dragon(BattleTeam team, Arena arena, Location spawn, EntityActionListener listener) {
         this.team = team;
         this.arena = arena;
     }
@@ -23,7 +25,7 @@ public class Dragon implements IGameAutonomous
 
     @Override
     public String getName() {
-        return null;
+        return dragon == null? null : dragon.getCustomName();
     }
 
     @Override
@@ -41,7 +43,7 @@ public class Dragon implements IGameAutonomous
 
     @Override
     public boolean isAlive() {
-        return false;
+        return dragon != null && (!dragon.isDead() || dragon.isValid());
     }
 
     @Override
@@ -52,12 +54,12 @@ public class Dragon implements IGameAutonomous
 
     @Override
     public UUID getUUID() {
-        return null;
+        return dragon == null ? null: dragon.getUniqueId();
     }
 
     @Override
     public BattleTeam getTeam() {
-        return null;
+        return team;
     }
 
     @Override

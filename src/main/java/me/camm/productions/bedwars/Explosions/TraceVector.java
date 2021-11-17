@@ -57,7 +57,7 @@ public class TraceVector extends VectorToolBox
     //("Block data:"+currentBlocks.get(slot).getData());
 
     @SuppressWarnings("deprecation")
-    public boolean conflict(Block block)  //Might be air causing blast resistance?
+    public boolean conflict(Block block)  //Might be air causing blast resistance? Yup it is and it is fixed.
     {
         double blockStrength;
         double blockResistance;

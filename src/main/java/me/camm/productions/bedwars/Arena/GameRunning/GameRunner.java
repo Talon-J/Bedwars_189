@@ -290,17 +290,20 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event)  //for joining teams
     {
+        System.out.println("[debug]: clicked");
 
         if (event.getClickedInventory()==null||event.getClickedInventory().getTitle()==null)
             return;
 
 
         String title = event.getClickedInventory().getTitle();
+
         if (!titles.containsKey(title))
         {
             HumanEntity player = event.getWhoClicked();
             if (!player.getInventory().equals(event.getClickedInventory()))
                 return;
+
             //If the player has clicked their own inv.
 
             ItemStack stack = event.getCurrentItem();
@@ -313,6 +316,7 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
         }
 
         InventoryName inventoryName = titles.get(title);
+
         if (inventoryName == null)
             return;
 
@@ -495,7 +499,7 @@ as a string.
         Inventory inv = event.getClickedInventory();
         HumanEntity player = event.getWhoClicked();
 
-        if (!inv.equals(joinInventory)||!ItemHelper.isItemInvalid(event.getCurrentItem()))
+        if (!inv.equals(joinInventory)||ItemHelper.isItemInvalid(event.getCurrentItem()))
             return;
 
         if (isRunning)
@@ -509,8 +513,6 @@ as a string.
             return;
 
         ItemStack stack = event.getCurrentItem();
-        if (ItemHelper.isItemInvalid(stack))
-            return;
 
         String name = stack.getItemMeta().getDisplayName();
         event.setCancelled(true);

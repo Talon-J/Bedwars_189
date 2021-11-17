@@ -130,9 +130,9 @@ public class ItemInteractListener implements Listener
                     if (type != EntityType.IRON_GOLEM)
                         return;
 
-                    Golem golem = new Golem(currentPlayer.getTeam(), currentPlayer,arena,event.getClickedBlock().getLocation());
-                    entityListener.addEntity(golem);
+                    Golem golem = new Golem(currentPlayer.getTeam(), currentPlayer,arena,event.getClickedBlock().getLocation(),entityListener);
                     golem.spawn();
+                    entityListener.addEntity(golem);
                     updateInventory(player,Material.MONSTER_EGG);
                 }
                 break;

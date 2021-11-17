@@ -88,7 +88,7 @@ public class Coordinate
 
     public double[] getCoordinates()
     {
-        // System.out.println("Coords: "+x+"||"+y+"||"+z);
+
         return new double[]{x,y,z,yaw};
     }
 
@@ -100,6 +100,12 @@ public class Coordinate
     public void registerBlock(World world, String type, Plugin plugin)
     {
         world.getBlockAt((int)x,(int)y,(int)z).setMetadata(type,new FixedMetadataValue(plugin,1));
+    }
+
+    //Debug method.
+    public void print()
+    {
+         System.out.println("[DEBUG] Coords: "+x+"||"+y+"||"+z);
     }
 
 

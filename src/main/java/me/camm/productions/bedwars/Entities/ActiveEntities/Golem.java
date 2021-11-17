@@ -4,6 +4,7 @@ import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy.ILifeTimed;
+import me.camm.productions.bedwars.Listeners.EntityActionListener;
 import org.bukkit.Location;
 import org.bukkit.entity.IronGolem;
 import org.bukkit.entity.LivingEntity;
@@ -18,6 +19,7 @@ public class Golem implements ILifeTimed
     private final BattlePlayer owner;
     private final Arena arena;
     private IronGolem golem;
+    private final EntityActionListener listener;
 
     private static final int MAX_TIME;
     private int timeLeft;
@@ -27,12 +29,13 @@ public class Golem implements ILifeTimed
         MAX_TIME = 120;
     }
 
-    public Golem(BattleTeam team, BattlePlayer owner, Arena arena,Location toSpawn) {
+    public Golem(BattleTeam team, BattlePlayer owner, Arena arena,Location toSpawn,EntityActionListener listener) {
         this.team = team;
         this.owner = owner;
         this.arena = arena;
         this.timeLeft = MAX_TIME;
         this.toSpawn = toSpawn;
+        this.listener = listener;
     }
 
 
@@ -46,8 +49,10 @@ public class Golem implements ILifeTimed
             public void run() {
 
                 timeLeft --;
-                if (timeLeft <=0 || golem.isDead())
+                if (timeLeft <=0 || golem.isDead()) {
+                    unregister();
                     cancel();
+                }
             }
         }.runTaskTimer(arena.getPlugin(),0,20);
 
@@ -90,6 +95,8 @@ public class Golem implements ILifeTimed
                     golem.setPlayerCreated(false);
                     golem.setCustomName(team.getTeamColor().getName()+"'s Dream Defender");
                     golem.setHealth(20);
+                    register();
+                    handleLifeTime();
                 }
             }.runTask(arena.getPlugin());
             handleLifeTime();
@@ -102,8 +109,6 @@ public class Golem implements ILifeTimed
         return golem==null ? null : golem.getUniqueId();
     }
 
-
-
     @Override
     public BattleTeam getTeam() {
         return team;
@@ -111,12 +116,14 @@ public class Golem implements ILifeTimed
 
 
     @Override
-    public void register() {
-
+    public void register()
+    {
+     listener.addEntity(this);
     }
 
     @Override
     public void unregister() {
-
+        if (golem!=null)
+      listener.removeEntity(golem.getUniqueId());
     }
 }

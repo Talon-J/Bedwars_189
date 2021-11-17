@@ -221,7 +221,7 @@ public class ShopKeeper
         ( (CraftPlayer)player).getHandle().playerConnection.sendPacket(packet);
     }
 
-    public void setRotation() {
+    public void setRotationForAllPlayers() {
         npc.setLocation(npc.locX, npc.locY, npc.locZ, 0, (float) yaw);
         //int var1, byte var2, byte var3
         for (Player player : Bukkit.getOnlinePlayers()) {

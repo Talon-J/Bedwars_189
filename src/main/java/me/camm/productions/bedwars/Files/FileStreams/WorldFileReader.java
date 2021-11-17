@@ -2,7 +2,7 @@ package me.camm.productions.bedwars.Files.FileStreams;
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Files.FileKeywords.DataSeparatorKeys;
-import me.camm.productions.bedwars.Files.FileKeywords.WorldFileKeywords;
+import me.camm.productions.bedwars.Files.FileKeywords.WorldFileKeyword;
 import me.camm.productions.bedwars.Generators.Generator;
 import me.camm.productions.bedwars.Util.Helpers.StringToolBox;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
@@ -66,12 +66,12 @@ public class WorldFileReader extends StringToolBox
             for (String string: values)
             {
                 this.line = string;
-                WorldFileKeywords key = getKeyword(string);
+                WorldFileKeyword key = getKeyword(string);
                 if (key==null)
                     continue;
 
                 if (index!=key.getIndex()) {
-                    printConfigErrorReport(string, getWorldPath());
+                    printConfigErrorReport(string, getWorldPath(),key,index);
                     continue;
                 }
 
@@ -92,7 +92,7 @@ public class WorldFileReader extends StringToolBox
                             break;
 
                         case SPEC_SPAWN:
-                            this.spectatorSpawn = new Coordinate(getNumbers(getInfoSection(string)));
+                            this.spectatorSpawn = new Coordinate(getNumbers(string));
                             index = key.getIndex()+1;
                             break;
 
@@ -156,17 +156,17 @@ public class WorldFileReader extends StringToolBox
 
     //Dissects a string and returns a keyword, if possible, from the string part before the ":", trimmed.
     //returns null if the ":" dne
-    public WorldFileKeywords getKeyword(String original)
+    public WorldFileKeyword getKeyword(String original)
     {
         int index = original.indexOf(DataSeparatorKeys.DECLARATION.getKey());
         return index==-1? null: toWorldKey((original.substring(0,index)).trim());
     }
 
     //returns the keyword representation of a dissected string. Else returns null
-    private WorldFileKeywords toWorldKey(String dissected)
+    private WorldFileKeyword toWorldKey(String dissected)
     {
-      WorldFileKeywords[] words = WorldFileKeywords.values();
-      for (WorldFileKeywords word: words) {
+      WorldFileKeyword[] words = WorldFileKeyword.values();
+      for (WorldFileKeyword word: words) {
           if (word.getKey().equalsIgnoreCase(dissected))
               return word;
       }
@@ -188,14 +188,17 @@ public class WorldFileReader extends StringToolBox
         }
     }
 
-    private void printConfigErrorReport(String errorWhere, String fileName)
+    private void printConfigErrorReport(String errorWhere, String fileName, WorldFileKeyword expected, int received)
     {
         ConsoleCommandSender sender = this.plugin.getServer().getConsoleSender();
         sender.sendMessage(ChatColor.RED+"=======ERROR REPORT======");
         sender.sendMessage(ChatColor.RED+"Error Type: Configuration Error");
-        sender.sendMessage(ChatColor.RED +"BW [ERROR]: COULD NOT INITIALIZE DATA FROM THE FILE "+fileName+":");
-        sender.sendMessage(ChatColor.RED+"Error Caused By --> "+errorWhere);
-        sender.sendMessage(ChatColor.RED+"======END OF REPORT======");
+        sender.sendMessage(ChatColor.AQUA+"We expected to get "+expected.getKey()+" since it is the next word we need from the config");
+        sender.sendMessage(ChatColor.AQUA+"Since it's order number is "+expected.getIndex()+" but we received:");
+        sender.sendMessage(ChatColor.AQUA+errorWhere+" with the order number "+received);
+        sender.sendMessage(ChatColor.AQUA+"We may not be able to setup the arena in this case.");
+        sender.sendMessage(ChatColor.GOLD+"File location name: "+fileName);
+        sender.sendMessage(ChatColor.RED+"=======END OF REPORT======");
 
     }
 

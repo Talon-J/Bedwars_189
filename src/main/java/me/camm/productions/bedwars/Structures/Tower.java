@@ -297,7 +297,7 @@ A yaw of 270 represents the positive x direction. [E]
 
     }
 
-    private static enum AngledDirection
+    private enum AngledDirection
     {
         FORTY_FIVE(45),
         ONE_THIRTY_FIVE(135),

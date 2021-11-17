@@ -7,7 +7,9 @@ public enum DirectDeathMessage
     GRAVY_SAUCE(),
     TOOK_L(),
     NORMAL(),
-    CIRCUITS(),
+
+    CIRCUITS(),  //this should be a specific message for "robotic" people.
+
     BACK_STAB(),
     ATE_COOKIE(),
     SPOOKED(),

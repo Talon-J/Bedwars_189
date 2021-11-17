@@ -10,7 +10,7 @@ public enum Sites
 
     private final String url;
 
-    private Sites(String url)
+   Sites(String url)
     {
         this.url = url;
     }

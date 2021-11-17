@@ -1,7 +1,7 @@
 package me.camm.productions.bedwars.Generators;
 
 
-import me.camm.productions.bedwars.Files.FileKeywords.WorldFileKeywords;
+import me.camm.productions.bedwars.Files.FileKeywords.WorldFileKeyword;
 import me.camm.productions.bedwars.Util.GamePhase.EventTime;
 import me.camm.productions.bedwars.Util.Locations.BlockRegisterType;
 import me.camm.productions.bedwars.Util.Locations.GameBoundary;
@@ -87,7 +87,7 @@ public class Generator
         }
 
 
-        this.genType = spawning.equalsIgnoreCase(WorldFileKeywords.EMERALD.getKey()) ?
+        this.genType = spawning.equalsIgnoreCase(WorldFileKeyword.EMERALD.getKey()) ?
                 GeneratorType.EMERALD:GeneratorType.DIAMOND;
 
         this.type = genType.getSpinningBlockMaterial();
