@@ -3,11 +3,14 @@ package me.camm.productions.bedwars.Arena.Players.Managers;
 import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.*;
 import me.camm.productions.bedwars.Items.SectionInventories.Templates.ISectionInventory;
+import me.camm.productions.bedwars.Items.SectionInventories.Templates.InventorySetter;
 import me.camm.productions.bedwars.Util.DataSets.ItemSet;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
+import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 
@@ -42,6 +45,7 @@ public class PlayerInventoryManager
 
     public PlayerInventoryManager(ArrayList<ItemSet> quickBuyConfiguration, boolean isInflated)
     {
+
         armorSection = new ArmorSectionInventory(isInflated);
         quickBuy = new QuickBuySection(isInflated,quickBuyConfiguration);
         toolsSection = new ToolsSectionInventory(isInflated);
@@ -60,34 +64,16 @@ public class PlayerInventoryManager
 
 
     //Maybe there is a better way at doing this???
-    public ISectionInventory isSectionInventory(Inventory inv)
+    public boolean isSectionInventory(Inventory inv)
     {
-       if (armorSection.getInventory().equals(inv))
-           return armorSection;
-       else if (quickBuy.getInventory().equals(inv))
-           return quickBuy;
-       else if (toolsSection.getInventory().equals(inv))
-           return toolsSection;
-       else if (blockSection.getInventory().equals(inv))
-           return blockSection;
-       else if (meleeSection.getInventory().equals(inv))
-           return meleeSection;
-       else if (potionSection.getInventory().equals(inv))
-           return potionSection;
-       else if (rangedSection.getInventory().equals(inv))
-           return rangedSection;
-       else if (utilitySection.getInventory().equals(inv))
-           return utilitySection;
-       else
-        return null;
+      return inv instanceof InventorySetter;
     }
 
     public void replaceItem(GameItem toReplace, GameItem replacement)
     {
-        searchAndReplace(armorSection.getInventory(),toReplace, replacement);
-        searchAndReplace(quickBuy.getInventory(),toReplace, replacement);
-        searchAndReplace(toolsSection.getInventory(),toReplace, replacement);
-
+        searchAndReplace(armorSection,toReplace, replacement);
+        searchAndReplace(quickBuy,toReplace, replacement);
+        searchAndReplace(toolsSection,toReplace, replacement);
     }
 
     private void searchAndReplace(Inventory inv, GameItem toReplace, GameItem replacement)

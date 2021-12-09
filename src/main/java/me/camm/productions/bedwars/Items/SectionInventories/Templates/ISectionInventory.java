@@ -9,11 +9,9 @@ import java.util.ArrayList;
 
 public interface ISectionInventory
 {
-    Inventory setTemplate(Inventory inv, boolean isInflated, boolean includeEmpties);
+    void setTemplate(boolean isInflated, boolean includeEmpties);
     void setInventoryItems();
-    Inventory setItem(int index, GameItem item, Inventory inv, boolean isInflated);
-    Inventory getInventory();
-    void setItem(int slot, ItemStack item);
+    void setItem(int index, GameItem item, boolean isInflated);
     void setItem(int slot, GameItem item);
     ArrayList<ItemSet> packageInventory(Inventory inv);
 

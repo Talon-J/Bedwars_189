@@ -117,7 +117,7 @@ public class SoakBoundary
 
     //Expands(Or shrinks) the values by the factor.
     //Magnitude is original value + factor
-    //format is x1 x2 y1 y2 z1 z1
+    //format is x1 x2 y1 y2 z1 z2
     public void expand(int [] expansionFactor)
     {
         if (expansionFactor==null||expansionFactor.length!=6)
@@ -125,6 +125,8 @@ public class SoakBoundary
 
         for (int slot=0;slot< expansionFactor.length;slot++)
         {
+            //The values are already sorted, so we know which ones are smaller or larger, so we
+            //know to expand in the negative or positive direction.
             if (slot%2==0)
                 bounds[slot] += expansionFactor[slot]*-1;
             else
@@ -145,6 +147,11 @@ public class SoakBoundary
     EAST(),  //towards pos x
     SOUTH(),  //towards pos z
     WEST();  //towards neg x
+
+    Basically, a cube can become a flat surface if values are the same.
+    We are applying this concept to generate 6 faces, each for a cube wall
+    so that we get a hollow area in the middle instead of a cube
+    filled with particles when the sponge is used.
      */
     public PointWall generateWall(WallFace toCollapseUpon)
     {

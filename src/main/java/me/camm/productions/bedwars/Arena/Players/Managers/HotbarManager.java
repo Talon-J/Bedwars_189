@@ -4,15 +4,13 @@ import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
 import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
 import me.camm.productions.bedwars.Util.Helpers.IArenaWorldHelper;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
-import org.bukkit.ChatColor;
+
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
-import java.util.Arrays;
-import java.util.Objects;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.HOT_BAR_END;
 import static me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory.ARMOR;
@@ -129,9 +127,15 @@ public class HotbarManager implements IArenaWorldHelper
                    //move it deeper into the inventory.
                    if (ItemHelper.hasRoom(inventory,item,item.getAmount()))
                    {
-                       inventory.setItem(slot,item);
-                       inventory.addItem(stack);
-                       return;
+                       try {
+                           inventory.setItem(slot, item);
+                           return;
+                       }
+                       catch (IndexOutOfBoundsException ignored) {
+                           inventory.addItem(stack);
+                           return;
+                       }
+
                    }
                }
            }

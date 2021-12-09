@@ -14,6 +14,7 @@ import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryName.TEAM
 
 //import static me.camm.productions.bedwars.Util.KeyPhrases.TEAM_JOIN;
 
+//This class is not part of the other shop inventories. Not an instance of Inventory.
 public class TeamJoinInventory   //class to make inv for players to join teams
 {
     private Inventory inventory;

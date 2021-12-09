@@ -4,7 +4,9 @@ import me.camm.productions.bedwars.Items.ItemDatabases.DefaultTemplateNavigation
 import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
 import me.camm.productions.bedwars.Util.DataSets.ItemSet;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -13,18 +15,45 @@ import static me.camm.productions.bedwars.Items.ItemDatabases.DefaultTemplateNav
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_END;
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_START;
 
-public abstract class InventorySetter extends ItemHelper implements ISectionInventory
+//this is a subclass of inventory.
+public abstract class InventorySetter extends InventoryConfiguration implements ISectionInventory
 {
+    protected final boolean isInflated;
+
+    public InventorySetter(InventoryHolder owner, InventoryType type,boolean isInflated) {
+        super(owner, type);
+        this.isInflated = isInflated;
+    }
+
+    public InventorySetter(InventoryHolder owner, InventoryType type, String title,boolean isInflated) {
+        super(owner, type, title);
+        this.isInflated = isInflated;
+    }
+
+    public InventorySetter(InventoryHolder owner, int size,boolean isInflated) {
+        super(owner, size);
+        this.isInflated = isInflated;
+    }
+
+    public InventorySetter(InventoryHolder owner, int size, String title, boolean isInflated) {
+        super(owner, size, title);
+        this.isInflated = isInflated;
+    }
+
     @Override
-    public Inventory setItem(int index, GameItem item, Inventory inv, boolean isInflated) {
+    public void setItem(int slot, GameItem item) {
+        this.setItem(slot, item, false);
+    }
+
+    @Override
+    public void setItem(int index, GameItem item, boolean isInflated) {
         try
         {
-            inv.setItem(index, toDisplayItem(item, isInflated));
-            return inv;
+           super.setItem(index, ItemHelper.toDisplayItem(item, isInflated));
         }
-        catch (IndexOutOfBoundsException | NullPointerException e)
+        catch (IndexOutOfBoundsException | NullPointerException ignored)
         {
-            return inv;
+
         }
     }
 
@@ -35,7 +64,7 @@ public abstract class InventorySetter extends ItemHelper implements ISectionInve
     @param includeEmpties
      */
     @Override
-    public Inventory setTemplate(Inventory inv, boolean isInflated, boolean includeEmpties)
+    public void setTemplate(boolean isInflated, boolean includeEmpties)
     {
 
         for (DefaultTemplateNavigation template: DefaultTemplateNavigation.values())
@@ -45,19 +74,22 @@ public abstract class InventorySetter extends ItemHelper implements ISectionInve
 
             int[] range = template.getRange();
             for (int slot: range)
-                setItem(slot,template.getItem(),inv,isInflated);
+                setItem(slot,template.getItem(),isInflated);
+        }
+        if (includeEmpties)
+        {
+            fillEmpties();
         }
 
 
-        return includeEmpties ? fillEmpties(inv): inv;
     }
 
-    private Inventory fillEmpties(Inventory inv)
+    private void fillEmpties()
     {
         int[] range = EMPTY.getRange();
         for (int slot: range)
-            setItem(slot,EMPTY.getItem(),inv,false);
-        return inv;
+            setItem(slot,EMPTY.getItem(),false);
+
 
     }
 
@@ -67,7 +99,7 @@ public abstract class InventorySetter extends ItemHelper implements ISectionInve
         ArrayList<ItemSet> items = new ArrayList<>();
         for (int slot=QUICK_INV_BORDER_START.getValue();slot<=QUICK_INV_BORDER_END.getValue();slot++)
         {
-            if (isItemInvalid(inv.getItem(slot)))
+            if (ItemHelper.isItemInvalid(inv.getItem(slot)))
                 continue;
 
             ItemStack stack = inv.getItem(slot);

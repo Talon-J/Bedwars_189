@@ -23,6 +23,8 @@ public class InventoryOperationHelper
         gameItems = GameItem.values();
     }
 
+
+
     /*
     @Author CAMM
     Unfinished. Refactor to include section inventories.
@@ -59,7 +61,7 @@ public class InventoryOperationHelper
             return;
         }
 
-        if (manager.isSectionInventory(clickedInv)==null) {
+        if (manager.isSectionInventory(clickedInv)) {
             player.sendMessage("[DEBUG]inv is not a quick buy shop inventory");
             return;
         }
@@ -141,23 +143,23 @@ public class InventoryOperationHelper
         switch (item)
         {
             case ARMOR_NAV:
-                rawPlayer.openInventory(manager.getArmorSection().getInventory());
+                rawPlayer.openInventory(manager.getArmorSection());
                 break;
 
             case BLOCKS_NAV:
-                rawPlayer.openInventory(manager.getBlockSection().getInventory());
+                rawPlayer.openInventory(manager.getBlockSection());
                 break;
 
             case HOME_NAV:
-                rawPlayer.openInventory(manager.getQuickBuy().getInventory());
+                rawPlayer.openInventory(manager.getQuickBuy());
                 break;
 
             case MELEE_NAV:
-                rawPlayer.openInventory(manager.getMeleeSection().getInventory());
+                rawPlayer.openInventory(manager.getMeleeSection());
                 break;
 
             case TOOLS_NAV:
-                rawPlayer.openInventory(manager.getToolsSection().getInventory());
+                rawPlayer.openInventory(manager.getToolsSection());
                 break;
 
             case HOTBAR_NAV:
@@ -165,15 +167,15 @@ public class InventoryOperationHelper
                 break;
 
             case RANGED_NAV:
-                rawPlayer.openInventory(manager.getRangedSection().getInventory());
+                rawPlayer.openInventory(manager.getRangedSection());
                 break;
 
             case POTIONS_NAV:
-                rawPlayer.openInventory(manager.getPotionSection().getInventory());
+                rawPlayer.openInventory(manager.getPotionSection());
                 break;
 
             case UTILITY_NAV:
-                rawPlayer.openInventory(manager.getUtilitySection().getInventory());
+                rawPlayer.openInventory(manager.getUtilitySection());
         }
     }
 }
