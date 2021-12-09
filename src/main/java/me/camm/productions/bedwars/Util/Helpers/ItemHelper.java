@@ -178,8 +178,10 @@ public class ItemHelper implements IPlayerUtil
                 bought = toSoldItem(item,player);
                 if (bought == null)
                     return;
-                if (!hasRoom(player.getRawPlayer().getInventory(),bought))
+                if (!hasRoom(player.getRawPlayer().getInventory(),bought,bought.getAmount())) {
+                    player.sendMessage("You're inventory is full!");
                     return;
+                }
                 if (!didPay(player,item,isInflated))
                     return;
 
@@ -204,8 +206,11 @@ public class ItemHelper implements IPlayerUtil
             {
 
                 ItemStack boughtTool = toSoldItem(item, player);
-                if (!hasRoom(player.getRawPlayer().getInventory(),boughtTool))
+                if (player.getRawPlayer().getInventory().firstEmpty()==-1) {
+                    player.sendMessage("You're inventory is full!");
                     return;
+                }
+
                 if (!didPay(player,item,isInflated))
                     return;
 
@@ -296,7 +301,7 @@ public class ItemHelper implements IPlayerUtil
 
     //creates the item that is to be displayed in the shop, with price depending on player number
     @SuppressWarnings("deprecation")
-    public ItemStack toDisplayItem(GameItem item, boolean isInflated)
+    public static ItemStack toDisplayItem(GameItem item, boolean isInflated)
     {
         ItemCategory category = item.category;
 
@@ -509,7 +514,7 @@ public class ItemHelper implements IPlayerUtil
 
             default:
             {
-                potion = new Potion(PotionType.FIRE_RESISTANCE);
+                potion = new Potion(PotionType.FIRE_RESISTANCE); //adding the color to the potion
                 stack = potion.toItemStack(item.sellAmount);
                 PotionMeta meta = (PotionMeta)stack.getItemMeta();
                 meta.addCustomEffect(new PotionEffect(PotionEffectType.SPEED, SPEED_DURATION.getValue(), SPEED_LEVEL.getValue(),true),true);
@@ -665,7 +670,7 @@ public class ItemHelper implements IPlayerUtil
                 break;
 
             default:
-                name = "Umm... Something... I dunno :/";
+                name = "Umm... Something...grass blocks?";
         }
         return name;
     }
@@ -797,11 +802,14 @@ public class ItemHelper implements IPlayerUtil
     }
 
 
+    //orders itemstacks determinant on armor format.
     public static ItemStack[] orderArmor(ItemStack head, ItemStack chest, ItemStack legs, ItemStack boots)
     {
         return new ItemStack[] {boots, legs, chest, head};
     }
 
+
+    //If the stack is used as currency
     public static boolean isCurrencyItem(ItemStack stack)
     {
         if (stack == null)
@@ -816,7 +824,9 @@ public class ItemHelper implements IPlayerUtil
        player.getInventory().setArmorContents(items);
     }
 
-    public TieredItem getNextTier(TieredItem current)
+
+
+    public static TieredItem getNextTier(TieredItem current)
     {
         for (TieredItem item: tieredItemList)
         {
@@ -836,6 +846,8 @@ public class ItemHelper implements IPlayerUtil
         return null;
     }
 
+
+
     public static ItemStack hideFlags(ItemStack item)
     {
         if (isItemInvalid(item))
@@ -844,6 +856,7 @@ public class ItemHelper implements IPlayerUtil
        ItemMeta meta = item.getItemMeta();
        meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+       meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
        item.setItemMeta(meta);
        return item;
     }
@@ -865,6 +878,25 @@ public class ItemHelper implements IPlayerUtil
         return stack;
     }
 
+    //Try to associate an itemstack to a game item.
+    //Note that the empty slot game item has a sell item of glass pane , while the rest have sell item of air.
+    public static GameItem getAssociate(ItemStack stack)
+    {
+        if (stack == null)
+            return null;
+
+        if (stack.getItemMeta()==null)
+            return null;
+
+        Material mat = stack.getType();
+        for (GameItem item: GameItem.values())
+            if (mat == item.sellMaterial)
+                return item;
+
+            return null;
+
+    }
+
     public static ItemStack setColor(ItemStack stack, Color color)
     {
         if (isItemInvalid(stack)) {
@@ -883,11 +915,14 @@ public class ItemHelper implements IPlayerUtil
         }
     }
 
-    public static boolean hasRoom(Inventory inv, ItemStack stack)
+    public static boolean hasRoom(Inventory inv, ItemStack stack, int addAmount)
     {
-        long freeSpace = Arrays.stream(inv.getContents()).filter(item -> {
-          return item == null || (item.equals(stack) && (item.getMaxStackSize() != item.getAmount()));
-        }).count();
+        long freeSpace = Arrays.stream(inv.getContents()).filter(item -> item == null ||
+                (
+                        item.equals(stack) &&
+                        (item.getMaxStackSize() >= (item.getAmount()+addAmount))
+                )
+        ).count();
 
         return freeSpace >= 1;
     }

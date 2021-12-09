@@ -766,10 +766,15 @@ public class BattlePlayer implements IPlayerUtil
 
     public synchronized void setPick(TieredItem pick) {
         this.pick = pick;
+        TieredItem upgrade = ItemHelper.getNextTier(pick);
+        shopManager.replaceItem(pick.getItem(),upgrade == null? pick.getItem(): upgrade.getItem());
+
     }
 
     public synchronized void setAxe(TieredItem axe) {
         this.axe = axe;
+        TieredItem upgrade = ItemHelper.getNextTier(axe);
+        shopManager.replaceItem(axe.getItem(),upgrade == null? axe.getItem(): upgrade.getItem());
     }
 
     /*

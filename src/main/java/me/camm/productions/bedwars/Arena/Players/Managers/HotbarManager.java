@@ -1,5 +1,6 @@
 package me.camm.productions.bedwars.Arena.Players.Managers;
 
+import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
 import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
 import me.camm.productions.bedwars.Util.Helpers.IArenaWorldHelper;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
@@ -21,7 +22,7 @@ import static me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory.MELEE
 /*
 TODO:
 - Add an inventory for when the player modifies their hotbar manager.
-- see if the manager is active or passive, code appropriately for that.
+- see if the manager is active or passive, code appropriately for that. We now know it is active
 
 
  */
@@ -85,6 +86,8 @@ public class HotbarManager implements IArenaWorldHelper
             return;
 
         Inventory inventory = player.getInventory();
+
+        //First we try to put it in the preferred slot and replace items.
        for (int slot=0;slot<layout.length;slot++)
        {
            if (layout[slot]==null)
@@ -99,15 +102,44 @@ public class HotbarManager implements IArenaWorldHelper
                }
                else
                {
-                  /*
-                  Not enough info. Is the manager "active" as in it will override existing items and
-                  replace them, putting them elsewhere, or is it passive as in it will only use slots that are empty?
-                   */
+                   //at this point we know that it is not null.
+                   ItemStack stack = inventory.getItem(slot);
 
+                   //It's likely not part of the game, so let's just replace it.
+                   if (stack.getItemMeta()==null)
+                   {
+                       inventory.setItem(slot,item);
+                       return;
+                   }
+
+                   GameItem itemCharted = ItemHelper.getAssociate(stack);
+
+                   //It's not part of the game, so let's just replace it.
+                   if (itemCharted == null)
+                   {
+                       inventory.setItem(slot,item);
+                       return;
+                   }
+
+                   //if it is the same, don't replace it
+                   if (category == itemCharted.category)
+                       continue;
+
+                   //If the inventory has room, and the categories are not the same, then replace the item and
+                   //move it deeper into the inventory.
+                   if (ItemHelper.hasRoom(inventory,item,item.getAmount()))
+                   {
+                       inventory.setItem(slot,item);
+                       inventory.addItem(stack);
+                       return;
+                   }
                }
            }
-
        }
+
+       //if for some reason the layout is clear of any preferences...
+       if (ItemHelper.hasRoom(inventory, item,item.getAmount()))
+          inventory.addItem(item);
 
     }
 

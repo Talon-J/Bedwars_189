@@ -5,6 +5,7 @@ import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Players.Managers.PlayerInventoryManager;
 import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
 import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
+import me.camm.productions.bedwars.Items.SectionInventories.Inventories.QuickBuySection;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -99,12 +100,13 @@ public class InventoryOperationHelper
             //accounts for team enchants.
             //This section is unfinished. We need to account for if the player shift-clicks the item.
             //(We remove it from quick buy in this case)
+            QuickBuySection quickBuy = manager.getQuickBuy();
 
-            if (manager.getQuickBuy().getInventory().equals(clickedInv))
+            if (quickBuy.getInventory().equals(clickedInv))
             {
                 if (event.getClick().isShiftClick())
                 {
-                    manager.getQuickBuy().setItem(event.getRawSlot(),GameItem.EMPTY_SLOT);
+                    quickBuy.setItem(event.getRawSlot(),GameItem.EMPTY_SLOT);
                 }
                 else
                     ItemHelper.sellItem(clickedItem, currentPlayer, isInflated);

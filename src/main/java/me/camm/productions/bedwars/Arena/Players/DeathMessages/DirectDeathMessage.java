@@ -15,4 +15,5 @@ public enum DirectDeathMessage
     SPOOKED(),
     SWORDS(),
     SHOT(),
+    BECAME_A_PLUGIN_DEV(),
 }
