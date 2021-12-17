@@ -4,6 +4,7 @@ import me.camm.productions.bedwars.Items.ItemDatabases.DefaultTemplateNavigation
 import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
 import me.camm.productions.bedwars.Util.DataSets.ItemSet;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
+import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftInventoryCustom;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -16,14 +17,9 @@ import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_START;
 
 //this is a subclass of inventory.
-public abstract class InventorySetter extends InventoryConfiguration implements ISectionInventory
+public abstract class InventorySetter extends CraftInventoryCustom implements ISectionInventory
 {
     protected final boolean isInflated;
-
-    public InventorySetter(InventoryHolder owner, InventoryType type,boolean isInflated) {
-        super(owner, type);
-        this.isInflated = isInflated;
-    }
 
     public InventorySetter(InventoryHolder owner, InventoryType type, String title,boolean isInflated) {
         super(owner, type, title);
@@ -87,8 +83,10 @@ public abstract class InventorySetter extends InventoryConfiguration implements 
     private void fillEmpties()
     {
         int[] range = EMPTY.getRange();
-        for (int slot: range)
-            setItem(slot,EMPTY.getItem(),false);
+        for (int slot: range) {
+            if (getItem(slot)==null || getItem(slot).getItemMeta()==null)
+            setItem(slot, EMPTY.getItem(), false);
+        }
 
 
     }
