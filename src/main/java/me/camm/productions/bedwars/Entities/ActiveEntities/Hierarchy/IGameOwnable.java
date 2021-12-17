@@ -7,10 +7,3 @@ public interface IGameOwnable extends IGameTeamable
     BattlePlayer getOwner();
     String getName();
 }
-
-/*
-                 IGameTeamable
-
-
-          IGameOwnable  IGameAutonomous
- */

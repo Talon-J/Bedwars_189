@@ -1,9 +1,17 @@
 package me.camm.productions.bedwars;
 
+import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.GameRunning.Commands.CommandKeyword;
 import me.camm.productions.bedwars.Arena.GameRunning.Commands.SetUp;
+import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Entities.PacketHandler;
 import me.camm.productions.bedwars.Files.FileCreators.DirectoryCreator;
+import me.camm.productions.bedwars.Files.FileStreams.GameFileWriter;
+import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
+import me.camm.productions.bedwars.Items.SectionInventories.Inventories.QuickBuySection;
+import me.camm.productions.bedwars.Util.DataSets.ItemSet;
+import me.camm.productions.bedwars.Util.Helpers.StringToolBox;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -13,6 +21,8 @@ import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 public final class BedWars extends JavaPlugin
@@ -79,10 +89,45 @@ public final class BedWars extends JavaPlugin
         }
 
 
+        Arena arena = initialization.getArena();
+        if (arena == null)
+            return;
+
+
+            StringToolBox box = new StringToolBox(this);
+            Collection<BattlePlayer> registered = arena.getPlayers().values();
+
+        //writing to bar file
+            registered.forEach(battlePlayer -> {
+               ItemCategory[] barItems = battlePlayer.getBarManager().getLayout();
+                GameFileWriter barWriter = new GameFileWriter(box.getPlayerPath(battlePlayer.getRawPlayer()),this);
+                barWriter.clear();
+                ArrayList<String> valueList = new ArrayList<>();
+
+               Arrays.stream(barItems).forEach(item -> valueList.add(item.toString()));
+               String[] barList = valueList.toArray(new String[valueList.size()]);
+               barWriter.write(barList,false);
+
+               //writing to shop file
+                QuickBuySection playerShop = battlePlayer.getShopManager().getQuickBuy();
+               ArrayList<ItemSet> shopSet = playerShop.packageInventory(playerShop);
+
+               GameFileWriter shopWriter = new GameFileWriter(box.getInventoryPath(battlePlayer.getRawPlayer()),this);
+               ArrayList<String> shopList = new ArrayList<>();
+               shopSet.forEach(pack -> shopList.add(pack.toString()));
+               String[] shopWriteList = shopList.toArray(new String[shopList.size()]);
+               shopWriter.write(shopWriteList,false);
+
+            });
+
+
+
+
+
         //Save all the players things here and put them into their files.
     }
 
-    private void send(Packet packet, Player player)
+    private void send(Packet<?> packet, Player player)
     {
         ((CraftPlayer)player).getHandle().playerConnection.sendPacket(packet);
     }
@@ -97,17 +142,14 @@ TODO: (In the very near future)
  - Inventories for quick buy. Create. [DONE]. Do the team inventories now. [Add the functionality later]
  - Bridge egg. [DONE] Please Integrate after enderpearls.
  - for some reason, players can shift-click items into the shop. Fix.
- - Health of players is still not accurate for below name. Fix. (Use packets)
  - One of the events, the bed destroyed one does not play a title for certain players. Fix.
- - The scoreboard gets stuck on emerald II at 5 mins. Should be good. Verify please. [DONE]
- - Invis is done. Check to see if there are glitches regarding distances (Invis far away, come close, see if they can see.) [Seems to be good...]
- - Do the research for overriding the EntityEnderDraon class [IN PROGRESS] - remember to register it!
+ - Do the research for overriding the EntityEnderDragon class [IN PROGRESS] - remember to register it!
  - Find a better solution to the explosives problem.
- - Do research on packets, specifically those for scores relating to health, and packet 1018 in playOutWorldEvent (See dragonAPI)
  - Do testing while the player is in spectator
- - see why the player's armor is not removed when in spectator
- - determine if the hotbarmanager should be active or passive. Change the code in battleplayer to reflect these changes
- - verify that enchantments for tools are actually applied.
+ - The hotbar manager is active. Refactor code please. Also, whenever a player buys a tool, it does not replace that tool. Please fix that.
+ - For the checks of if the bed still exists, also add a check for if the block has metadata
+ - add code for the dragon spawning locations and trap locations
+ - So the degradable items are updated upwards, but they are not undated downwards when a player dies. pls fix that.
 
 
  NOTE: The check for opposition in the CLASS "Setup" is currently ----   ---- disabled for testing purposes.

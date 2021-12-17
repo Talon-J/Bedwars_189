@@ -49,7 +49,6 @@ TODO: Add code to create the dream defender spawn egg formal [DONE]
 public class ItemHelper implements IPlayerUtil
 {
   private static final ArrayList<GameItem> restrictedFileItems;
-  private static final ArrayList<GameItem> inventoryItems;
   private static final ArrayList<TieredItem> tieredItemList;
   private static final ArrayList<TieredItem> lowestTiers;
 
@@ -59,7 +58,7 @@ public class ItemHelper implements IPlayerUtil
          GameItem[] inventory = GameItem.values();
 
          restrictedFileItems = new ArrayList<>();
-         inventoryItems = new ArrayList<>();
+
          tieredItemList = new ArrayList<>();
          lowestTiers = new ArrayList<>();
 
@@ -69,8 +68,6 @@ public class ItemHelper implements IPlayerUtil
              if (item.getIndex() == 0)
                  lowestTiers.add(item);
          }
-
-         inventoryItems.addAll(Arrays.asList(inventory));
 
          for (GameItem item : inventory) {
              if (item.category != NAV)
@@ -271,6 +268,14 @@ public class ItemHelper implements IPlayerUtil
                 stack = getPotion(item);
                 break;
 
+            case TOOLS:
+                stack = toDegradableTool(item);
+                break;
+
+            case MELEE:
+                stack = hideFlags(setUnbreakable(new ItemStack(item.sellMaterial,item.sellAmount)));
+                break;
+
             case RANGED:
                 stack = toRangedItem(item);
                 break;
@@ -281,6 +286,7 @@ public class ItemHelper implements IPlayerUtil
                 break;
 
             default: {
+
                 if (item== GameItem.DREAM_DEFENDER)
                     stack = new ItemStack(item.sellMaterial,1,EntityType.IRON_GOLEM.getTypeId());
                     else
@@ -288,12 +294,59 @@ public class ItemHelper implements IPlayerUtil
             }
         }
 
-        if (stack!=null&&(item.category==TOOLS||item.category==MELEE))
-       stack = hideFlags(setUnbreakable(stack));
+        if (stack == null)
+            return null;
+
 
        if (item.keepName)
           return addName(stack,item);
        return stack;
+    }
+
+    public static ItemStack toDegradableTool(GameItem item)
+    {
+        if (item == null)
+            return null;
+
+        ItemCategory category = item.category;
+        if (category != TOOLS)
+            return null;
+
+        ItemStack stack = new ItemStack(item.sellMaterial,item.sellAmount);
+
+        switch (item)
+        {
+
+            //eff 1
+            case WOOD_AXE:
+            case WOODEN_PICKAXE:
+            case STONE_AXE:
+                stack = enchant(setUnbreakable(stack),EFFICIENCY_ONE);
+                break;
+
+
+            //eff 2
+            case IRON_PICKAXE:
+            case IRON_AXE:
+                stack = enchant(setUnbreakable(stack),EFFICIENCY_TWO);
+                break;
+
+            //eff 3
+            case DIAMOND_PICKAXE:
+            case DIAMOND_AXE:
+                stack = enchant(setUnbreakable(stack),EFFICIENCY_THREE);
+                break;
+
+            //eff + sharp
+            case GOLD_PICKAXE:
+                stack = enchant(setUnbreakable(stack),EFFICIENCY_THREE);
+                stack = enchant(stack, SHARPNESS_TWO);
+                break;
+
+        }
+
+
+        return hideFlags(stack);
     }
 
 
@@ -317,16 +370,19 @@ public class ItemHelper implements IPlayerUtil
                 stack = addName(new ItemStack(item.sellMaterial,item.sellAmount),item);
                 break;
 
+            case TOOLS:
+                stack = addLore(addName(toDegradableTool(item),item),item,isInflated);
+                break;
+
             case NONE:
             case SEPARATOR:
                 stack =  addName(createGlassPane(category),item);
                 break;
 
             default: {
-               if (item== GameItem.DREAM_DEFENDER)
-                   stack = addLore(addName(new ItemStack(item.sellMaterial,1, EntityType.IRON_GOLEM.getTypeId()),item),item,isInflated);
-                else
-                stack = addLore(addName(new ItemStack(item.sellMaterial, item.sellAmount), item), item, isInflated);
+
+                stack = (item == GameItem.DREAM_DEFENDER) ? addLore(addName(new ItemStack(item.sellMaterial, 1, EntityType.IRON_GOLEM.getTypeId()), item), item, isInflated)
+                      : addLore(addName(new ItemStack(item.sellMaterial, item.sellAmount), item), item, isInflated);
             }
         }
       return stack;
@@ -415,8 +471,8 @@ public class ItemHelper implements IPlayerUtil
         ItemStack boots;
 
 
-        head = hideFlags(enchant(setColor(setUnbreakable(new ItemStack(Material.LEATHER_HELMET)),color),AQUA));
-        chest = hideFlags(setColor(setUnbreakable(new ItemStack(Material.LEATHER_CHESTPLATE)), color));
+        head = hideFlags(enchant(setColor(setUnbreakable(new ItemStack(LEATHER_HELMET)),color),AQUA));
+        chest = hideFlags(setColor(setUnbreakable(new ItemStack(LEATHER_CHESTPLATE)), color));
 
 
         //set the armor to unbreakable first before adding enchants or color.
@@ -424,24 +480,24 @@ public class ItemHelper implements IPlayerUtil
         switch (item)
         {
             case LEATHER_ARMOR:
-                legs = hideFlags(setColor(setUnbreakable(new ItemStack(Material.LEATHER_LEGGINGS)), color));
-                boots = hideFlags(setColor(setUnbreakable(new ItemStack(Material.LEATHER_BOOTS)), color));
+                legs = hideFlags(setColor(setUnbreakable(new ItemStack(LEATHER_LEGGINGS)), color));
+                boots = hideFlags(setColor(setUnbreakable(new ItemStack(LEATHER_BOOTS)), color));
                 break;
 
             case CHAIN_MAIL:
-                legs = hideFlags(setUnbreakable(new ItemStack(Material.CHAINMAIL_LEGGINGS)));
-                boots = hideFlags(setUnbreakable(new ItemStack(Material.CHAINMAIL_BOOTS)));
+                legs = hideFlags(setUnbreakable(new ItemStack(CHAINMAIL_LEGGINGS)));
+                boots = hideFlags(setUnbreakable(new ItemStack(CHAINMAIL_BOOTS)));
                 break;
 
             case IRON_ARMOR:
-                legs  = hideFlags(setUnbreakable(new ItemStack(Material.IRON_LEGGINGS)));
-                boots = hideFlags(setUnbreakable(new ItemStack(Material.IRON_BOOTS)));
+                legs  = hideFlags(setUnbreakable(new ItemStack(IRON_LEGGINGS)));
+                boots = hideFlags(setUnbreakable(new ItemStack(IRON_BOOTS)));
                 break;
 
             //diamond armor
             default:
-                legs = hideFlags(setUnbreakable(new ItemStack(Material.DIAMOND_LEGGINGS)));
-                boots = hideFlags(setUnbreakable(new ItemStack(Material.DIAMOND_BOOTS)));
+                legs = hideFlags(setUnbreakable(new ItemStack(DIAMOND_LEGGINGS)));
+                boots = hideFlags(setUnbreakable(new ItemStack(DIAMOND_BOOTS)));
         }
 
 
@@ -522,7 +578,7 @@ public class ItemHelper implements IPlayerUtil
             }
 
         }
-        return stack;
+        return hideFlags(stack);
     }
 
     /*
@@ -537,6 +593,33 @@ public class ItemHelper implements IPlayerUtil
         return original;
     }
 
+    public static boolean isSword(GameItem item)
+    {
+        if (item == null)
+            return false;
+
+        return isSword(item.sellMaterial);
+    }
+
+    public static boolean isSword(Material mat)
+    {
+        if (mat == null)
+            return false;
+
+        boolean sword = false;
+
+        switch (mat)
+        {
+            case WOOD_SWORD:
+            case STONE_SWORD:
+            case DIAMOND_SWORD:
+            case IRON_SWORD:
+            case GOLD_SWORD:
+                sword = true;
+        }
+        return sword;
+    }
+
 
 
     public static boolean isInQuickBuyRange(int slot)
@@ -544,25 +627,6 @@ public class ItemHelper implements IPlayerUtil
         return slot>=QUICK_INV_BORDER_START.getValue()&&slot<= QUICK_INV_BORDER_END.getValue();
     }
 
-    public ItemStack transferEnchantments(ItemStack from, ItemStack to)
-    {
-        if (isItemInvalid(from)||isItemInvalid(to))
-            return to;
-        to.addUnsafeEnchantments(from.getEnchantments());
-        return to;
-    }
-
-
-
-    public GameItem getInventoryItem(String name)
-    {
-        for (GameItem item: inventoryItems)
-        {
-            if (item.name.equalsIgnoreCase(name))
-                return item;
-        }
-        return null;
-    }
 
     //adds a specific enchantment to all items in the array
     public static ItemStack[] addArmorEnchants(ItemStack[] values, BattleEnchantment enchantment)

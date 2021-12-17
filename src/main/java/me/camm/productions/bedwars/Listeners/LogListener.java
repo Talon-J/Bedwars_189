@@ -67,20 +67,7 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
         //setting the quit message
         BattlePlayer current = registeredPlayers.get(event.getPlayer().getUniqueId());
         event.setQuitMessage(current.getTeam().getColor().getChatColor()+current.getRawPlayer().getName()+ ChatColor.YELLOW+" has Quit!");
-
-        //Clear their inventory when they log out.
-        Arrays.stream(current.getRawPlayer().getInventory().getContents()).filter(item -> {
-
-            if (item == null)
-                return false;
-
-            Material mat = item.getType();
-
-            return mat==Material.DIAMOND || mat == Material.IRON_INGOT || mat == Material.GOLD_INGOT || mat == Material.EMERALD;
-        }).forEach(item -> dropItem(item,arena.getWorld(),current.getRawPlayer().getLocation(),plugin));
-        clearInventory(current);
-
-
+        current.dropInventory();
 
         if (!runner.isRunning()) {
             RunningTeamHelper.updateTeamBoardStatus(registeredPlayers.values());

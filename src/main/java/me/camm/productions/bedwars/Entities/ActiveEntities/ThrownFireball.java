@@ -36,6 +36,8 @@ public class ThrownFireball implements IGameOwnable
                 .add(player.getLocation().getDirection().multiply(1.25)).toLocation
                         (player.getWorld(), player.getLocation().getYaw(), player.getLocation().getPitch()),Fireball.class);  //Most likely 1.25
 
+
+        //Note: set to 0 for physics.
         ball.setYield((float)4.0);
         ball.setShooter(player);
 

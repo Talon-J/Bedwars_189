@@ -17,12 +17,18 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.List;
+import java.util.Random;
 
 import static me.camm.productions.bedwars.Util.GamePhase.EventTime.*;
 
 public class Generator
 {
-    private final static int groupedPlayerNumber = 3;
+
+    private final static int GROUPED_PLAYER_NUMBER;
+
+    static {
+        GROUPED_PLAYER_NUMBER = 3;
+    }
 
 
 
@@ -315,7 +321,7 @@ public class Generator
 
         } //for
 
-        if (playerNumber<groupedPlayerNumber)
+        if (playerNumber< GROUPED_PLAYER_NUMBER)
         {
             switch (genType)
             {

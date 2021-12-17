@@ -5,18 +5,23 @@ import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Entities.ActiveEntities.Golem;
 import me.camm.productions.bedwars.Entities.ActiveEntities.ThrownFireball;
 import me.camm.productions.bedwars.Entities.PacketHandler;
+import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -24,6 +29,7 @@ import org.bukkit.material.SpawnEgg;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -156,6 +162,44 @@ public class ItemInteractListener implements Listener
         //also put in above method.
     }
 
+    @EventHandler
+    public void onItemDrop(PlayerDropItemEvent event)
+    {
+        Player player = event.getPlayer();
+        ConcurrentHashMap<UUID, BattlePlayer> registered = arena.getPlayers();
+        if (!registered.containsKey(player.getUniqueId()))
+            return;
+
+        Item dropped = event.getItemDrop();
+
+        ItemStack stack = dropped.getItemStack();
+        if (stack==null || stack.getItemMeta() == null)
+            return;
+
+        BattlePlayer current = registered.get(player.getUniqueId());
+        GameItem item = ItemHelper.getAssociate(stack);
+        if (!ItemHelper.isSword(item))
+            return;
+
+        if (item == GameItem.WOODEN_SWORD || (stack.getType() == Material.WOOD_SWORD)) {
+            event.setCancelled(true);
+            return;
+        }
+
+        Inventory inv = player.getInventory();
+
+        long count = Arrays.stream(inv.getContents()).filter(itemstack -> {
+            if (itemstack != null  && itemstack.getItemMeta() != null)
+                return ItemHelper.isSword(itemstack.getType());
+            else return false;
+        }).count();
+
+        if (count <= 0)
+            current.getBarManager().set(ItemHelper.toSoldItem(GameItem.WOODEN_SWORD,current),GameItem.WOODEN_SWORD.category,current.getRawPlayer());
+
+
+    }
+
 
 
     public void updateMap(Player player)
@@ -181,10 +225,9 @@ public class ItemInteractListener implements Listener
             Long value = coolDown.get(player.getUniqueId());
             if (System.currentTimeMillis()>=value)  //if the cooldown has run out [system time is greater]
             {
-                coolDown.remove(player.getUniqueId());
-                entityListener.addEntity(new ThrownFireball(plugin,currentlyRegistered));
                 updateInventory(player,Material.FIREBALL);
-                coolDown.put(player.getUniqueId(),System.currentTimeMillis()+DELAY);
+                coolDown.replace(player.getUniqueId(),System.currentTimeMillis()+DELAY);
+                new ThrownFireball(plugin,currentlyRegistered);
             }
             else //otherwise if the cooldown has not run out yet
             {

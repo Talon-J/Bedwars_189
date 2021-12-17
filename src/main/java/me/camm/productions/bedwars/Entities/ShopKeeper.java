@@ -203,8 +203,7 @@ public class ShopKeeper
         sendPacket(player, new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER,npc));
         sendPacket(player, new PacketPlayOutNamedEntitySpawn(npc));
         sendPacket(player, new PacketPlayOutEntityMetadata(npc.getId(),watcher,true));
-//(Entity var1, int var2)
-        //new PacketPlayOutAnimation()
+
         new BukkitRunnable()
         {
             public void run()
@@ -216,7 +215,7 @@ public class ShopKeeper
 
     }
 
-    public void sendPacket(Player player, Packet packet)
+    public void sendPacket(Player player, Packet<?> packet)
     {
         ( (CraftPlayer)player).getHandle().playerConnection.sendPacket(packet);
     }
@@ -233,7 +232,7 @@ public class ShopKeeper
     {
         sendPacket(player, new PacketPlayOutEntityHeadRotation(npc, (byte) (yaw * 256 / 360)));
         sendPacket(player, new PacketPlayOutEntity.PacketPlayOutEntityLook(npc.getId(), (byte) (yaw * 256 / 360), (byte)0, true));
-        sendPacket(player, new PacketPlayOutAnimation(npc, 0));
+        sendPacket(player, new PacketPlayOutAnimation(npc, 0)); //pitch
 
         new BukkitRunnable()
         {

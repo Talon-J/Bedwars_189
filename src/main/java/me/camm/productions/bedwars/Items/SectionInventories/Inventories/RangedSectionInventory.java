@@ -4,10 +4,10 @@ package me.camm.productions.bedwars.Items.SectionInventories.Inventories;
 import me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation;
 import me.camm.productions.bedwars.Items.ItemDatabases.InventoryName;
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.RangedConfig;
-import me.camm.productions.bedwars.Items.SectionInventories.Templates.InventorySetter;
+import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
 
 
-public class RangedSectionInventory extends InventorySetter {
+public class RangedSectionInventory extends ShopInventorySetter {
 
     public RangedSectionInventory(boolean isInflated)
     {

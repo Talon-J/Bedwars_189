@@ -7,6 +7,7 @@ import me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy.ILifeTimed;
 import me.camm.productions.bedwars.Listeners.EntityActionListener;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Silverfish;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -62,14 +63,16 @@ public class BedBug implements ILifeTimed
 
 
 
-    public synchronized void handleEntityTarget(LivingEntity toTarget)
+    public synchronized void handleEntityTarget(Entity toTarget)
     {
-        bug.setTarget(toTarget);
+        if (toTarget instanceof LivingEntity)
+        bug.setTarget((LivingEntity)toTarget);
     }
 
     @Override
     public void handleLifeTime()
     {
+        listener.addEntity(this);
         new BukkitRunnable() {
             @Override
             public void run()
@@ -84,11 +87,11 @@ public class BedBug implements ILifeTimed
                 aliveTime --;
                 if (aliveTime <=0)
                 {
+                    bug.remove();
                     unregister();
                     remove();
                     cancel();
                 }
-
             }
         }.runTaskTimer(arena.getPlugin(),0,20);
     }

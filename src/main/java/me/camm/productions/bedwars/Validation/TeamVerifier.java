@@ -2,7 +2,7 @@ package me.camm.productions.bedwars.Validation;
 
 public class TeamVerifier
 {
-    //this package would be used for verifying that the info in the setup files don't conflict
+    //this class would be used for verifying that the info in the setup files don't conflict
     /*
     e.g
     if the shopkeepers are in air, not a wall

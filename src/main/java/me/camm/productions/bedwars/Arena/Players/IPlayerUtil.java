@@ -3,6 +3,7 @@ package me.camm.productions.bedwars.Arena.Players;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Arena.Teams.TeamTitle;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeaders.TEAM_ALIVE;
 import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeaders.TEAM_DEAD;
@@ -43,6 +44,7 @@ public interface IPlayerUtil
     }
     default void clearInventory(Player player) {
         player.getInventory().clear();
+        player.getInventory().setArmorContents(new ItemStack[]{null,null,null,null});
     }
 
 

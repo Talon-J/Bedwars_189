@@ -17,19 +17,6 @@ public class PointWall extends SoakBoundary
         super(x1, x2, y1, y2, z1, z2);
     }
 
-    private void verify()
-    {
-        double[] values = getValues();
-        for (int slot=0;slot<values.length-1;slot++)
-        {
-            double pos1 = values[slot];
-            double pos2 = values[slot+1];
-
-            if (pos1==pos2)
-                return;
-        }
-        collapse(WallFace.DOWN);
-    }
 
     public ArrayList<Location> iterate(double precision, World world)
     {

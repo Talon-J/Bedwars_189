@@ -4,9 +4,9 @@ package me.camm.productions.bedwars.Items.SectionInventories.Inventories;
 import me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation;
 import me.camm.productions.bedwars.Items.ItemDatabases.InventoryName;
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.UtilityConfig;
-import me.camm.productions.bedwars.Items.SectionInventories.Templates.InventorySetter;
+import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
 
-public class UtilitySectionInventory extends InventorySetter {
+public class UtilitySectionInventory extends ShopInventorySetter {
 
 
     public UtilitySectionInventory(boolean isInflated) {

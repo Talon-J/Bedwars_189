@@ -326,7 +326,9 @@ It is up to the calling method to update the scoreboards of the players.
         return forge;
     }
 
-
+    public Coordinate getChest() {
+        return chest;
+    }
 
     public String getTeamPrefix() {
         return teamPrefix;

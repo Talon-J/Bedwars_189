@@ -2,6 +2,7 @@ package me.camm.productions.bedwars.Util.Locations;
 
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
 
@@ -112,6 +113,13 @@ public class Coordinate
     public SoakBoundary toBoundaryPoint()
     {
         return new SoakBoundary(x,x,y,y,z,z);
+    }
+
+    public boolean isBlock(World world, Block comparison)
+    {
+        Block coord = getAsLocation(world).getBlock();
+        return coord.equals(comparison);
+
     }
 
 }

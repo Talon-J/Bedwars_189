@@ -6,6 +6,13 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.plugin.Plugin;
 
+
+/*
+Notes for generic classes:
+
+t cannot be instantiated directly. So that means that you will need to throw an illegal
+args exception and handle it externally.
+ */
 import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.*;
 
 public class BridgeFiller

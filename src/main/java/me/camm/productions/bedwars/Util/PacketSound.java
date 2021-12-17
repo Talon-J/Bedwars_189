@@ -2,13 +2,13 @@ package me.camm.productions.bedwars.Util;
 
 public enum PacketSound
 {
-    DRAGON("mob.enderdragon.growl",1),
-    PLING("note.pling",1.3F),
-    RECORD_STAL("records.stal",1),
+    DRAGON("mob.enderdragon.growl",1F),
+    PLING("note.pling",1.4F),
+    RECORD_STAL("records.stal",1F),
     ALARM("note.pling",1.5F),
     ALARM_TWO("note.pling",1.6F),
-    WITHER("mob.wither.death",1),
-    ENDERMAN("mob.endermen.portal",1);
+    WITHER("mob.wither.death",1F),
+    ENDERMAN("mob.endermen.portal",1F);
 
     private final String soundName;
     private final float pitch;

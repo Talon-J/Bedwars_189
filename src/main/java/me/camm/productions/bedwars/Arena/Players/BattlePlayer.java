@@ -20,6 +20,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_8_R3.scoreboard.CraftScoreboard;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.PlayerInventory;
@@ -31,6 +32,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeaders.*;
@@ -263,7 +265,7 @@ public class BattlePlayer implements IPlayerUtil
     @Author CAMM
     Sends a packet to all players on opposing teams.
      */
-    public void sendOppositionPackets(Packet packet)
+    public void sendOppositionPackets(Packet<?> packet)
     {
         arena.getPlayers().forEach((uuid, battlePlayer) -> {
             if (!battlePlayer.getTeam().equals(this.team))
@@ -328,7 +330,7 @@ public class BattlePlayer implements IPlayerUtil
     public boolean changeTeam(BattleTeam newTeam)
     {
 
-       if (!this.team.getColor().getName().equalsIgnoreCase(newTeam.getColor().getName())&&!newTeam.isEliminated())
+       if (!this.team.equals(newTeam)&&!newTeam.isEliminated())
        {
            board.setScoreName(CURRENT_TEAM.getPhrase(), getTeamStatus(this.team));
            //sets the score with the "you" to the default score name regarding a team.
@@ -474,14 +476,15 @@ public class BattlePlayer implements IPlayerUtil
 
     public void handlePlayerIntoSpectator(PacketHandler handler, boolean isFinal, Player killer)
     {
+        teleport(arena.getSpecSpawn());
 
-        clearInventory(player);
 
-        if (!getIsAlive())
+        if (!isAlive || isEliminated) {
+            clearInventory(this.player);
             return;
+        }
 
         toggleSpectator(true, handler);
-        teleport(arena.getSpecSpawn());
         heal();
 
         if (isFinal)
@@ -489,13 +492,14 @@ public class BattlePlayer implements IPlayerUtil
             setEliminated(true);
            boolean sendMessage = emptyEnderChest();
 
+
             if (killer !=null && sendMessage)
-                killer.sendMessage("[PLACEHOLDER] - Items put from "+player.getName()+" into their forge.");
+                killer.sendMessage("[PLACEHOLDER] - Items put from the enderchest of "+player.getName()+" into their forge.");
 
             return;
         }
+        dropInventory();
 
-        emptyInventory();
         new BukkitRunnable()
         {
             int seconds = 0;
@@ -506,9 +510,9 @@ public class BattlePlayer implements IPlayerUtil
                     setTimeTillRespawn(eliminationTime-seconds);
 
                     if (team.doesBedExist())
-                        sendRespawnTitle(TeamTitle.YOU_DIED,TeamTitle.RESPAWN_AFTER,getTimeTillRespawn(),10,40,10);
+                        sendRespawnTitle(TeamTitle.YOU_DIED,TeamTitle.RESPAWN_AFTER,getTimeTillRespawn(),0,60,10);
                     else
-                        sendRespawnTitle(TeamTitle.BED_DESTROYED,TeamTitle.RESPAWN_AFTER,getTimeTillRespawn(),10,40,10);
+                        sendRespawnTitle(TeamTitle.BED_DESTROYED,TeamTitle.RESPAWN_AFTER,getTimeTillRespawn(),0,60,10);
                     seconds ++;
                 }
                 else if (player.isOnline())
@@ -546,16 +550,22 @@ public class BattlePlayer implements IPlayerUtil
         barManager.set(ItemHelper.toSoldItem(getShears(),this),getShears().category,player);
 
         if (getPick() != null) {
-            setPick(handlePersistentItemDegradation(getPick()));
+            TieredItem newPick = handlePersistentItemDegradation(getPick());
+            shopManager.replaceItem(pick.getItem(),newPick.getItem());
+            setPick(newPick);
             barManager.set(ItemHelper.toSoldItem(getPick().getItem(), this), getPick().getItem().category, player);
         }
         if (getAxe() != null) {
-            setAxe(handlePersistentItemDegradation(getAxe()));
+            TieredItem newAxe = handlePersistentItemDegradation(getAxe());
+            shopManager.replaceItem(axe.getItem(),newAxe.getItem());
+            setAxe(newAxe);
             barManager.set(ItemHelper.toSoldItem(getAxe().getItem(), this), getAxe().getItem().category, player);
         }
         barManager.set(ItemHelper.toSoldItem(GameItem.WOODEN_SWORD,this),GameItem.WOODEN_SWORD.category,player);
         heal();
         equipArmor();
+
+        sendTitle(TeamTitle.RESPAWNED.getMessage(), null,0,40,10);
     }
 
     private TieredItem handlePersistentItemDegradation(TieredItem current)
@@ -571,6 +581,7 @@ public class BattlePlayer implements IPlayerUtil
     public void handlePlayerFirstSpawn()
     {
         player.getInventory().clear();
+
         setSurvival();
         setEliminated(false);
         team.teleportToBase(player);
@@ -587,7 +598,7 @@ public class BattlePlayer implements IPlayerUtil
     @Author CAMM
     Convenience method for sending packets to the current player.
      */
-    public  void sendPacket(Packet packet)
+    public  void sendPacket(Packet<?> packet)
     {
         ( (CraftPlayer)player).getHandle().playerConnection.sendPacket(packet);
     }
@@ -614,13 +625,16 @@ public class BattlePlayer implements IPlayerUtil
     {
         player.setHealth(20);
         player.setSaturation(20);
+        player.setFireTicks(0);
+        player.setRemainingAir(300);
+        player.setFoodLevel(20);
     }
 
     /*
     Empties and clears the player's inventory.
     Currency items (gold, iron, etc) are dropped
      */
-    private void emptyInventory()
+    public void dropInventory()
     {
         Inventory inv = player.getInventory();
         new BukkitRunnable()
@@ -634,6 +648,7 @@ public class BattlePlayer implements IPlayerUtil
             }
         }.runTask(arena.getPlugin());
 
+        clearInventory(player);
     }
 
       /*
@@ -669,7 +684,7 @@ public class BattlePlayer implements IPlayerUtil
     public void updatePlayerStatistics()
     {
         board.setScoreName(FINALS.getPhrase(), FINALS.getPhrase()+getFinals());
-        board.setScoreName(KILLS.getPhrase(), FINALS.getPhrase()+getKills());
+        board.setScoreName(KILLS.getPhrase(), KILLS.getPhrase()+getKills());
         board.setScoreName(BEDS.getPhrase(), BEDS.getPhrase()+getBeds());
     }
 
@@ -681,7 +696,7 @@ public class BattlePlayer implements IPlayerUtil
      */
     public void sendMessage(String message)
     {
-        this.getRawPlayer().sendMessage(message);
+        this.player.sendMessage(message);
     }
 
     public void playSound(PacketSound sound)
@@ -702,7 +717,7 @@ public class BattlePlayer implements IPlayerUtil
 
     /*
     @Author CAMM
-    Removes an npc to be resent to the player.
+    Removes a npc to be resent to the player.
      */
     public synchronized void removeResender(int id)
     {
@@ -716,6 +731,59 @@ public class BattlePlayer implements IPlayerUtil
 
 
 
+    /*
+    This is the code to make it so that the scoreboard is accurate in the tab and below the name. :D
+     */
+    public void sendHealthUpdatePackets()
+    {
+        PacketPlayOutScoreboardScore nameHealth =
+        modify(new PacketPlayOutScoreboardScore(),player.getName(),HEALTH_CATEGORY.getPhrase(),Math.round((float)player.getHealth()));
+
+        PacketPlayOutScoreboardScore tabHealth =
+        modify(new PacketPlayOutScoreboardScore(),player.getName(),HEALTH_CATEGORY_TWO.getPhrase(),Math.round((float)player.getHealth()));
+
+
+        arena.getPlayers().values().forEach(player -> {
+            if (nameHealth != null)
+                player.sendPacket(nameHealth);
+
+            if (tabHealth != null)
+                player.sendPacket(tabHealth);
+        });
+    }
+
+    private PacketPlayOutScoreboardScore modify(PacketPlayOutScoreboardScore packet, String playerName, String objectiveName, int score)
+    {
+        try
+        {
+            Field fieldA = PacketPlayOutScoreboardScore.class.getDeclaredField("a");
+            Field fieldB = PacketPlayOutScoreboardScore.class.getDeclaredField("b");
+            Field fieldC = PacketPlayOutScoreboardScore.class.getDeclaredField("c");
+            Field fieldD = PacketPlayOutScoreboardScore.class.getDeclaredField("d");
+
+            fieldA.setAccessible(true);
+            fieldB.setAccessible(true);
+            fieldC.setAccessible(true);
+            fieldD.setAccessible(true);
+
+            fieldA.set(packet, playerName);
+            fieldB.set(packet,objectiveName);
+            fieldC.set(packet, score);
+            fieldC.set(packet,PacketPlayOutScoreboardScore.EnumScoreboardAction.CHANGE);
+
+            return packet;
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+    }
+
+    /*
+[22:41:32 INFO]: Field A:CAMM_H87
+[22:41:32 INFO]: Field B:tabHealth
+[22:41:32 INFO]: Field C:20
+     */
 
 
 
@@ -747,7 +815,6 @@ public class BattlePlayer implements IPlayerUtil
     public synchronized void setFinals(int newFinals)
     {
         this.finals = newFinals;
-       updatePlayerStatistics();
     }
 
     public synchronized void setShears()
@@ -761,20 +828,19 @@ public class BattlePlayer implements IPlayerUtil
     public synchronized void setKills(int newKills)
     {
         this.kills = newKills;
-       updatePlayerStatistics();
     }
 
     public synchronized void setPick(TieredItem pick) {
         this.pick = pick;
         TieredItem upgrade = ItemHelper.getNextTier(pick);
-        shopManager.replaceItem(pick.getItem(),upgrade == null? pick.getItem(): upgrade.getItem());
+           shopManager.replaceItem(pick.getItem(),upgrade == null? pick.getItem() : upgrade.getItem());
 
     }
 
     public synchronized void setAxe(TieredItem axe) {
         this.axe = axe;
         TieredItem upgrade = ItemHelper.getNextTier(axe);
-        shopManager.replaceItem(axe.getItem(),upgrade == null? axe.getItem(): upgrade.getItem());
+        shopManager.replaceItem(axe.getItem(),upgrade == null? axe.getItem() : upgrade.getItem());
     }
 
     /*
@@ -785,7 +851,6 @@ public class BattlePlayer implements IPlayerUtil
     public synchronized void setBeds(int bedNumber)
     {
         this.beds = bedNumber;
-        updatePlayerStatistics();
     }
 
     /*

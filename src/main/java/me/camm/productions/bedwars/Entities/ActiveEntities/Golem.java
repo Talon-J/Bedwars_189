@@ -6,6 +6,7 @@ import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy.ILifeTimed;
 import me.camm.productions.bedwars.Listeners.EntityActionListener;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.IronGolem;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -51,6 +52,7 @@ public class Golem implements ILifeTimed
                 timeLeft --;
                 if (timeLeft <=0 || golem.isDead()) {
                     unregister();
+                    golem.remove();
                     cancel();
                 }
             }
@@ -59,8 +61,9 @@ public class Golem implements ILifeTimed
     }
 
     @Override
-    public void handleEntityTarget(LivingEntity toTarget) {
-        golem.setTarget(toTarget);
+    public void handleEntityTarget(Entity toTarget) {
+        if (toTarget instanceof LivingEntity)
+        golem.setTarget((LivingEntity) toTarget);
 
     }
 

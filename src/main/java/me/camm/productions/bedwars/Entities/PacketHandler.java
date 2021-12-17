@@ -121,7 +121,7 @@ public class PacketHandler extends ItemHelper
                                public void run()
                                {
                                    player.sendMessage("[DEBUG]open quick buy");
-                                   player.openInventory(openingPlayer.getShopManager().getQuickBuy().getInventory());
+                                   player.openInventory(openingPlayer.getShopManager().getQuickBuy());
                                    cancel();
                                }
                             }.runTaskAsynchronously(arena.getPlugin());

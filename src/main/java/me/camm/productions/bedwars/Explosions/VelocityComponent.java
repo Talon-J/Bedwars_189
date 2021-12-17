@@ -13,42 +13,64 @@ public class VelocityComponent {
     private final EntityExplodeEvent event;
     private boolean isFireball;
 
-    public VelocityComponent(EntityExplodeEvent event) {
+    public VelocityComponent(EntityExplodeEvent event)
+    {
         this.event = event;
-        if (event.getEntityType() == EntityType.SMALL_FIREBALL || event.getEntityType() == EntityType.FIREBALL)
-            this.isFireball = true;
-
+        EntityType type = event.getEntityType();
+        switch (type)
+        {
+            case FIREBALL:
+            case SMALL_FIREBALL:
+                isFireball = true;
+        }
     }
 
-    public void doCalculation()  //unfinished. Need to refactor since physics is not entirely accurate. Note added 2021-11m-16d
+
+    public void applyVelocity()  //unfinished. Need to refactor since physics is not entirely accurate. Note added 2021-11m-16d
     {
-        //System.out.println("Invoked calculation method");
+
         Entity exploded = this.event.getEntity();
 
+        List<Entity> nearEntities = exploded.getNearbyEntities(exploded.getLocation().getX(), exploded.getLocation().getY(), exploded.getLocation().getZ());
 
-        List<Entity> nearBy = exploded.getNearbyEntities(exploded.getLocation().getX(), exploded.getLocation().getY(), exploded.getLocation().getZ());
-
-        for (int slot = 0; slot < nearBy.size(); slot++) //for all of the nearby entities to the explosion..
+        for (Entity e: nearEntities) //for all of the nearby entities to the explosion..
         {
-            if (validType(nearBy.get(slot)))   //So if the entity can be affected by velocity
-            {
-                if ((exploded.getLocation().distance(nearBy.get(slot).getLocation()) <= 5) && isFireball)  //if the distance is <= 5 and is fireball
-                    constructFireVector(exploded.getLocation(), nearBy.get(slot).getLocation(), nearBy.get(slot));
+            if (!validType(e))   //So if the entity can be affected by velocity
+            continue;
+
+
+                if ((exploded.getLocation().distance(e.getLocation()) <= 5) && isFireball)  //if the distance is <= 5 and is fireball
+                    constructFireVector(exploded.getLocation(), e.getLocation(),e);
 
                 // otherwise test if it is a tnt with a distance of less than or equal to 8 blocks...
-                else if ((exploded.getLocation().distance(nearBy.get(slot).getLocation()) <= 8) && (!isFireball))
-                    constructTNTVector(exploded.getLocation(), nearBy.get(slot).getLocation(), nearBy.get(slot));
+                else if ((exploded.getLocation().distance(e.getLocation()) <= 8) && (!isFireball))
+                    constructTNTVector(exploded.getLocation(), e.getLocation(), e);
 
-            } //if is valid
         }//for nearby
+
+
+
     }//method
 
 
-    public boolean validType(Entity type) {
-        return type.getType() != EntityType.FIREBALL
-                && type.getType() != EntityType.ARMOR_STAND && type.getType() != EntityType.ENDER_DRAGON &&
-                type.getType() != EntityType.PRIMED_TNT && type.getType() != EntityType.DROPPED_ITEM;
+    public boolean validType(Entity entity) {
+        boolean valid = true;
+        EntityType type = entity.getType();
+
+        switch (type)
+        {
+            case FIREBALL:
+            case ARMOR_STAND:
+            case ENDER_DRAGON:
+            case DROPPED_ITEM:
+                valid = false;
+        }
+        return valid;
     }
+
+
+
+
 
     /*
     What the old code is doing in terms of the vector construction:

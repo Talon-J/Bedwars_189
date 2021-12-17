@@ -17,21 +17,21 @@ import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_START;
 
 //this is a subclass of inventory.
-public abstract class InventorySetter extends CraftInventoryCustom implements ISectionInventory
+public abstract class ShopInventorySetter extends CraftInventoryCustom implements ISectionInventory
 {
     protected final boolean isInflated;
 
-    public InventorySetter(InventoryHolder owner, InventoryType type, String title,boolean isInflated) {
+    public ShopInventorySetter(InventoryHolder owner, InventoryType type, String title, boolean isInflated) {
         super(owner, type, title);
         this.isInflated = isInflated;
     }
 
-    public InventorySetter(InventoryHolder owner, int size,boolean isInflated) {
+    public ShopInventorySetter(InventoryHolder owner, int size, boolean isInflated) {
         super(owner, size);
         this.isInflated = isInflated;
     }
 
-    public InventorySetter(InventoryHolder owner, int size, String title, boolean isInflated) {
+    public ShopInventorySetter(InventoryHolder owner, int size, String title, boolean isInflated) {
         super(owner, size, title);
         this.isInflated = isInflated;
     }

@@ -28,6 +28,12 @@ public class ItemSet
   {
       return item;
   }
+
+  @Override
+  public String toString()
+  {
+      return item.toString() +" "+ slot;
+  }
 }
 
 

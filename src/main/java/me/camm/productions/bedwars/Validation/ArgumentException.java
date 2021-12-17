@@ -20,7 +20,7 @@ public class ArgumentException extends Exception
     @Override
     public String toString()
     {
-        return ChatColor.RED+"BedWarsParameterException: Attempted to process the value: \n"+attemptedParse+ChatColor.RED+"\n " +
+        return ChatColor.RED+"BedWarsParameterException: Attempted to process the value:"+ChatColor.RESET+" \n"+attemptedParse+"\n " +
                 ChatColor.RED+"from the file path: \n"+fileOrigin+", but found not corresponding value.";
     }
 }

@@ -7,7 +7,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -16,6 +15,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.Collection;
+import java.util.Random;
 
 public class Forge implements Runnable
 {
@@ -34,7 +34,20 @@ public class Forge implements Runnable
     private volatile boolean isAlive;
     private int next;
 
-    private static final double DISTANCE = 1.5;
+
+    private final Random spawningTimeRand;
+    private final Random spawningChance;
+
+    private static final double PICKUP_DISTANCE;
+    private static final int MAX_GOLD;
+    private static final int MAX_IRON;
+
+    static {
+        PICKUP_DISTANCE = 1.5;
+        MAX_GOLD = 16;
+        MAX_IRON = 48;
+
+    }
 
     /*
 
@@ -69,6 +82,9 @@ Supposedly, /n = the percentage we need.
       if (!chunk.isLoaded())
           chunk.load();
 
+      spawningChance = new Random();
+      spawningTimeRand = new Random();
+
   }
 
   public Location getForgeLocation()
@@ -78,7 +94,7 @@ Supposedly, /n = the percentage we need.
 
   public double getDistance()
   {
-      return DISTANCE;
+      return PICKUP_DISTANCE;
   }
 
   public synchronized void disableForge()
@@ -116,18 +132,20 @@ Supposedly, /n = the percentage we need.
 //normal method
     public synchronized long randomize()
     {
-       return (long)(spawnTime*(Math.random()*1.5));
+       return (long)(spawnTime*(spawningTimeRand.nextDouble()*1.5));
     }
 
     public synchronized void spawnItem()
     {
-       int chance = (int)(Math.random()*101);  // 0 --> 100
+       int chance = spawningChance.nextInt(101);  // 0 --> 100
         int freedom = verifyCount();
         Material spawnMaterial = null;
         next++;
 
 
-        if (freedom!=-1) {
+        if (freedom<0) {
+            return;
+        }
 
             switch (tier) {
                 case 0:
@@ -170,7 +188,7 @@ Supposedly, /n = the percentage we need.
 
             if (spawnMaterial!=null)
                 drop(spawnMaterial);
-        }
+
      //   plugin.getServer().broadcastMessage("[DEBUG:] color: "+color+" Freedom: "+freedom);
 
         }
@@ -199,13 +217,12 @@ Supposedly, /n = the percentage we need.
         {
             int goldCount = 0;
             int ironCount = 0;
-            Collection<Entity> nearby = world.getNearbyEntities(location,DISTANCE,DISTANCE,DISTANCE);
+            Collection<Entity> nearby = world.getNearbyEntities(location, PICKUP_DISTANCE, PICKUP_DISTANCE, PICKUP_DISTANCE);
             for (Entity entity: nearby)
             {
 
-                if (entity.getType()!= EntityType.DROPPED_ITEM) {
-                continue;
-                }
+                if (!(entity instanceof Item))
+                    continue;
 
 
                     Item item = (Item)entity;
@@ -224,14 +241,13 @@ Supposedly, /n = the percentage we need.
                                ironCount += stack.getAmount();
                         }
 
-
             }
 
 
-         if (goldCount>=16) //if gold is invalid
-             return ironCount >= 48?SpawningFreedom.NO_SPAWNING.getFreedom():SpawningFreedom.ONLY_IRON.getFreedom();
+         if (goldCount>=MAX_GOLD) //if gold is invalid
+             return ironCount >= MAX_IRON?SpawningFreedom.NO_SPAWNING.getFreedom():SpawningFreedom.ONLY_IRON.getFreedom();
          else
-             return ironCount >= 48? SpawningFreedom.ONLY_GOLD.getFreedom():SpawningFreedom.FULL_SPAWNING.getFreedom();
+             return ironCount >= MAX_IRON? SpawningFreedom.ONLY_GOLD.getFreedom():SpawningFreedom.FULL_SPAWNING.getFreedom();
         }
 
 
@@ -254,10 +270,10 @@ Supposedly, /n = the percentage we need.
     }
 
     private enum SpawningFreedom {
-      NO_SPAWNING(-1),
+      NO_SPAWNING(-1),  //Don't spawn anything
         ONLY_IRON(0),
         ONLY_GOLD(1),
-        FULL_SPAWNING(2);
+        FULL_SPAWNING(2);  //spawn
 
       int freedom;
 

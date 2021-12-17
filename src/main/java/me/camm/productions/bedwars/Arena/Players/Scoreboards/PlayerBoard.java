@@ -45,8 +45,7 @@ public class PlayerBoard implements IPlayerUtil
         this.isInitialized = false;
 
         BoardEasterEgg[] credit = BoardEasterEgg.values();
-        Random rand = new Random();
-       easterEgg = credit[rand.nextInt(credit.length)].getPhrase();
+       easterEgg = credit[new Random().nextInt(credit.length)].getPhrase();
 
        if (!isBoardSet)
        {
@@ -185,7 +184,7 @@ public class PlayerBoard implements IPlayerUtil
             board.handleObjectiveRemoved(primary);
 
             send(new PacketPlayOutScoreboardObjective(primary, 1));  // 1 means destroy
-            send(new PacketPlayOutScoreboardObjective(buffer, 0));
+            send(new PacketPlayOutScoreboardObjective(buffer, 0)); // 0 means create
             send(new PacketPlayOutScoreboardDisplayObjective(1,buffer)); //1 means side display
 
 
@@ -317,7 +316,7 @@ public class PlayerBoard implements IPlayerUtil
     }
 
 
-    private void send(Packet packet)
+    private void send(Packet<?> packet)
     {
         ((CraftPlayer)player.getRawPlayer()).getHandle().playerConnection.sendPacket(packet);
     }

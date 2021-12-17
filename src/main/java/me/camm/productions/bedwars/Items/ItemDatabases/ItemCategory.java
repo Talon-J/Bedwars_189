@@ -16,9 +16,15 @@ public enum ItemCategory   //this is used for interfacing with the shop, specifi
     NONE(ChatColor.AQUA+"Empty Slot");
 
     public String type;
-   private ItemCategory(String type)
+   ItemCategory(String type)
     {
         this.type = type;
+    }
+
+    @Override
+    public String toString()
+    {
+        return this.name();
     }
 
 

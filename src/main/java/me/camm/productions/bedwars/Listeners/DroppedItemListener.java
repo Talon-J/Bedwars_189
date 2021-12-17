@@ -11,7 +11,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.ItemMergeEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.plugin.Plugin;
 
@@ -24,7 +23,7 @@ import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.ARENA
 public class DroppedItemListener implements Listener
 {
     private final Plugin plugin;
-    private Arena arena;
+    private final Arena arena;
 
     public DroppedItemListener(Plugin plugin, Arena arena)
     {
@@ -54,9 +53,10 @@ public class DroppedItemListener implements Listener
     public void onItemPickUp(PlayerPickupItemEvent event)
     {
         ConcurrentHashMap<UUID, BattlePlayer> players = arena.getPlayers();
-        if (players.containsKey(event.getPlayer().getUniqueId())&&event.getItem().hasMetadata(TeamFileKeywords.FORGE_SPAWN.getKey()))
+        UUID id = event.getItem().getUniqueId();
+        if (players.containsKey(id))
         {
-            BattlePlayer player = players.get(event.getPlayer().getUniqueId());
+            BattlePlayer player = players.get(id);
 
             if (!player.getIsAlive() || player.getIsEliminated())
             {
@@ -91,22 +91,5 @@ public class DroppedItemListener implements Listener
                   currentReceiver.getRawPlayer().getInventory().addItem(item.getItemStack());
             }
         }
-    }
-
-    @EventHandler
-    public void onItemDrop(PlayerDropItemEvent event)  //test for when the player drops stuff if it's invalid/valid
-    {
-        ConcurrentHashMap<UUID, BattlePlayer> players = arena.getPlayers();
-       Player player = event.getPlayer();
-
-       if (!players.containsKey(player.getUniqueId()))
-           return;
-
-
-
-
-
-
-
     }
 }

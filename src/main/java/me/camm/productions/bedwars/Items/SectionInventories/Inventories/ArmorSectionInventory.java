@@ -4,12 +4,12 @@ package me.camm.productions.bedwars.Items.SectionInventories.Inventories;
 import me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation;
 import me.camm.productions.bedwars.Items.ItemDatabases.InventoryName;
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.ArmorConfig;
-import me.camm.productions.bedwars.Items.SectionInventories.Templates.InventorySetter;
+import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
 
 
 //1 for each player
 //this is an instance of Inventory
-public class ArmorSectionInventory extends InventorySetter {
+public class ArmorSectionInventory extends ShopInventorySetter {
 
     //(InventoryHolder owner, int size, String title)
     public ArmorSectionInventory(boolean isInflated) {

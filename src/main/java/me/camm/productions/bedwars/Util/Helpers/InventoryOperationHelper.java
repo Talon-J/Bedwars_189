@@ -8,7 +8,9 @@ import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.QuickBuySection;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -23,6 +25,65 @@ public class InventoryOperationHelper
         gameItems = GameItem.values();
     }
 
+    /*
+    Code to stop the player from accidently putting things in the shop inventories
+    Note that the CURSOR is the item on the mouse AFTER the event is completed.
+
+    E.g swap gold with iron , cursor is iron, not gold.
+
+
+
+    DEBUG - we are getting a return when the player clicks their own inv.  Fix that
+     */
+
+    public static boolean didTryToPlaceIn(InventoryClickEvent event, BattlePlayer player)
+    {
+        Inventory topInventory = event.getInventory();
+        Inventory section = player.getShopManager().isSectionInventory(topInventory);
+
+
+        if (section == null)
+            player.sendMessage("[DEBUG]{InvOpMngr} SECTION IS NULL");
+        else
+            player.sendMessage("[DEBUG]{InvOpMngr} NOT NULL:"+section.getTitle());
+
+
+        return section != null && didTryToPlaceIn(event, section);
+
+    }
+
+
+    public static boolean didTryToPlaceIn(InventoryClickEvent event, Inventory restrictedInventory)
+    {
+        InventoryAction action = event.getAction();
+        String name = action.name();
+
+        Inventory clickedInventory = event.getClickedInventory();
+        Inventory playerInventory = event.getWhoClicked().getInventory();
+        Inventory topInventory = event.getInventory();
+
+        /*
+        if the clicked inventory equals the player's inventory and the
+        top inventory is not the shop inventory
+         */
+        if (clickedInventory.equals(playerInventory) && !(topInventory.equals(restrictedInventory)))
+            return false;
+
+        if (clickedInventory.equals(playerInventory) &&
+                !(name.contains("MOVE") || name.contains("SWAP") || name.contains("COLLECT")))
+            return false;
+
+
+        return name.contains("HOTBAR") || name.contains("PLACE")||name.contains("MOVE")||
+                name.contains("COLLECT") || name.contains("SWAP");
+
+    }
+
+    public static boolean didTryToDragIn(InventoryDragEvent event, Inventory restrictedInventory)
+    {
+        return event.getInventory().equals(restrictedInventory);
+    }
+
 
 
     /*
@@ -30,41 +91,36 @@ public class InventoryOperationHelper
     Unfinished. Refactor to include section inventories.
     Takes an inventory click event and determines whether action on the quick buy inventory should be
     executed to sell an item, etc.
+
+    At this point, the inventory referenced should be guaranteed a shop inventory.
      */
     public static void doQuickBuy(InventoryClickEvent event, Arena arena, boolean isInflated)
     {
         ConcurrentHashMap<UUID,BattlePlayer> registeredPlayers = arena.getPlayers();
-
         Inventory clickedInv = event.getClickedInventory();
-
         HumanEntity player = event.getWhoClicked();
-        if (event.getClickedInventory()==null||clickedInv.getTitle()==null) {
-            player.sendMessage("[DEBUG]inv is null");
-            return;
-        }
 
-        if (!registeredPlayers.containsKey(player.getUniqueId())) {
-            player.sendMessage("[DEBUG]does not contain");
+        if (!registeredPlayers.containsKey(player.getUniqueId()))
             return;
-        }
-
-        ItemStack item = event.getCurrentItem();
-        if (item==null||item.getItemMeta()==null) {
-            player.sendMessage("[DEBUG]meta is null");
-            return;
-        }
 
         BattlePlayer currentPlayer = registeredPlayers.get(player.getUniqueId());
-        PlayerInventoryManager manager = currentPlayer.getShopManager();
-        if (manager==null) {
-            player.sendMessage("[DEBUG]mngr is null");
-            return;
-        }
 
-        if (manager.isSectionInventory(clickedInv)) {
-            player.sendMessage("[DEBUG]inv is not a quick buy shop inventory");
+        if (clickedInv==null||clickedInv.getTitle()==null)
             return;
-        }
+
+        //they can still buy items with an item in the cursor, just not put it in.
+        if (didTryToPlaceIn(event, currentPlayer))
+            event.setCancelled(true);
+
+        ItemStack item = event.getCurrentItem();
+
+        if (item==null||item.getItemMeta()==null)
+            return;
+
+        PlayerInventoryManager manager = currentPlayer.getShopManager();
+
+        if (manager==null)
+            return;
 
         event.setCancelled(true);
 
@@ -72,6 +128,8 @@ public class InventoryOperationHelper
         {
             GameItem clickedItem = null;
             String name = item.getItemMeta().getDisplayName();
+            if (name == null)
+                return;
 
 
             for (GameItem current: gameItems)
@@ -106,6 +164,7 @@ public class InventoryOperationHelper
 
             if (quickBuy.getInventory().equals(clickedInv))
             {
+                //if it is the quickbuy inventory, we have the option of replacing items.
                 if (event.getClick().isShiftClick())
                 {
                     quickBuy.setItem(event.getRawSlot(),GameItem.EMPTY_SLOT);
@@ -114,6 +173,7 @@ public class InventoryOperationHelper
                     ItemHelper.sellItem(clickedItem, currentPlayer, isInflated);
             }
             else
+                //otherwise we only have the option of selling items.
                 ItemHelper.sellItem(clickedItem, currentPlayer, isInflated);
 
 

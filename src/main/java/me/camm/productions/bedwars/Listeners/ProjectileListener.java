@@ -4,6 +4,9 @@ import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Entities.ActiveEntities.BedBug;
 import me.camm.productions.bedwars.Entities.Consumables.BridgeEgg;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,6 +15,7 @@ import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.projectiles.ProjectileSource;
+import org.bukkit.util.Vector;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,8 +44,6 @@ public class ProjectileListener implements Listener
     public void onProjectileHit(ProjectileHitEvent event)
     {
         Projectile p = event.getEntity();
-        if (!(p instanceof EnderPearl || p instanceof Snowball))
-            return;
 
         ProjectileSource source = p.getShooter();
         if (!(source instanceof Player))
@@ -49,18 +51,42 @@ public class ProjectileListener implements Listener
 
         Player shooter = (Player)source;
 
+        if (p instanceof EnderPearl)
+            handlePearlPlacement((EnderPearl) p, shooter);
+        else if (p instanceof Snowball)
+            handleSnowBallHit((Snowball)p, shooter);
 
+        //So now it's either a pearl, snowball, or arrow.
+        //we'll handle arrows in the damage listener.
 
-
-
-
-        //TODO code for the enderpearls. (Use vector stuff to prevent them from suffocating.)
-        //Arrow code should not be here since we're talking about damage.
     }
 
-    public void handlePearlPlacement()
+    public void handlePearlPlacement(EnderPearl pearl, Player shooter)
     {
+        //please test this. Not finished.
+        Vector direction = pearl.getVelocity().normalize().multiply(-1);
+        Vector origin = pearl.getLocation().toVector();
+        Location loc = pearl.getLocation();
+        double distance = shooter.getLocation().distance(loc);
+        World w = shooter.getWorld();
 
+        int travelled = 0;
+        do
+        {
+            Location foot = direction.add(origin).toLocation(w);
+            Block bottom = foot.getBlock();
+            Block top = foot.clone().add(0,1,0).getBlock();
+
+            if (!bottom.getType().isSolid() || !top.getType().isSolid())
+            {
+                shooter.teleport(foot, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                break;
+            }
+
+            origin.add(direction.clone());
+            travelled += 1;
+        }
+        while (travelled < distance);
     }
 
     public void handleSnowBallHit(Snowball ball, Player shooter)
@@ -70,10 +96,8 @@ public class ProjectileListener implements Listener
             return;
 
         BattlePlayer player = registeredPlayers.get(shooter.getUniqueId());
-        BedBug bug = null;
-
-
-
+        BedBug bug = new BedBug(player.getTeam(),player, arena,listener,ball.getLocation());
+        bug.spawn();
     }
 
 

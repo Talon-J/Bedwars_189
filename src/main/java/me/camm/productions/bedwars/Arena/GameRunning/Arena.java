@@ -84,9 +84,9 @@ public class Arena
 
 
      Score initOne = nameHealth.getScore(INITIALIZER_ONE.getPhrase()); //board must have atleast 1 score to display properly
-      initOne.setScore(20);
+      initOne.setScore(1);
       Score initTwo = tabHealth.getScore(INITIALIZER_TWO.getPhrase());
-      initTwo.setScore(20);
+      initTwo.setScore(1);
 
   }
 
@@ -167,6 +167,11 @@ public class Arena
       return arrayValues;
   }
 
+  public void updateAllPlayerBoards()
+  {
+
+  }
+
 
   public void sendMessage(String message)
   {
@@ -223,6 +228,13 @@ public class Arena
         return specSpawn;
     }
 
+    public Objective getNameHealth() {
+        return nameHealth;
+    }
+
+    public Objective getTabHealth() {
+        return tabHealth;
+    }
 }
 
 

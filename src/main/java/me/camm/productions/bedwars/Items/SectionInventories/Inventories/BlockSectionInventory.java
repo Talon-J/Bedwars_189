@@ -1,7 +1,7 @@
 package me.camm.productions.bedwars.Items.SectionInventories.Inventories;
 
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.BlockConfig;
-import me.camm.productions.bedwars.Items.SectionInventories.Templates.InventorySetter;
+import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
 
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.SHOP_SIZE;
@@ -9,7 +9,7 @@ import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryName.BLOC
 
 
 //Universal for all players
-public class BlockSectionInventory extends InventorySetter {
+public class BlockSectionInventory extends ShopInventorySetter {
 
     public BlockSectionInventory(boolean isInflated)
     {

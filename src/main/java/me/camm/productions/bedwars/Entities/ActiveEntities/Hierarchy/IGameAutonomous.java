@@ -1,5 +1,6 @@
 package me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy;
 
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
 public interface IGameAutonomous extends ITracked
@@ -8,7 +9,7 @@ public interface IGameAutonomous extends ITracked
     void spawn();
     void remove();
     boolean isAlive();
-    void handleEntityTarget(LivingEntity toTarget);
+    void handleEntityTarget(Entity entity);
 
 }
 

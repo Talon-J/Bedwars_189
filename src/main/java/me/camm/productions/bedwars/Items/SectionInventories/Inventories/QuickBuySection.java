@@ -2,7 +2,7 @@ package me.camm.productions.bedwars.Items.SectionInventories.Inventories;
 
 import me.camm.productions.bedwars.Items.ItemDatabases.DefaultQuickItemConfig;
 import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
-import me.camm.productions.bedwars.Items.SectionInventories.Templates.InventorySetter;
+import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
 import me.camm.productions.bedwars.Util.DataSets.ItemSet;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.*;
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryName.QUICK_BUY;
 
-public class QuickBuySection extends InventorySetter {
+public class QuickBuySection extends ShopInventorySetter {
    private ArrayList<ItemSet> values;
 
     public QuickBuySection(boolean isInflated, ArrayList<ItemSet> values)

@@ -19,9 +19,18 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockCanBuildEvent;
+import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -189,10 +198,10 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
         damageListener = new EntityActionListener(arena,plugin,this);
         plugin.getServer().getPluginManager().registerEvents(damageListener,plugin);
 
-        blockListener = new BlockInteractListener(plugin, arena, damageListener);
+        blockListener = new BlockInteractListener(plugin, arena);
         plugin.getServer().getPluginManager().registerEvents(blockListener,plugin);
 
-        explosionListener = new ExplosionHandler(plugin, arena,damageListener);
+        explosionListener = new ExplosionHandler(plugin, arena);
         plugin.getServer().getPluginManager().registerEvents(explosionListener,plugin);
 
         itemListener = new ItemInteractListener(plugin,arena,packetHandler,damageListener);
@@ -268,7 +277,6 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
                 {
                    // System.out.println("[DEBUG]: currentgameTime:"+currentGameTime);
                     fraction = 0;
-                  //  checkForEvents(currentGameTime);
                     advancePlayerTimer();  //advancing the player scoreboard
                 }
             }
@@ -286,37 +294,98 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
     /*
     @Author CAMM
     This method handles the case of a player clicking on one of the inventories present in the game.
+
+    TODO
+    - you need to also make sure that we return if the inventory clicked is a team chest inventory.
+
      */
+
+
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent event)  //for joining teams
+    public void onInventoryDrag(InventoryDragEvent event)
     {
-        System.out.println("[debug]: clicked");
+        if (InventoryOperationHelper.didTryToDragIn(event, joinInventory)) {
+            event.setCancelled(true);
+        }
+
+        HumanEntity entity = event.getWhoClicked();
+        if (!registeredPlayers.containsKey(entity.getUniqueId()))
+            return;
+
+        BattlePlayer player = registeredPlayers.get(entity.getUniqueId());
+        Inventory inv = event.getInventory();
+
+        Inventory section = player.getShopManager().isSectionInventory(inv);
+        if (InventoryOperationHelper.didTryToDragIn(event, section))
+            event.setCancelled(true);
+    }
+
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event)  //for joining teams / other things
+    {
 
         if (event.getClickedInventory()==null||event.getClickedInventory().getTitle()==null)
             return;
 
-
         String title = event.getClickedInventory().getTitle();
 
+
+   //If the bottom inventory is not a shop inv.
         if (!titles.containsKey(title))
         {
             HumanEntity player = event.getWhoClicked();
+
+
             if (!player.getInventory().equals(event.getClickedInventory()))
                 return;
 
-            //If the player has clicked their own inv.
+            if (player.getEnderChest().equals(event.getClickedInventory()))
+                return;
+
+            //If the player has clicked their own inv or their enderchest inv.
+            /*
+         TODO
+    - you need to also make sure that we return if the inventory clicked is a team chest inventory.
+             */
 
             ItemStack stack = event.getCurrentItem();
-            if (stack == null || stack.getItemMeta() == null)
+            if (ItemHelper.isItemInvalid(stack))
                 return;
 
             //If the player has attempted to take off their armor, cancel the event.
+            //So it seems that there is a glitch with players being
+            //able to take it off in creative.
+            //Shouldn't be an issue though, since everyone should be
+            //in survival.
             if (ItemHelper.isArmor(stack.getType()))
+            {
+                event.setCurrentItem(stack);
+                event.setResult(Event.Result.DENY);
                 event.setCancelled(true);
+                return;
+            }
+
+            if (!registeredPlayers.containsKey(player.getUniqueId()))
+                return;
+
+            BattlePlayer battlePlayer = registeredPlayers.get(player.getUniqueId());
+
+            //if it is a top inv
+            Inventory topInventory = event.getInventory();
+            Inventory sectionInv = battlePlayer.getShopManager().isSectionInventory(topInventory);
+            if (sectionInv == null)
+                return;
+
+            if (InventoryOperationHelper.didTryToPlaceIn(event,sectionInv)) {
+                event.setCancelled(true);
+                return;
+            }
+
+
         }
 
         InventoryName inventoryName = titles.get(title);
-
         if (inventoryName == null)
             return;
 
@@ -328,7 +397,6 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
 
             case TEAM_BUY:
                 break;
-
 
                 //TODO add the option for the team buy
             default:
@@ -365,6 +433,8 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
                 if (board!=null) {
                     board.setScoreName(TIME.getPhrase(), getTimeFormatted());
                     board.switchPrimaryBuffer();
+                    player.updatePlayerStatistics();
+                    player.sendHealthUpdatePackets();
                 }
             }
         }
@@ -488,6 +558,15 @@ as a string.
             for (Player possiblyHidden: Bukkit.getOnlinePlayers())
                 player.getRawPlayer().showPlayer(possiblyHidden);
         }
+
+
+        PlayerLoginEvent.getHandlerList().unregister(playerLogListener);
+        PlayerQuitEvent.getHandlerList().unregister(playerLogListener);
+
+        BlockBreakEvent.getHandlerList().unregister(blockListener);
+        BlockPlaceEvent.getHandlerList().unregister(blockListener);
+        BlockCanBuildEvent.getHandlerList().unregister(blockListener);
+        BlockFromToEvent.getHandlerList().unregister(blockListener);
     }
 
     /*
@@ -498,6 +577,9 @@ as a string.
     {
         Inventory inv = event.getClickedInventory();
         HumanEntity player = event.getWhoClicked();
+
+        if (InventoryOperationHelper.didTryToPlaceIn(event,joinInventory))
+            event.setCancelled(true);
 
         if (!inv.equals(joinInventory)||ItemHelper.isItemInvalid(event.getCurrentItem()))
             return;

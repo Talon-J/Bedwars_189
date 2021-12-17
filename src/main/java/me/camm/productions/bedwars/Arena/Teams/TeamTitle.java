@@ -10,6 +10,7 @@ public enum TeamTitle
 
     //See playerUtil interface for implementation of RESPAWN_AFTER
     RESPAWN_AFTER("{\"text\":\""+ChatColor.RED+"Respawn in "),
+    RESPAWNED("{\"text\":\""+ChatColor.GREEN+"Respawned! \"}"),
 
     NOW_SPECTATOR("{\"text\":\""+ChatColor.RED+"You are now a Spectator!\"}"),
     LAST_LIFE_WARNING("{\"text\":\""+ChatColor.RED+"You will no longer respawn!\"}");

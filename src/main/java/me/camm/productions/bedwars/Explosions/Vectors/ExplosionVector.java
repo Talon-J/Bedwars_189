@@ -1,22 +1,24 @@
-package me.camm.productions.bedwars.Explosions;
+package me.camm.productions.bedwars.Explosions.Vectors;
 
+import me.camm.productions.bedwars.Explosions.BlockResistance;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
 
+import static me.camm.productions.bedwars.Explosions.VectorToolBox.calculateResistance;
+import static me.camm.productions.bedwars.Explosions.VectorToolBox.isDataDestructable;
 
 
-public class TraceVector extends VectorToolBox
+public class ExplosionVector extends GameVector
 {
-    private final Vector direction, origin;
     private double strength;
     private final World world;
     private final boolean incendiary;
     private final int[] colors;
 
-    public TraceVector(Vector direction, Vector origin, World world, boolean incendiary, int[] colors)   //construct for explosion fragments
+    public ExplosionVector(Vector direction, Vector origin, World world, boolean incendiary, int[] colors)   //construct for explosion fragments
     {
         this.direction = direction.normalize();  //Length of 1 b/c velocity is 1?
         this.origin = origin;
@@ -36,28 +38,19 @@ public class TraceVector extends VectorToolBox
         return this.strength > 0;
     }
 
-    /*
-    public Vector getDirection() {    return direction; }
-     */
 
-    public Vector getPosition(double blocks) //Should be fixed now...I think?
-    {
-        return direction.clone().multiply(blocks).add(origin.clone());
-    }
-
-    public Block blockAtDistance(double distance)  //might give nullpointerexception?
+    public Block blockAtDistance(double distance)
     {
         Vector position = getPosition(distance);
         Location loc = position.toLocation(world);
-        this.strength -= 0.375;  //subtract 0.375 for each block
+        this.strength -= 0.375;
         return loc.getBlock();
     }
 
 
-    //("Block data:"+currentBlocks.get(slot).getData());
 
     @SuppressWarnings("deprecation")
-    public boolean conflict(Block block)  //Might be air causing blast resistance? Yup it is and it is fixed.
+    public boolean conflict(Block block)
     {
         double blockStrength;
         double blockResistance;
@@ -74,18 +67,18 @@ public class TraceVector extends VectorToolBox
             break;
 
             case STAINED_CLAY:   //Account for colors
-                blockStrength = confirmData(block.getData(),true,block,colors) ? BlockResistance.CLAY.getResistance():
+                blockStrength = isDataDestructable(block.getData(),true,block,colors) ? BlockResistance.CLAY.getResistance():
                         BlockResistance.UNBREAKABLE.getResistance();
             break;
 
 
             case WOOL: 
-                blockStrength = confirmData(block.getData(),true,block, colors) ? BlockResistance.WOOD.getResistance():
+                blockStrength = isDataDestructable(block.getData(),true,block, colors) ? BlockResistance.WOOD.getResistance():
                         BlockResistance.UNBREAKABLE.getResistance();
             break;
 
             case WOOD:
-                blockStrength = confirmData(block.getData(),false,block, colors) ? BlockResistance.WOOD.getResistance():
+                blockStrength = isDataDestructable(block.getData(),false,block, colors) ? BlockResistance.WOOD.getResistance():
                         BlockResistance.UNBREAKABLE.getResistance();
             break;
 

@@ -21,6 +21,9 @@ public enum TieredItem
     //-1 denotes that the item is given by default
     //Swords are not tiered, but a better sword will replace a worse one.
     WOOD_SWORD(-1,SWORD, WOODEN_SWORD,false),
+    STONE_SWORD(0, SWORD, GameItem.STONE_SWORD,true),
+    IRON_SWORD(1,SWORD, GameItem.IRON_SWORD, true),
+    DIAMOND_SWORD(2, SWORD, GameItem.DIAMOND_SWORD, true),
 
     LEATHER_ARMOR(-1,ARMOR, GameItem.LEATHER_ARMOR,false),
     CHAIN_MAIL(0,ARMOR, GameItem.CHAIN_MAIL,true),

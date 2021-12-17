@@ -2,12 +2,12 @@ package me.camm.productions.bedwars.Listeners;
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
-import me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeaders;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Arena.Teams.TeamTitle;
 import me.camm.productions.bedwars.Entities.ActiveEntities.GameTNT;
 import me.camm.productions.bedwars.Structures.SoakerSponge;
 import me.camm.productions.bedwars.Structures.Tower;
+import me.camm.productions.bedwars.Util.Locations.Coordinate;
 import me.camm.productions.bedwars.Util.PacketSound;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -35,14 +35,14 @@ public class BlockInteractListener implements Listener   //unfinished
     private final Plugin plugin;
     private final Arena arena;
     private final HashSet<String> activeSponges;
-    private final EntityActionListener actionListener;
+    //private final EntityActionListener actionListener;
 
-    public BlockInteractListener(Plugin plugin, Arena arena, EntityActionListener actionListener)  //construct
+    public BlockInteractListener(Plugin plugin, Arena arena)  //construct
     {
         this.plugin = plugin;
         this.arena = arena;
         this.activeSponges = new HashSet<>();
-        this.actionListener = actionListener;
+
 
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "gamerule doFireTick false");
     }
@@ -108,9 +108,7 @@ public class BlockInteractListener implements Listener   //unfinished
                   if (players.containsKey(event.getPlayer().getUniqueId()))
                   {
                       BattlePlayer test = players.get(event.getPlayer().getUniqueId());
-                      test.setKills(test.getKills()+1);
-                      test.getBoard().setScoreName(ScoreBoardHeaders.KILLS.getPhrase(), ScoreBoardHeaders.KILLS.getPhrase()+test.getKills());
-                    //  test.getBoard().refresh();
+                      test.sendHealthUpdatePackets();
                   }
                 }
                 break;
@@ -129,12 +127,19 @@ public class BlockInteractListener implements Listener   //unfinished
     {
         Block block = event.getBlock();
 
+        Player whoBroke = event.getPlayer();
+        if (!arena.getPlayers().containsKey(whoBroke.getUniqueId()))
+            return;
+
+        BattlePlayer broke = arena.getPlayers().get(whoBroke.getUniqueId());
+
         if (block.hasMetadata(GENERATOR.getData())||block.hasMetadata(CHEST.getData())||
                 block.hasMetadata(MAP.getData())||block.hasMetadata(BASE.getData()))
         {
             event.setCancelled(true);
             event.getPlayer().sendMessage(ChatColor.RED+"You can't break blocks here!");
             // event.getPlayer().sendMessage("[DEBUG:] Has generator or chest or map or base");
+            return;
         }
         else if (block.hasMetadata(BED.getData()))
         {
@@ -164,16 +169,15 @@ public class BlockInteractListener implements Listener   //unfinished
                 return;
             }
 
-            Player whoBroke = event.getPlayer();
+
 
             //we need to cancel the event regardless so that putOnLastStand() can work,
             // or if the player isn't on a team, or if the player isn't alive.
             event.setCancelled(true);
-            if (!arena.getPlayers().containsKey(whoBroke.getUniqueId()))
-                return;
+
 
             //If the player tried to break their own bed.
-            BattlePlayer broke = arena.getPlayers().get(whoBroke.getUniqueId());
+
             if ((!broke.getIsAlive())||broke.getIsEliminated())
                 return;
 
@@ -184,8 +188,10 @@ public class BlockInteractListener implements Listener   //unfinished
                 return;
             }
 
-            broke.setBeds(broke.getBeds()+1);
             broken.putOnLastStand();
+            broke.setBeds(broke.getBeds()+1);
+
+
 
 
 
@@ -195,17 +201,57 @@ public class BlockInteractListener implements Listener   //unfinished
             If the player is dead but not eliminated, then we send them a packet about their bed destroyed with the respawn.
              */
 
-            broken.getPlayers().values().forEach(battlePlayer -> {
+            broken.getPlayers().values().forEach(battlePlayer ->
+            {
                 battlePlayer.playSound(PacketSound.WITHER);
+
                 if (battlePlayer.getIsAlive())
                     battlePlayer.sendTitle(TeamTitle.BED_DESTROYED.getMessage(), TeamTitle.LAST_LIFE_WARNING.getMessage(), 10,40,10);
                 else
                     battlePlayer.sendRespawnTitle(TeamTitle.BED_DESTROYED,TeamTitle.RESPAWN_AFTER, battlePlayer.getTimeTillRespawn(), 10,40,10);
            });
 
+
+            for (BattlePlayer player: arena.getPlayers().values())
+                player.getBoard().updateTeamStatuses();
+
             arena.sendMessage("[PLACEHOLDER MESSAGE] Bed destroyed:  "+broken.getColor().getName()+" Broken by: "+broke.getRawPlayer().getName());
 
+
+            return;
         }
+
+        if (block.getType() != Material.CHEST)
+            return;
+
+
+        if (!block.hasMetadata(CHEST.getData()))
+            return;
+
+
+        BattleTeam comparison = null;
+        for (BattleTeam team: arena.getTeamList())
+        {
+            Coordinate chest = team.getChest();
+           if  (chest.isBlock(arena.getWorld(),block))
+           {
+               comparison = team;
+               break;
+           }
+        }
+
+        if (comparison==null)
+            return;
+
+        if (comparison.isEliminated())
+            return;
+
+        if (!broke.getTeam().equals(comparison)) {
+            event.setCancelled(true);
+            broke.sendMessage("[PLACEHOLDER]You cannot open that chest while " + comparison.getColor().getName() + "is still alive!");
+
+        }
+
     }
 
     @EventHandler
@@ -226,7 +272,7 @@ public class BlockInteractListener implements Listener   //unfinished
     //Summoning tnt.
     private void summonTNT(BlockPlaceEvent event, BattlePlayer player)
     {
-      new GameTNT(event,player,actionListener);
+      new GameTNT(event,player);
     }
 
 
