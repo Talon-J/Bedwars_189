@@ -34,11 +34,11 @@ public class ThrownFireball implements IGameOwnable
 
        ball = player.getWorld().spawn(player.getEyeLocation().toVector()
                 .add(player.getLocation().getDirection().multiply(1.25)).toLocation
-                        (player.getWorld(), player.getLocation().getYaw(), player.getLocation().getPitch()),Fireball.class);  //Most likely 1.25
+                 (player.getWorld(), player.getLocation().getYaw(), player.getLocation().getPitch()),Fireball.class);  //Most likely 1.25
 
 
-        //Note: set to 0 for physics.
-        ball.setYield((float)4.0);
+        //Note: set to 0 for physics. Originally 4.
+        ball.setYield(0F);
         ball.setShooter(player);
 
         Vector direction = player.getEyeLocation().getDirection();
@@ -50,10 +50,11 @@ public class ThrownFireball implements IGameOwnable
         double distance = Math.sqrt(x * x + y * y + z * z);
         EntityFireball fireBall = ((CraftFireball)ball).getHandle();
 
-        fireBall.dirX = (x/distance)*0.1;
-        fireBall.dirY = (y/distance)*0.1;
-        fireBall.dirZ = (z/distance)*0.1;
-
+        //converting to unit vector * 0.1 (note that 1 m/tick = 20 m/s, so *0.1 makes it less fast)
+        //initially *0.1
+        fireBall.dirX = (x/distance)*0.15;
+        fireBall.dirY = (y/distance)*0.15;
+        fireBall.dirZ = (z/distance)*0.15;
 
         ((CraftPlayer)player).getHandle().collidesWithEntities = false;
 

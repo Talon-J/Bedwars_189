@@ -1,4 +1,4 @@
-package me.camm.productions.bedwars.Util.GamePhase;
+package me.camm.productions.bedwars.Arena.GameRunning.Events;
 
 import org.bukkit.ChatColor;
 

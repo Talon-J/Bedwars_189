@@ -1,14 +1,14 @@
-package me.camm.productions.bedwars.Util.Locations;
+package me.camm.productions.bedwars.Util.Locations.Boundaries;
 
+import me.camm.productions.bedwars.Util.Locations.WallFace;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
 
-public class SoakBoundary
+public class SoakBoundary extends Boundary<Double>
 {
-    private volatile double x1, x2, y1, y2, z1, z2;
     private volatile double[] bounds;
 
     public SoakBoundary(double[] bounds) {
@@ -33,14 +33,16 @@ public class SoakBoundary
     }
 
 
-    private void analyze()
+    @Override
+    protected void analyze()
     {
         if (bounds==null||bounds.length != 6)
             bounds = new double[]{0, 0, 0, 0, 0, 0};
     }
 
 
-    private void dissectArray() {
+    @Override
+    protected void dissectArray() {
         if (bounds != null && bounds.length == 6) {
             x1 = bounds[0];
             x2 = bounds[1];
@@ -81,7 +83,8 @@ public class SoakBoundary
             bounds = new double[]{0,0,0,0,0,0};
     }
 
-    private void reArrange()  //invoking the method loop
+    @Override
+    protected void reArrange()  //invoking the method loop
     {
         final int ONE = 0;
         final int TWO = 1;

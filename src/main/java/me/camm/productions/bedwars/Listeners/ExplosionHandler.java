@@ -5,19 +5,26 @@ import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Explosions.ExplosionParticle;
 import me.camm.productions.bedwars.Explosions.Vectors.ExplosionVector;
 import me.camm.productions.bedwars.Explosions.VectorToolBox;
+import me.camm.productions.bedwars.Explosions.Vectors.TracerVector;
 import me.camm.productions.bedwars.Explosions.VelocityComponent;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Random;
 
 public class ExplosionHandler implements Listener
@@ -69,46 +76,74 @@ public class ExplosionHandler implements Listener
         if (!doCalculation)
         return;
 
-        sendVectors(incendiary,entity);
-
-            VelocityComponent velocity = new VelocityComponent(exploded);
-            velocity.applyVelocity();
+        sendVectors(incendiary,entity,exploded);
 
     }//method
 
 
     @SuppressWarnings("deprecation")
-    public void sendVectors(boolean incendiary, Entity entity)
+    public void sendVectors(boolean incendiary, Entity exploded, EntityExplodeEvent explodeEvent)
     {
-        double xLocation = entity.getLocation().getX();
-        double yLocation = entity.getLocation().getY();
-        double zLocation = entity.getLocation().getZ();
-        World world = entity.getWorld();
+        World world = exploded.getWorld();
 
-        new ExplosionParticle(entity.getLocation(),world,plugin);
+        //playing the explosion particle effect
+        new ExplosionParticle(exploded.getLocation(),world,plugin);
 
-        ArrayList<ExplosionVector> directions = new ArrayList<>();
+        ArrayList<ExplosionVector> directions = getBlockBreakingVectors(world, incendiary, exploded);
         ArrayList<Block> fireCandidates = new ArrayList<>();
 
-        for (double vertical=90;vertical>=-90;vertical-=11.25)
-        {
-            double yComponent = Math.tan(vertical); //y value
-            for (double horizontal=0;horizontal<=360;horizontal+=11.25)
-            {
-                double xComponent = Math.sin(horizontal);  //x Value of the vector
-                double zComponent = Math.cos(horizontal);  //z Value of the vector
+        Location explosionCenter = exploded.getLocation();
+        double damageDistance = incendiary ? 8:10;
+        //since the bounding box is centred on the location, we divide by 2 so that we have equal sides.
+        damageDistance /= 2;
+        Collection<Entity> entities = explosionCenter.getWorld().getNearbyEntities(explosionCenter,damageDistance,damageDistance,damageDistance);
 
-                directions.add(new ExplosionVector(new Vector(xComponent,yComponent,zComponent),
-                        new Vector(xLocation,yLocation,zLocation),world,incendiary,colors));
-            }
-        }
+        //now we calculate the damage for the entities first since we need to account for the blocks that might be
+        //in the way protecting them.
 
-        //Adding vectors separately so that there aren't 16 instances of the same one.
-        directions.add(new ExplosionVector(new Vector(0,1,0),
-                new Vector(xLocation,yLocation,zLocation),world,incendiary,colors));
 
-        directions.add(new ExplosionVector(new Vector(0,-1,0),
-                new Vector(xLocation,yLocation,zLocation),world,incendiary,colors));
+        Vector origin = explosionCenter.toVector();
+                entities.forEach(entity -> {
+
+                    IS_LIVING:
+                    {
+
+                        if (!(entity instanceof LivingEntity) || (!VectorToolBox.isValidDamageType(entity)))
+                            break IS_LIVING;
+
+                        Vector location = entity.getLocation().toVector();
+                        Vector direction = location.clone().subtract(origin.clone());
+                        double length = direction.length();
+
+                        TracerVector tracer = new TracerVector(direction.clone().normalize(), origin.clone(), length, world);
+                        ArrayList<Material> obstructions = tracer.getObstructionLayers();
+
+                        double damage = rand.nextDouble() + 3;
+                        damage = -0.1 * (length + damage + obstructions.size()) + 1;
+                        if (damage < 0)
+                            damage = 0;
+
+
+                        EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(exploded, entity, EntityDamageEvent.DamageCause.ENTITY_EXPLOSION, damage);
+                        Bukkit.getPluginManager().callEvent(event);
+
+                        if (!event.isCancelled())
+                        {
+                            //TODO
+                            //Also account for the enderdragon here.(since they don't get "damaged")
+                            ((LivingEntity)entity).damage(event.getFinalDamage(), exploded);
+                            entity.setLastDamageCause(event);
+                        }
+
+                        if (!VectorToolBox.isValidVelocityType(entity))
+                            break IS_LIVING;
+
+                        //unfinished. velocity needs reworking.
+                        VelocityComponent component = new VelocityComponent(explodeEvent);
+                        component.applyVelocity();
+           }
+        });
+
 
 
 
@@ -116,7 +151,9 @@ public class ExplosionHandler implements Listener
 
         while  (distance<BLOCK_BREAK_RANGE)  //8 is arbitrarily the max distance tnt can break blocks.
         {
-            //it doesn't really matter if we iterate forward or backwards...I just wanted backwards :D
+            //it doesn't really matter if we iterate forward or backwards...I just wanted backwards
+            // (remember, the project is for educational purposes :D)
+
             for (int rays=directions.size()-1;rays>0;rays--)
             {
                 Block block = directions.get(rays).blockAtDistance(distance);
@@ -135,7 +172,8 @@ public class ExplosionHandler implements Listener
                     directions.remove(rays);
 
             }//for
-            //Advance the vectors and set blocks
+
+            //Advance the vectors by 0.5 blocks.
             distance += 0.5;
 
         } //while
@@ -181,6 +219,36 @@ public class ExplosionHandler implements Listener
         int setFire = rand.nextInt(11);
         if (setFire >= 9)
             block.setType(Material.FIRE);
+    }
+
+    private ArrayList<ExplosionVector> getBlockBreakingVectors(World world, boolean incendiary, Entity exploded)
+    {
+        ArrayList<ExplosionVector> directions = new ArrayList<>();
+        double xLocation = exploded.getLocation().getX();
+        double yLocation = exploded.getLocation().getY();
+        double zLocation = exploded.getLocation().getZ();
+
+        //Creating the vectors based on angles.
+        for (double vertical=90;vertical>=-90;vertical-=11.25)
+        {
+            double yComponent = Math.tan(vertical); //y value
+            for (double horizontal=0;horizontal<=360;horizontal+=11.25)
+            {
+                double xComponent = Math.sin(horizontal);  //x Value of the vector
+                double zComponent = Math.cos(horizontal);  //z Value of the vector
+
+                directions.add(new ExplosionVector(new Vector(xComponent,yComponent,zComponent),
+                        new Vector(xLocation,yLocation,zLocation),world,incendiary,colors));
+            }
+        }
+
+        //Adding vectors separately so that there aren't 16 instances of the same one.
+        directions.add(new ExplosionVector(new Vector(0,1,0),
+                new Vector(xLocation,yLocation,zLocation),world,incendiary,colors));
+
+        directions.add(new ExplosionVector(new Vector(0,-1,0),
+                new Vector(xLocation,yLocation,zLocation),world,incendiary,colors));
+        return directions;
     }
 
 }//class

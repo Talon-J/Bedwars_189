@@ -29,24 +29,14 @@ public class InventoryOperationHelper
     Code to stop the player from accidently putting things in the shop inventories
     Note that the CURSOR is the item on the mouse AFTER the event is completed.
 
-    E.g swap gold with iron , cursor is iron, not gold.
+    E.g swap gold onto iron, cursor is iron, not gold.
 
-
-
-    DEBUG - we are getting a return when the player clicks their own inv.  Fix that
      */
 
     public static boolean didTryToPlaceIn(InventoryClickEvent event, BattlePlayer player)
     {
         Inventory topInventory = event.getInventory();
         Inventory section = player.getShopManager().isSectionInventory(topInventory);
-
-
-        if (section == null)
-            player.sendMessage("[DEBUG]{InvOpMngr} SECTION IS NULL");
-        else
-            player.sendMessage("[DEBUG]{InvOpMngr} NOT NULL:"+section.getTitle());
-
 
         return section != null && didTryToPlaceIn(event, section);
 
@@ -66,13 +56,14 @@ public class InventoryOperationHelper
         if the clicked inventory equals the player's inventory and the
         top inventory is not the shop inventory
          */
-        if (clickedInventory.equals(playerInventory) && !(topInventory.equals(restrictedInventory)))
+        if (clickedInventory.equals(playerInventory) && !(topInventory.equals(restrictedInventory))) {
             return false;
+        }
 
         if (clickedInventory.equals(playerInventory) &&
-                !(name.contains("MOVE") || name.contains("SWAP") || name.contains("COLLECT")))
+                !(name.contains("MOVE") || name.contains("SWAP") || name.contains("COLLECT"))) {
             return false;
-
+        }
 
         return name.contains("HOTBAR") || name.contains("PLACE")||name.contains("MOVE")||
                 name.contains("COLLECT") || name.contains("SWAP");

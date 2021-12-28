@@ -4,6 +4,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.util.Vector;
 
 import java.util.Random;
@@ -41,23 +43,43 @@ public class VectorToolBox
         return isDistinctlyColorable ? checkColoredData(data, block, colors):checkWoodData(data, block);
     }
 
+    public static boolean isValidVelocityType(Entity entity) {
+        boolean valid = true;
+        EntityType type = entity.getType();
 
-
-
-    //Unfinished
-    public static boolean isObstructed(Location start, Location destination)
-    {
-        World world = start.getWorld();
-        double deltaX = destination.getX() - start.getX();
-        double deltaY = destination.getY() - start.getY();
-        double deltaZ = destination.getZ() - start.getZ();
-
-        Vector direction = new Vector(deltaX,deltaY,deltaZ).normalize();
-        Vector origin = start.toVector();
-
-        return false;
-
+        switch (type)
+        {
+            case FIREBALL:
+            case ARMOR_STAND:
+            case ENDER_DRAGON:
+            case DROPPED_ITEM:
+                valid = false;
+        }
+        return valid;
     }
+
+    public static boolean isValidDamageType(Entity entity)
+    {
+        boolean valid = true;
+        EntityType type = entity.getType();
+
+        switch (type)
+        {
+            case ARMOR_STAND:
+            case DROPPED_ITEM:
+            case FIREBALL:
+                valid = false;
+
+
+        }
+        return valid;
+    }
+
+
+
+
+
+
 
 
 

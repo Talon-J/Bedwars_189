@@ -14,7 +14,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.UUID;
 
 
-public class Golem implements ILifeTimed
+public class DreamDefender implements ILifeTimed
 {
     private final BattleTeam team;
     private final BattlePlayer owner;
@@ -30,7 +30,7 @@ public class Golem implements ILifeTimed
         MAX_TIME = 120;
     }
 
-    public Golem(BattleTeam team, BattlePlayer owner, Arena arena,Location toSpawn,EntityActionListener listener) {
+    public DreamDefender(BattleTeam team, BattlePlayer owner, Arena arena, Location toSpawn, EntityActionListener listener) {
         this.team = team;
         this.owner = owner;
         this.arena = arena;
@@ -49,12 +49,15 @@ public class Golem implements ILifeTimed
             @Override
             public void run() {
 
-                timeLeft --;
                 if (timeLeft <=0 || golem.isDead()) {
                     unregister();
                     golem.remove();
                     cancel();
+                    return;
                 }
+
+                golem.setCustomName(team.getColor().getChatColor()+""+team.getTeamColor().getName()+" Dream Defender ["+timeLeft+"]");
+                timeLeft --;
             }
         }.runTaskTimer(arena.getPlugin(),0,20);
 
@@ -94,9 +97,13 @@ public class Golem implements ILifeTimed
             {
                 @Override
                 public void run() {
-                    golem = arena.getWorld().spawn(toSpawn,IronGolem.class);
+
+                    //so it doesn't spawn in the ground.
+                    Location spawning = toSpawn.add(owner.getRawPlayer().getEyeLocation().getDirection().multiply(-1.5));
+
+                    golem = arena.getWorld().spawn(spawning,IronGolem.class);
                     golem.setPlayerCreated(false);
-                    golem.setCustomName(team.getTeamColor().getName()+"'s Dream Defender");
+                    golem.setCustomName(team.getColor().getChatColor()+""+team.getTeamColor().getName()+" Dream Defender");
                     golem.setHealth(20);
                     register();
                     handleLifeTime();

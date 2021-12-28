@@ -24,6 +24,7 @@ public enum BoardEasterEgg
     ZENITSU52(ChatColor.YELLOW+"zenitsu52"),
     BW_POG(ChatColor.YELLOW+"Bedwars pog"),
     POTATO_MAN(ChatColor.YELLOW+"potatoman"),
+    COOL_KIDS(ChatColor.BLACK+"COOLKIDSONLY"),
     QUACK(ChatColor.YELLOW+"Quack");
 
     private final String phrase;

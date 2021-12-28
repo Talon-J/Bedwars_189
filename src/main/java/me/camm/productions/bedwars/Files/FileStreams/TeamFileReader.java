@@ -8,7 +8,7 @@ import me.camm.productions.bedwars.Files.FileKeywords.TeamFileKeywords;
 import me.camm.productions.bedwars.Generators.Forge;
 import me.camm.productions.bedwars.Util.Helpers.StringToolBox;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
-import me.camm.productions.bedwars.Util.Locations.GameBoundary;
+import me.camm.productions.bedwars.Util.Locations.Boundaries.GameBoundary;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 

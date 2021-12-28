@@ -16,7 +16,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Random;
 
-import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeaders.*;
+import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeader.*;
 
 
 public class PlayerBoard implements IPlayerUtil

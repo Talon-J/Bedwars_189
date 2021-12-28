@@ -25,7 +25,7 @@ public class BridgeEgg
         trackFlying();
     }
 
-    //At this point the egg is already flying
+    //At this point the egg is already flying (We call this from the ProjectileLaunchEvent)
     public void trackFlying()
     {
 

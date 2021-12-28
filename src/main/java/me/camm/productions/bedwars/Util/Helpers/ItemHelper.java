@@ -65,7 +65,7 @@ public class ItemHelper implements IPlayerUtil
          for (TieredItem item : tieredItems) {
              tieredItemList.add(item);
 
-             if (item.getIndex() == 0)
+             if (item.getIndex() == -1)
                  lowestTiers.add(item);
          }
 
@@ -128,6 +128,8 @@ public class ItemHelper implements IPlayerUtil
         TieredItem possible = isTieredItem(item);
 
         HotbarManager manager = player.getBarManager();
+        Inventory playerInv = player.getRawPlayer().getInventory();
+
         if (manager==null)
             return;
 
@@ -142,6 +144,7 @@ public class ItemHelper implements IPlayerUtil
 
 
         ItemStack bought;
+
 
         switch (category)
         {
@@ -175,17 +178,19 @@ public class ItemHelper implements IPlayerUtil
                 bought = toSoldItem(item,player);
                 if (bought == null)
                     return;
-                if (!hasRoom(player.getRawPlayer().getInventory(),bought,bought.getAmount())) {
-                    player.sendMessage("You're inventory is full!");
+
+                if (playerInv.firstEmpty()==-1) {
+                    player.sendMessage(ChatColor.RED+"Can't do an operation with a full inventory!");
                     return;
                 }
+
                 if (!didPay(player,item,isInflated))
                     return;
 
                 if (item== GameItem.STICK)
                 {
                     enchant(bought, Enchantment.KNOCKBACK, 1);
-                    manager.set(bought,category,player.getRawPlayer());
+                    manager.set(bought,item,player.getRawPlayer());
                    return;
                 }
                 BattleEnchantment enchantment = player.getTeam().getMeleeEnchant();
@@ -193,9 +198,9 @@ public class ItemHelper implements IPlayerUtil
 
 
                 if (enchantment==null)
-                    manager.set(bought,category,player.getRawPlayer());
+                    manager.set(bought,item,player.getRawPlayer());
                 else
-                    manager.set(enchant(bought,enchantment),category,player.getRawPlayer());
+                    manager.set(enchant(bought,enchantment),item,player.getRawPlayer());
             }
             break;
 
@@ -203,14 +208,18 @@ public class ItemHelper implements IPlayerUtil
             {
 
                 ItemStack boughtTool = toSoldItem(item, player);
-                if (player.getRawPlayer().getInventory().firstEmpty()==-1) {
-                    player.sendMessage("You're inventory is full!");
+
+                if (playerInv.firstEmpty()==-1)
+                {
+                    player.sendMessage(ChatColor.RED+"Can't do an operation with an inventory where swapping room is not present!");
                     return;
                 }
 
                 if (!didPay(player,item,isInflated))
                     return;
 
+
+                //If it's a tool, then it's a tiered item
                 if (possible != null)
                 {
                     TieredCategory toolCategory = possible.getCategory();
@@ -225,8 +234,6 @@ public class ItemHelper implements IPlayerUtil
                             player.sendMessage("[DEBUG]: SET AXE");
                             player.setAxe(possible);
                     }
-
-
                 }
 
                 if (item==SHEARS) {
@@ -234,12 +241,23 @@ public class ItemHelper implements IPlayerUtil
                     player.setShears();
                 }
 
-                manager.set(boughtTool, category, player.getRawPlayer());
+                manager.set(boughtTool, item, player.getRawPlayer());
                }
 
 
 
             }
+        }
+
+        public static int getEmptyNumber(Inventory inv)
+        {
+            int empty = 0;
+            for (ItemStack stack:inv){
+                if (isItemInvalid(stack) || stack.getType()==Material.AIR)
+                    empty ++;
+            }
+
+                return empty;
         }
 
 
@@ -994,7 +1012,7 @@ public class ItemHelper implements IPlayerUtil
 
 
 
-    public TieredItem getLowestTier(TieredItem item)
+    public static TieredItem getLowestTier(TieredItem item)
     {
         for (TieredItem current: lowestTiers)
         {
@@ -1048,9 +1066,11 @@ public class ItemHelper implements IPlayerUtil
             }
 
             playSound(false,player);
-            player.sendMessage(ChatColor.RED+"Don't have enough "+getPriceName(priceMaterial)+"! Need "+(price-below)+" more!");
+            player.sendMessage(ChatColor.RED+"Don't have enough "+getPriceName(priceMaterial)+"s! Need "+(price-below)+" more!");
             return false;
         }
+
+       final ItemStack PRICE_ITEM = new ItemStack(priceMaterial,1);
 
             int paid = 0;
             for (int slot = 0; slot < player.getInventory().getSize(); slot++)
@@ -1058,7 +1078,7 @@ public class ItemHelper implements IPlayerUtil
                 if (isItemInvalid(player.getInventory().getItem(slot)))
                     continue;
                     ItemStack currentItem = player.getInventory().getItem(slot);
-                if (!currentItem.isSimilar(new ItemStack(priceMaterial,1)))
+                if (!currentItem.isSimilar(PRICE_ITEM))
                  continue;
 
                 int amount = currentItem.getAmount();

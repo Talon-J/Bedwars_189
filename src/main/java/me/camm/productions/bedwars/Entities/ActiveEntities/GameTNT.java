@@ -37,10 +37,14 @@ public class GameTNT implements IGameOwnable
     {
         Block block = event.getBlockPlaced();
         World world;
-        if (!event.isCancelled())  //if the event is not cancelled by another plugin [Register block]
-        {
-            if (block.getType()== Material.TNT)
-            {
+        if (event.isCancelled())  //if the event is not cancelled by another plugin [Register block]
+            return;
+
+
+        if (block.getType()!= Material.TNT)
+            return;
+
+
                 world = block.getWorld();
                 block.setType(Material.AIR);
                 tnt = world.spawn(block.getLocation().add(0.5,0,0.5), TNTPrimed.class);
@@ -48,12 +52,13 @@ public class GameTNT implements IGameOwnable
                //
                 tnt.setCustomName(owner.getRawPlayer().getUniqueId().toString());
 
-
                 tnt.setFuseTicks(54);
                 tnt.setYield(0F); // set yield to 0 so it doesn't interfere with (originally 6)
+
+                //This is basically random velocity for the tnt.
                 tnt.setVelocity(new Vector( ((random.nextDouble()*0.3)-0.15)*0.2,0.3, ((random.nextDouble()*0.3)-0.15)*0.2));
-            }
-        }
+
+
     }
 
     @Override

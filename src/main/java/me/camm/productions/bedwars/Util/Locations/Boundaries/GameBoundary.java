@@ -1,6 +1,7 @@
-package me.camm.productions.bedwars.Util.Locations;
+package me.camm.productions.bedwars.Util.Locations.Boundaries;
 
 
+import me.camm.productions.bedwars.Util.Helpers.IArenaChatHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -9,9 +10,8 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
 
 
-public class GameBoundary
+public class GameBoundary extends Boundary<Integer> implements IArenaChatHelper
 {
-    private int x1, x2, y1, y2, z1, z2;
     private int[] bounds;
 
     public GameBoundary(int[] bounds) {
@@ -22,14 +22,16 @@ public class GameBoundary
     }
 
 
-    private void analyze()
+    @Override
+    protected void analyze()
     {
             if (bounds==null||bounds.length != 6)
                 bounds = new int[]{0, 0, 0, 0, 0, 0};
     }
 
 
-    private void dissectArray() {
+    @Override
+    protected void dissectArray() {
         if (bounds != null && bounds.length == 6) {
             x1 = bounds[0];
             x2 = bounds[1];
@@ -40,6 +42,15 @@ public class GameBoundary
         } else {
             this.bounds = new int[]{0, 0, 0, 0, 0, 0};
         }
+    }
+
+    @Override
+    protected void reArrange()  //invoking the method loop
+    {
+        final int ONE = 0;
+        final int TWO = 1;
+        final int REPETITION = 0;
+        reArrange(ONE, TWO, bounds, REPETITION);
     }
 
     private void reArrange(int one, int two, int [] order, int repetition) //method loop for rearranging
@@ -69,13 +80,7 @@ public class GameBoundary
             bounds = new int[]{0,0,0,0,0,0};
     }
 
-    private void reArrange()  //invoking the method loop
-    {
-        final int ONE = 0;
-        final int TWO = 1;
-        final int REPETITION = 0;
-        reArrange(ONE, TWO, bounds, REPETITION);
-    }
+
 
     @SuppressWarnings("deprecation")
     public void replace(Material replacement, Material toReplace, byte[] toReplaceData, World world)
@@ -217,11 +222,10 @@ public class GameBoundary
 
     private void sendRegistry(Plugin plugin, String type)
     {
-        plugin.getServer().broadcastMessage(ChatColor.YELLOW + "[BEDWARS] [MAP REGISTER] Registered Zone from (x1=" + x1 + ",y1=" + y1 + ",z1=" + z1 + ") to (x2=" + x2 + ",y2=" + y2 + ",z2=" + z2 + ") with " + type);
+        sendMessage(ChatColor.YELLOW + "[BEDWARS - D] [MAP REGISTER] Registered Zone from (x1=" + x1 + ",y1=" + y1 + ",z1=" + z1 + ") to (x2=" + x2 + ",y2=" + y2 + ",z2=" + z2 + ") with " + type);
     }
 
     public int[] getValues() {
-        reArrange();
         return bounds;
     }
 }

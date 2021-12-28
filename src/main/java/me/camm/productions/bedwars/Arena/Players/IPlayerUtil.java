@@ -5,8 +5,8 @@ import me.camm.productions.bedwars.Arena.Teams.TeamTitle;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeaders.TEAM_ALIVE;
-import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeaders.TEAM_DEAD;
+import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeader.TEAM_ALIVE;
+import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeader.TEAM_DEAD;
 
 public interface IPlayerUtil
 {
@@ -25,7 +25,7 @@ public interface IPlayerUtil
         }
         catch (NullPointerException e)
         {
-            return null;
+            return "Team DNE";
         }
     }
 

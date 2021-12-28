@@ -35,7 +35,7 @@ public class VelocityComponent {
 
         for (Entity e: nearEntities) //for all of the nearby entities to the explosion..
         {
-            if (!validType(e))   //So if the entity can be affected by velocity
+            if (!VectorToolBox.isValidVelocityType(e))   //So if the entity can be affected by velocity
             continue;
 
 
@@ -53,20 +53,7 @@ public class VelocityComponent {
     }//method
 
 
-    public boolean validType(Entity entity) {
-        boolean valid = true;
-        EntityType type = entity.getType();
 
-        switch (type)
-        {
-            case FIREBALL:
-            case ARMOR_STAND:
-            case ENDER_DRAGON:
-            case DROPPED_ITEM:
-                valid = false;
-        }
-        return valid;
-    }
 
 
 

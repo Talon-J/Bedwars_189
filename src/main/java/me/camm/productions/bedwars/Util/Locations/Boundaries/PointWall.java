@@ -1,4 +1,4 @@
-package me.camm.productions.bedwars.Util.Locations;
+package me.camm.productions.bedwars.Util.Locations.Boundaries;
 
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -12,12 +12,9 @@ public class PointWall extends SoakBoundary
         super(bounds);
     }
 
-    public PointWall(int x1, int x2, int y1, int y2, int z1, int z2)
-    {
-        super(x1, x2, y1, y2, z1, z2);
-    }
-
-
+    /*
+    We're basically just iterating through a series of points here in a cube [the surface area basically]
+     */
     public ArrayList<Location> iterate(double precision, World world)
     {
         double[] values = getValues();

@@ -5,7 +5,7 @@ import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Generators.Generator;
 import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
-import me.camm.productions.bedwars.Util.Locations.GameBoundary;
+import me.camm.productions.bedwars.Util.Locations.Boundaries.GameBoundary;
 import me.camm.productions.bedwars.Util.Locations.RegisterType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeaders.*;
+import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeader.*;
 import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.ARENA;
 import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.MAP;
 

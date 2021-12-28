@@ -1,5 +1,6 @@
 package me.camm.productions.bedwars.Util.Locations;
 
+import me.camm.productions.bedwars.Util.Locations.Boundaries.SoakBoundary;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;

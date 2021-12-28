@@ -88,7 +88,6 @@ public class ShopKeeper
 
     public void setSkin(UUID uuid)
     {
-        //String uuid = getUUID(username);
 
             String[] properties;
             if (skinValues.containsKey(uuid))
@@ -144,42 +143,6 @@ public class ShopKeeper
             return null;
         }
     }
-
-    /*
-
-    public String getUUID(String name)
-    {
-        try
-        {
-            URL url = new URL(Sites.UUID_CONVERT.getURL()+name);
-            HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-            if (connection.getResponseCode()==HttpURLConnection.HTTP_OK)
-            {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                Stream<String> lines = reader.lines();
-
-                ArrayList<String> values = new ArrayList<>();
-
-                lines.forEach(values::add);
-
-
-                String combined = String.join(" ",values);
-                int idIndex = combined.indexOf("\"id\":\"");
-                String uuid = combined.substring(idIndex+6,combined.indexOf("\"",idIndex+6));
-                System.out.println("Debug: UUID:"+uuid);
-
-                return uuid;
-            }
-            return null;
-        }
-        catch (Exception e)
-        {
-            return null;
-        }
-    }
-
-     */
-
 
 
     public void sendNPCToAll()

@@ -5,6 +5,7 @@ import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Arena.Teams.TeamTitle;
 import me.camm.productions.bedwars.Entities.ActiveEntities.GameTNT;
+import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
 import me.camm.productions.bedwars.Structures.SoakerSponge;
 import me.camm.productions.bedwars.Structures.Tower;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
@@ -108,7 +109,9 @@ public class BlockInteractListener implements Listener   //unfinished
                   if (players.containsKey(event.getPlayer().getUniqueId()))
                   {
                       BattlePlayer test = players.get(event.getPlayer().getUniqueId());
-                      test.sendHealthUpdatePackets();
+
+                      test.sendMessage("Replacing...");
+                      test.getShopManager().replaceItem(GameItem.DIAMOND_PICKAXE,GameItem.GOLD_PICKAXE);
                   }
                 }
                 break;

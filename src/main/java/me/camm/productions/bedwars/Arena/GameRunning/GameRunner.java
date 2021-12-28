@@ -1,5 +1,7 @@
 package me.camm.productions.bedwars.Arena.GameRunning;
 
+import me.camm.productions.bedwars.Arena.GameRunning.Events.ActionEvent;
+import me.camm.productions.bedwars.Arena.GameRunning.Events.GameEndAction;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Players.IPlayerUtil;
 import me.camm.productions.bedwars.Arena.Players.Scoreboards.PlayerBoard;
@@ -10,9 +12,7 @@ import me.camm.productions.bedwars.Generators.Generator;
 import me.camm.productions.bedwars.Items.ItemDatabases.InventoryName;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.TeamJoinInventory;
 import me.camm.productions.bedwars.Listeners.*;
-import me.camm.productions.bedwars.Util.GamePhase.EventTime;
-import me.camm.productions.bedwars.Util.GamePhase.GameEvent;
-import me.camm.productions.bedwars.Util.GamePhase.GameEventPair;
+import me.camm.productions.bedwars.Arena.GameRunning.Events.EventTime;
 import me.camm.productions.bedwars.Util.Helpers.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -21,7 +21,6 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockCanBuildEvent;
@@ -42,9 +41,8 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeaders.DIAMOND_TWO_HEADER;
-import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeaders.TIME;
-import static me.camm.productions.bedwars.Util.GamePhase.EventTime.*;
+import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeader.TIME;
+import static me.camm.productions.bedwars.Arena.GameRunning.Events.EventTime.*;
 
 public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper, IPlayerUtil
 {
@@ -60,7 +58,7 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
 
     static HashMap<String, InventoryName> titles = new HashMap<>();
 
-    private volatile int currentEventTime;
+    private volatile int headerTime;
     private int currentGameTime;
     private double generatorSpinTime;
     private volatile boolean isRunning;
@@ -86,17 +84,17 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
     private LogListener playerLogListener;
 
 
-    private static final ArrayList<GameEvent> eventList;
+    private  final ArrayList<ActionEvent> eventList;
+    private int nextActivationTime;
 
-    static {
-        eventList = new ArrayList<>();
-        for (GameEventPair pair: GameEventPair.values())
-            eventList.add(new GameEvent(pair));
-    }
 
     public GameRunner(Plugin plugin, Arena arena)
     {
         super();
+
+        eventList = EventBuilder.build(this);
+
+
         InventoryName[] names = InventoryName.values();
         for (InventoryName name: names)
             titles.put(name.getTitle(),name);
@@ -111,25 +109,30 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
 
 
     this.runnableFraction = EventTime.RUNNABLE_PERIOD.getTime()/TICKS.getTime();
-    this.currentEventTime = DIAMOND_UPGRADE_TWO.getTime();
+
     this.currentGameTime = 0;
     this.generatorSpinTime = 0;
     this.totalGameTime = TOTAL_GAME_TIME.getTime();
 
 
-    try {
-       this.playerHeader = eventList.get(0).getEvent().getScoreBoardHeader();
-    }
-    catch (Exception e)
+    this.playerHeader = null;
+    int index = 0;
+    while (playerHeader == null && index < eventList.size())
     {
-        this.playerHeader = DIAMOND_TWO_HEADER.getPhrase();
+        playerHeader = eventList.get(index).getHeader();
+        index ++;
     }
+
+
+    headerTime = eventList.get(0).getTime();
+    nextActivationTime = eventList.get(0).getActivationTime();
 
      isRunning = false;
 
 
     generators = new ArrayList<>();
      generators = arena.getGenerators();
+
 
 
     }//constructor.
@@ -461,7 +464,7 @@ as a string.
     {
         //Current event time is the time period before the next event.
         //The current event time should always be greater or equal to the current game time.
-        int remainingTime = currentEventTime-currentGameTime;
+        int remainingTime = headerTime-currentGameTime;
 
 
         //If the time remainder is less than 10, then add a 0 to the start.
@@ -482,42 +485,40 @@ as a string.
    event to launch.
     */
     private synchronized void checkForEvents(int time) {
-        if (eventList.size() <= 0)
+
+        //if the thing is empty, then end the game
+        if (eventList.size() == 0)
         {
-            GameEvent end = new GameEvent(GameEventPair.GAME_END_DECLARE);
-            end.activate(arena,this);
-            return;
+            ActionEvent ending = new ActionEvent(0, new GameEndAction(this));
+            ending.activateEvent();
         }
 
-            int eventTime = eventList.get(0).getEvent().getTimePair().getTime();
-            GameEvent currentEvent = eventList.get(0);
+            ActionEvent nextEvent = eventList.get(0);
 
-            if (time >= eventTime)
+            if (time >= nextActivationTime)
             {
-                currentEvent.activate(arena, this);
-                this.playerHeader = currentEvent.getEvent().getScoreBoardHeader();
+               nextEvent.activateEvent();
 
-                //So that we still have something to fall back on to display the current time for when a player re-logs.
-                //This way it won't be an empty space.
-                if (eventList.size()>1)
-                    eventList.remove(0);
+               if (eventList.size()>1) {
+                   eventList.remove(0);
+               }
+               else
+                   return;
 
+               this.playerHeader = null;
 
-                //Getting the NEXT event time.
-                if (eventList.size()>0)
-                {
-                    GameEventPair next = eventList.get(0).getEvent();
+                nextActivationTime = eventList.get(0).getActivationTime();
 
-                    //If the event is only a message thing that doesn't affect the scoreboard, then we get the time of the NEXT NEXT
-                    //event.
-                    if (next.isSkip()&&eventList.size()>1)
-                        currentEventTime = eventList.get(1).getEvent().getTimePair().getTime();
-                    else
-                        currentEventTime = next.getTimePair().getTime();
-                }
-                RunningTeamHelper.updateTeamBoardStatus(registeredPlayers.values());
+               int index = 0;
+               while (playerHeader == null && index < eventList.size())
+               {
+                   playerHeader = eventList.get(index).getHeader();
+                   headerTime = eventList.get(index).getTime();
+                   index ++;
+               }
+
+               RunningTeamHelper.updateTeamBoardStatus(registeredPlayers.values());
             }
-
     }
 
     /*
@@ -676,5 +677,9 @@ as a string.
     public Inventory getJoinInventory()
     {
         return joinInventory;
+    }
+
+    public Arena getArena(){
+        return arena;
     }
 }

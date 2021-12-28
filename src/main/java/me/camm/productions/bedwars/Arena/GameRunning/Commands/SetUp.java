@@ -5,6 +5,7 @@ import me.camm.productions.bedwars.Arena.GameRunning.GameRunner;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Files.FileStreams.TeamFileReader;
 import me.camm.productions.bedwars.Files.FileStreams.WorldFileReader;
+import me.camm.productions.bedwars.Util.Helpers.IArenaChatHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -17,7 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 
-public class SetUp implements CommandExecutor
+public class SetUp implements CommandExecutor, IArenaChatHelper
 {
     private boolean isSetUp;
     private final Plugin plugin;
@@ -41,6 +42,7 @@ public class SetUp implements CommandExecutor
     {
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatColor.RED+"Must be a player to use this command.");
+            sendMessage("[D] - console send setup detect");
             return true;
         }
 
@@ -57,6 +59,8 @@ public class SetUp implements CommandExecutor
                     teams = new TeamFileReader(plugin, arena).read();
 
                     plugin.getServer().broadcastMessage(ChatColor.AQUA+"[BEDWARS] Registering the map. Expect some lag.");
+                    sendMessage("[D] registering map");
+
                     arena.registerMap();
                     if (teams!=null&&teams.size()!=0)
                     {
@@ -68,10 +72,12 @@ public class SetUp implements CommandExecutor
                         this.joinInventory = runner.getJoinInventory();
                         this.isSetUp = true;
                         plugin.getServer().broadcastMessage(ChatColor.GREEN+"[BEDWARS] Map is registered! Do /register to join teams.");
+                        sendMessage("registered");
                     }
                     else
                     {
                         plugin.getServer().getConsoleSender().sendMessage(ChatColor.RED+"[BEDWARS] Could not initialize teams. Make sure the teams are configured correctly. [TEAMS DNE]");
+                        sendMessage("teams dne");
 
                        if (teams==null) {
                            sendStackTrace(true);
@@ -85,6 +91,7 @@ public class SetUp implements CommandExecutor
                 else
                 {
                    plugin.getServer().getConsoleSender().sendMessage(ChatColor.RED+"[BEDWARS] Could not Initialize the Arena. Please make sure that the configuration is initialized. [ARENA DNE]");
+                   sendMessage("arena dne");
                 }
 
         }
@@ -135,7 +142,6 @@ public class SetUp implements CommandExecutor
                   //  if (!(notOpposed<2)) //game can start b/c there are at least 2 teams
                  //   {
                         isGameRunning = true;
-                        sender.sendMessage("[DEBUG] Invoked run");
                          runner.prepareAndStart();
                          //PrepareInst() sets running = true and also starts the game
 

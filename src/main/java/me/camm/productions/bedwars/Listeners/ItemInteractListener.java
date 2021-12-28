@@ -2,12 +2,13 @@ package me.camm.productions.bedwars.Listeners;
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
-import me.camm.productions.bedwars.Entities.ActiveEntities.Golem;
+import me.camm.productions.bedwars.Entities.ActiveEntities.DreamDefender;
 import me.camm.productions.bedwars.Entities.ActiveEntities.ThrownFireball;
 import me.camm.productions.bedwars.Entities.PacketHandler;
 import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -31,6 +32,7 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -48,9 +50,12 @@ public class ItemInteractListener implements Listener
     private static final int DELAY;
     private static final int DIVISION;
 
+    private final static HashSet<UUID> messaged;
+
     static {
         DELAY = 500;
         DIVISION = 1000;
+        messaged = new HashSet<>();
     }
 
 
@@ -136,9 +141,8 @@ public class ItemInteractListener implements Listener
                     if (type != EntityType.IRON_GOLEM)
                         return;
 
-                    Golem golem = new Golem(currentPlayer.getTeam(), currentPlayer,arena,event.getClickedBlock().getLocation(),entityListener);
+                    DreamDefender golem = new DreamDefender(currentPlayer.getTeam(), currentPlayer,arena,event.getClickedBlock().getLocation(),entityListener);
                     golem.spawn();
-                    entityListener.addEntity(golem);
                     updateInventory(player,Material.MONSTER_EGG);
                 }
                 break;
@@ -188,19 +192,20 @@ public class ItemInteractListener implements Listener
 
         Inventory inv = player.getInventory();
 
+
+        //getting the number of swords they have.
         long count = Arrays.stream(inv.getContents()).filter(itemstack -> {
             if (itemstack != null  && itemstack.getItemMeta() != null)
                 return ItemHelper.isSword(itemstack.getType());
             else return false;
         }).count();
 
+        //if they don't have any swords, add a wood sword to their inv.
         if (count <= 0)
-            current.getBarManager().set(ItemHelper.toSoldItem(GameItem.WOODEN_SWORD,current),GameItem.WOODEN_SWORD.category,current.getRawPlayer());
+            current.getBarManager().set(ItemHelper.toSoldItem(GameItem.WOODEN_SWORD,current),GameItem.WOODEN_SWORD,current.getRawPlayer());
 
 
     }
-
-
 
     public void updateMap(Player player)
     {
@@ -245,6 +250,15 @@ public class ItemInteractListener implements Listener
 
     public void updateInventory(Player player, Material toDecrease)
     {
+
+        if (player.getGameMode() == GameMode.CREATIVE) {
+            if (!messaged.contains(player.getUniqueId()))
+            {
+                player.sendMessage(ChatColor.YELLOW + "Hey! Just a notice, you're in creative. [Is this a development environment??]");
+                messaged.add(player.getUniqueId());
+            }
+            return;
+        }
 
         PlayerInventory inv = player.getInventory();
 

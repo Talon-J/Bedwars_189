@@ -20,7 +20,6 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_8_R3.scoreboard.CraftScoreboard;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.PlayerInventory;
@@ -35,7 +34,7 @@ import org.bukkit.util.Vector;
 import java.lang.reflect.Field;
 import java.util.*;
 
-import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeaders.*;
+import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeader.*;
 
 
 public class BattlePlayer implements IPlayerUtil
@@ -195,6 +194,8 @@ public class BattlePlayer implements IPlayerUtil
         PlayerFileReader reader = new PlayerFileReader(arena.getPlugin(),this.player,isInflated);
         this.barManager = reader.readBarFile();
         this.shopManager = reader.readInvFile();
+
+        shopManager.setOwner(this);
     }
 
     /*
@@ -547,21 +548,21 @@ public class BattlePlayer implements IPlayerUtil
         player.getInventory().clear();
 
         if (getShears() != null)
-        barManager.set(ItemHelper.toSoldItem(getShears(),this),getShears().category,player);
+        barManager.set(ItemHelper.toSoldItem(getShears(),this),getShears(),player);
 
         if (getPick() != null) {
             TieredItem newPick = handlePersistentItemDegradation(getPick());
             shopManager.replaceItem(pick.getItem(),newPick.getItem());
             setPick(newPick);
-            barManager.set(ItemHelper.toSoldItem(getPick().getItem(), this), getPick().getItem().category, player);
+            barManager.set(ItemHelper.toSoldItem(getPick().getItem(), this), getPick().getItem(), player);
         }
         if (getAxe() != null) {
             TieredItem newAxe = handlePersistentItemDegradation(getAxe());
             shopManager.replaceItem(axe.getItem(),newAxe.getItem());
             setAxe(newAxe);
-            barManager.set(ItemHelper.toSoldItem(getAxe().getItem(), this), getAxe().getItem().category, player);
+            barManager.set(ItemHelper.toSoldItem(getAxe().getItem(), this), getAxe().getItem(), player);
         }
-        barManager.set(ItemHelper.toSoldItem(GameItem.WOODEN_SWORD,this),GameItem.WOODEN_SWORD.category,player);
+        barManager.set(ItemHelper.toSoldItem(GameItem.WOODEN_SWORD,this),GameItem.WOODEN_SWORD,player);
         heal();
         equipArmor();
 
@@ -587,7 +588,7 @@ public class BattlePlayer implements IPlayerUtil
         team.teleportToBase(player);
         heal();
         equipArmor();
-        barManager.set(ItemHelper.toSoldItem(GameItem.WOODEN_SWORD,this),GameItem.WOODEN_SWORD.category,player);
+        barManager.set(ItemHelper.toSoldItem(GameItem.WOODEN_SWORD,this),GameItem.WOODEN_SWORD,player);
     }
 
 

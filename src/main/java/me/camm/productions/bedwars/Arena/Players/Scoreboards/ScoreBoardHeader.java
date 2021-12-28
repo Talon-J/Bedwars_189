@@ -2,7 +2,7 @@ package me.camm.productions.bedwars.Arena.Players.Scoreboards;
 
 import org.bukkit.ChatColor;
 
-public enum ScoreBoardHeaders
+public enum ScoreBoardHeader
 {
     DIAMOND_TWO_HEADER("Diamond II in "+ ChatColor.GREEN),
     DIAMOND_THREE_HEADER("Diamond III in "+ChatColor.GREEN),
@@ -47,7 +47,7 @@ public enum ScoreBoardHeaders
 
     private final String phrase;
 
-    ScoreBoardHeaders(String phrase)
+    ScoreBoardHeader(String phrase)
     {
         this.phrase = phrase;
     }
@@ -55,6 +55,11 @@ public enum ScoreBoardHeaders
     public String getPhrase()
     {
         return phrase;
+    }
+
+    @Override
+    public String toString() {
+        return getPhrase();
     }
 
 }

@@ -6,7 +6,7 @@ import me.camm.productions.bedwars.Entities.ShopKeeper;
 import me.camm.productions.bedwars.Generators.Forge;
 import me.camm.productions.bedwars.Items.ItemDatabases.BattleEnchantment;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
-import me.camm.productions.bedwars.Util.Locations.GameBoundary;
+import me.camm.productions.bedwars.Util.Locations.Boundaries.GameBoundary;
 import me.camm.productions.bedwars.Util.Locations.RegisterType;
 import org.bukkit.*;
 import org.bukkit.entity.Player;

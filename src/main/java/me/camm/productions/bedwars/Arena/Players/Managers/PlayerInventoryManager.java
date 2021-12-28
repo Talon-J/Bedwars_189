@@ -1,5 +1,6 @@
 package me.camm.productions.bedwars.Arena.Players.Managers;
 
+import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.*;
 import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
@@ -18,6 +19,7 @@ inventories.
 public class PlayerInventoryManager
 {
     private final boolean isInflated;
+    private BattlePlayer owner;
 
 
 
@@ -40,6 +42,11 @@ public class PlayerInventoryManager
     public PlayerInventoryManager(boolean isInflated)
     {
        this(null,isInflated);
+    }
+
+    public void setOwner(BattlePlayer player)
+    {
+        this.owner = player;
     }
 
     public PlayerInventoryManager(ArrayList<ItemSet> quickBuyConfiguration, boolean isInflated)
@@ -84,22 +91,22 @@ public class PlayerInventoryManager
 
     private void searchAndReplace(Inventory inv, GameItem toReplace, GameItem replacement)
     {
+        if (owner == null)
+            return;
+
+
         ItemStack set = ItemHelper.toDisplayItem(replacement, isInflated);
-        System.out.println("[DEBUG] S&R Entering search and replace");
+        ItemStack replaced = ItemHelper.toDisplayItem(toReplace, isInflated);
 
         for (int i = 0;i< inv.getSize();i++)
         {
             ItemStack stack = inv.getItem(i);
-            if (stack == null)
-                continue;
-
-            ItemMeta meta = stack.getItemMeta();
-            if (meta == null || meta.getDisplayName() == null)
+            if (ItemHelper.isItemInvalid(stack))
                 continue;
 
 
             //Enchantments can change the name, so....yup.
-            if (stack.getType() == toReplace.sellMaterial) {
+            if (stack.equals(replaced)) {
                 inv.setItem(i, set);
                 System.out.println("[DEBUG] S&R Replaced item: "+toReplace.sellMaterial+" with "+replacement.sellMaterial);
                 return;

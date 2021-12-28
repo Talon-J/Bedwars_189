@@ -2,6 +2,8 @@ package me.camm.productions.bedwars.Structures;
 
 import me.camm.productions.bedwars.Listeners.BlockInteractListener;
 import me.camm.productions.bedwars.Util.Locations.*;
+import me.camm.productions.bedwars.Util.Locations.Boundaries.PointWall;
+import me.camm.productions.bedwars.Util.Locations.Boundaries.SoakBoundary;
 import net.minecraft.server.v1_8_R3.EnumParticle;
 import net.minecraft.server.v1_8_R3.PacketPlayOutWorldParticles;
 import org.bukkit.Bukkit;
@@ -19,7 +21,7 @@ import java.util.UUID;
 
 public class SoakerSponge
 {
-    private final int EXPANSION = 4;
+    private static final int EXPANSION = 4;
   //  private final double PRECISION = 0.5;
 
 
@@ -106,7 +108,7 @@ public class SoakerSponge
 
     private void dry(Block block)
     {
-        //also account for metadata.
+        //accounts for metadata
         if (block.getType()==Material.WATER || block.getType() == Material.STATIONARY_WATER)
             block.setType(Material.AIR);
 

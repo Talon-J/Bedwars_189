@@ -2,9 +2,9 @@ package me.camm.productions.bedwars.Generators;
 
 
 import me.camm.productions.bedwars.Files.FileKeywords.WorldFileKeyword;
-import me.camm.productions.bedwars.Util.GamePhase.EventTime;
+import me.camm.productions.bedwars.Arena.GameRunning.Events.EventTime;
 import me.camm.productions.bedwars.Util.Locations.BlockRegisterType;
-import me.camm.productions.bedwars.Util.Locations.GameBoundary;
+import me.camm.productions.bedwars.Util.Locations.Boundaries.GameBoundary;
 import org.bukkit.*;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
@@ -17,9 +17,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.List;
-import java.util.Random;
 
-import static me.camm.productions.bedwars.Util.GamePhase.EventTime.*;
+import static me.camm.productions.bedwars.Arena.GameRunning.Events.EventTime.*;
 
 public class Generator
 {

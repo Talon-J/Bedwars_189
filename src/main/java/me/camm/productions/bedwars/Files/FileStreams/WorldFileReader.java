@@ -6,7 +6,7 @@ import me.camm.productions.bedwars.Files.FileKeywords.WorldFileKeyword;
 import me.camm.productions.bedwars.Generators.Generator;
 import me.camm.productions.bedwars.Util.Helpers.StringToolBox;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
-import me.camm.productions.bedwars.Util.Locations.GameBoundary;
+import me.camm.productions.bedwars.Util.Locations.Boundaries.GameBoundary;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;

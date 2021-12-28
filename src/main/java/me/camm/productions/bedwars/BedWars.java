@@ -7,7 +7,6 @@ import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Entities.PacketHandler;
 import me.camm.productions.bedwars.Files.FileCreators.DirectoryCreator;
 import me.camm.productions.bedwars.Files.FileStreams.GameFileWriter;
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
 import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.QuickBuySection;
 import me.camm.productions.bedwars.Util.DataSets.ItemSet;
@@ -104,7 +103,8 @@ public final class BedWars extends JavaPlugin
                 barWriter.clear();
                 ArrayList<String> valueList = new ArrayList<>();
 
-               Arrays.stream(barItems).forEach(item -> valueList.add(item.toString()));
+               Arrays.stream(barItems).forEach(item -> valueList.add(
+                       item == null ? "" :item.toString()));
                String[] barList = valueList.toArray(new String[valueList.size()]);
                barWriter.write(barList,false);
 
@@ -114,14 +114,11 @@ public final class BedWars extends JavaPlugin
 
                GameFileWriter shopWriter = new GameFileWriter(box.getInventoryPath(battlePlayer.getRawPlayer()),this);
                ArrayList<String> shopList = new ArrayList<>();
-               shopSet.forEach(pack -> shopList.add(pack.toString()));
+               shopSet.forEach(pack -> shopList.add( pack == null ? "" :pack.toString()));
                String[] shopWriteList = shopList.toArray(new String[shopList.size()]);
                shopWriter.write(shopWriteList,false);
 
             });
-
-
-
 
 
         //Save all the players things here and put them into their files.
@@ -141,15 +138,14 @@ public final class BedWars extends JavaPlugin
 TODO: (In the very near future)
  - Inventories for quick buy. Create. [DONE]. Do the team inventories now. [Add the functionality later]
  - Bridge egg. [DONE] Please Integrate after enderpearls.
- - for some reason, players can shift-click items into the shop. Fix.
  - One of the events, the bed destroyed one does not play a title for certain players. Fix.
  - Do the research for overriding the EntityEnderDragon class [IN PROGRESS] - remember to register it!
- - Find a better solution to the explosives problem.
+ - Find a better solution to the explosives problem. [IN PROGRESS]
  - Do testing while the player is in spectator
  - The hotbar manager is active. Refactor code please. Also, whenever a player buys a tool, it does not replace that tool. Please fix that.
- - For the checks of if the bed still exists, also add a check for if the block has metadata
  - add code for the dragon spawning locations and trap locations
- - So the degradable items are updated upwards, but they are not undated downwards when a player dies. pls fix that.
+ - Test the code for the hBar mngr
+ - So the degradable items are updated upwards, but they are not updated downwards when a player dies. pls fix that.
 
 
  NOTE: The check for opposition in the CLASS "Setup" is currently ----   ---- disabled for testing purposes.

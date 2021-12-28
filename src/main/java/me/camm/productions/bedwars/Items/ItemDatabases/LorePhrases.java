@@ -3,7 +3,7 @@ package me.camm.productions.bedwars.Items.ItemDatabases;
 public enum LorePhrases
 {
     COST("Cost:"),
-    SELL("Amount:");
+    SELL("Sell amount:");
 
     private final String phrase;
     LorePhrases(String phrase)
