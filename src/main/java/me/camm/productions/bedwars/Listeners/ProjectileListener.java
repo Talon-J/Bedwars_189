@@ -118,10 +118,6 @@ public class ProjectileListener implements Listener
             new BridgeEgg((Egg)p,plugin,(byte)arena.getPlayers().get(shooter.getUniqueId()).getTeam().getTeamColor().getValue());
 
 
-
-
-
-
         /*
         TODO also require code for enderpearls and snowballs.
          */

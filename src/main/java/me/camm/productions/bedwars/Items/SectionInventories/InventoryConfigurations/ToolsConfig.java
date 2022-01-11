@@ -1,19 +1,19 @@
 package me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations;
 
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_START;
 
 public enum ToolsConfig
 {
-    SHEARS(QUICK_INV_BORDER_START.getValue(), GameItem.SHEARS),
-    PICKAXE(QUICK_INV_BORDER_START.getValue()+1, GameItem.WOODEN_PICKAXE),
-    AXE(QUICK_INV_BORDER_START.getValue()+2, GameItem.WOOD_AXE);
+    SHEARS(QUICK_INV_BORDER_START.getValue(), ShopItem.SHEARS),
+    PICKAXE(QUICK_INV_BORDER_START.getValue()+1, ShopItem.WOODEN_PICKAXE),
+    AXE(QUICK_INV_BORDER_START.getValue()+2, ShopItem.WOOD_AXE);
 
     private final int slot;
-    private final GameItem item;
+    private final ShopItem item;
 
-    ToolsConfig(int slot, GameItem item) {
+    ToolsConfig(int slot, ShopItem item) {
         this.slot = slot;
         this.item = item;
     }
@@ -22,7 +22,7 @@ public enum ToolsConfig
         return slot;
     }
 
-    public GameItem getItem() {
+    public ShopItem getItem() {
         return item;
     }
 

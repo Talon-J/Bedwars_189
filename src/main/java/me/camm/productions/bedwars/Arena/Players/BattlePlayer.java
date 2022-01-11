@@ -6,11 +6,11 @@ import me.camm.productions.bedwars.Arena.Players.Managers.PlayerInventoryManager
 import me.camm.productions.bedwars.Arena.Players.Scoreboards.PlayerBoard;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Arena.Teams.TeamTitle;
-import me.camm.productions.bedwars.Entities.PacketHandler;
+import me.camm.productions.bedwars.Listeners.PacketHandler;
 import me.camm.productions.bedwars.Entities.ShopKeeper;
 import me.camm.productions.bedwars.Files.FileCreators.PlayerFileCreator;
 import me.camm.productions.bedwars.Files.FileStreams.PlayerFileReader;
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Items.ItemDatabases.TieredItem;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 import me.camm.productions.bedwars.Util.PacketSound;
@@ -42,6 +42,7 @@ public class BattlePlayer implements IPlayerUtil
 
     private final Arena arena;
     private volatile Player player;
+    private volatile long lastMilk;
 
     //boolean values to determine if the player is eliminated or alive.
     //The alive value is for when they are in spectator mode and about to respawn.
@@ -91,7 +92,7 @@ public class BattlePlayer implements IPlayerUtil
 
 
     //The possible persistent items a player can have.
-    private GameItem shears;
+    private ShopItem shears;
     private TieredItem pick;
     private TieredItem axe;
     private TieredItem armor;
@@ -132,6 +133,8 @@ public class BattlePlayer implements IPlayerUtil
         createBoard();
         PlayerFileCreator creator = new PlayerFileCreator(this,arena);
         creator.createDirectory(); creator.createHotBarFile(); creator.createInventoryFile();
+
+        this.lastMilk = 0;
 
     }
 
@@ -181,7 +184,6 @@ public class BattlePlayer implements IPlayerUtil
     {
         this.player = newPlayer;
         board.unregisterRegardless();
-       // timeTillRespawn = 0;
         createBoard();
     }
 
@@ -274,6 +276,14 @@ public class BattlePlayer implements IPlayerUtil
         });
     }
 
+    public void sendPacketsAllNonEqual(Packet<?> packet){
+        arena.getPlayers().forEach((uuid,battlePlayer) -> {
+            if (!battlePlayer.equals(this)) {
+                battlePlayer.sendPacket(packet);
+            }
+        });
+    }
+
 
     /*
     @Author CAMM
@@ -311,9 +321,8 @@ public class BattlePlayer implements IPlayerUtil
                 int slot = 0;
 
                 for (ItemStack stack: items)
-                {
                     battlePlayer.sendPacket(new PacketPlayOutEntityEquipment(id,++slot,stack));
-                }
+
             }
         });
     }
@@ -477,29 +486,37 @@ public class BattlePlayer implements IPlayerUtil
 
     public void handlePlayerIntoSpectator(PacketHandler handler, boolean isFinal, Player killer)
     {
+        dropInventory(player.getLocation().clone());
         teleport(arena.getSpecSpawn());
 
 
         if (!isAlive || isEliminated) {
             clearInventory(this.player);
+            sendPacketsAllNonEqual(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER,((CraftPlayer)this.player).getHandle()));
+            //  sendPacket(player, new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER,npc));
             return;
         }
 
         toggleSpectator(true, handler);
         heal();
 
+
         if (isFinal)
         {
             setEliminated(true);
            boolean sendMessage = emptyEnderChest();
+            sendPacketsAllNonEqual(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER,((CraftPlayer)this.player).getHandle()));
 
+           int remaining = team.getRemainingPlayers();
+           if (remaining == 0)
+               team.eliminate();
 
             if (killer !=null && sendMessage)
                 killer.sendMessage("[PLACEHOLDER] - Items put from the enderchest of "+player.getName()+" into their forge.");
 
             return;
         }
-        dropInventory();
+
 
         new BukkitRunnable()
         {
@@ -551,23 +568,26 @@ public class BattlePlayer implements IPlayerUtil
         barManager.set(ItemHelper.toSoldItem(getShears(),this),getShears(),player);
 
         if (getPick() != null) {
-            TieredItem newPick = handlePersistentItemDegradation(getPick());
-            shopManager.replaceItem(pick.getItem(),newPick.getItem());
-            setPick(newPick);
-            barManager.set(ItemHelper.toSoldItem(getPick().getItem(), this), getPick().getItem(), player);
+            TieredItem worsePick = handlePersistentItemDegradation(getPick());
+            setPickDownwards(worsePick);
+
+            barManager.set(ItemHelper.toSoldItem(pick.getItem(), this), getPick().getItem(), player);
         }
         if (getAxe() != null) {
-            TieredItem newAxe = handlePersistentItemDegradation(getAxe());
-            shopManager.replaceItem(axe.getItem(),newAxe.getItem());
-            setAxe(newAxe);
-            barManager.set(ItemHelper.toSoldItem(getAxe().getItem(), this), getAxe().getItem(), player);
+            TieredItem worseAxe = handlePersistentItemDegradation(getAxe());
+            setAxeDownwards(worseAxe);
+
+            barManager.set(ItemHelper.toSoldItem(axe.getItem(), this), getAxe().getItem(), player);
         }
-        barManager.set(ItemHelper.toSoldItem(GameItem.WOODEN_SWORD,this),GameItem.WOODEN_SWORD,player);
+        barManager.set(ItemHelper.toSoldItem(ShopItem.WOODEN_SWORD,this), ShopItem.WOODEN_SWORD,player);
         heal();
         equipArmor();
 
-        sendTitle(TeamTitle.RESPAWNED.getMessage(), null,0,40,10);
+        sendTitle(TeamTitle.RESPAWNED.getMessage(), null,2,40,10);
+        team.applyPlayerModifiersToPlayer(this);
     }
+
+
 
     private TieredItem handlePersistentItemDegradation(TieredItem current)
     {
@@ -588,7 +608,7 @@ public class BattlePlayer implements IPlayerUtil
         team.teleportToBase(player);
         heal();
         equipArmor();
-        barManager.set(ItemHelper.toSoldItem(GameItem.WOODEN_SWORD,this),GameItem.WOODEN_SWORD,player);
+        barManager.set(ItemHelper.toSoldItem(ShopItem.WOODEN_SWORD,this), ShopItem.WOODEN_SWORD,player);
     }
 
 
@@ -599,7 +619,7 @@ public class BattlePlayer implements IPlayerUtil
     @Author CAMM
     Convenience method for sending packets to the current player.
      */
-    public  void sendPacket(Packet<?> packet)
+    public void sendPacket(Packet<?> packet)
     {
         ( (CraftPlayer)player).getHandle().playerConnection.sendPacket(packet);
     }
@@ -635,7 +655,7 @@ public class BattlePlayer implements IPlayerUtil
     Empties and clears the player's inventory.
     Currency items (gold, iron, etc) are dropped
      */
-    public void dropInventory()
+    public void dropInventory(final Location loc)
     {
         Inventory inv = player.getInventory();
         new BukkitRunnable()
@@ -643,13 +663,13 @@ public class BattlePlayer implements IPlayerUtil
             @Override
             public void run()
             {
-                Location loc = player.getLocation();
                 World w = player.getWorld();
                 Arrays.stream(inv.getContents()).filter(item -> Objects.nonNull(item)&&ItemHelper.isCurrencyItem(item)).forEach(item -> w.dropItem(loc,item));
+                clearInventory(player);
+                cancel();
             }
         }.runTask(arena.getPlugin());
 
-        clearInventory(player);
     }
 
       /*
@@ -770,7 +790,7 @@ public class BattlePlayer implements IPlayerUtil
             fieldA.set(packet, playerName);
             fieldB.set(packet,objectiveName);
             fieldC.set(packet, score);
-            fieldC.set(packet,PacketPlayOutScoreboardScore.EnumScoreboardAction.CHANGE);
+            fieldD.set(packet,PacketPlayOutScoreboardScore.EnumScoreboardAction.CHANGE);
 
             return packet;
         }
@@ -810,6 +830,14 @@ public class BattlePlayer implements IPlayerUtil
         this.timeTillRespawn = seconds;
     }
 
+    public synchronized void setLastMilkTime(long time){
+        this.lastMilk = time;
+    }
+
+    public long getLastMilk(){
+        return lastMilk;
+    }
+
     /*
     This value is later shown in their scoreboard, which is controlled externally.
      */
@@ -820,7 +848,7 @@ public class BattlePlayer implements IPlayerUtil
 
     public synchronized void setShears()
     {
-        shears = GameItem.SHEARS;
+        shears = ShopItem.SHEARS;
     }
 
     /*
@@ -831,17 +859,51 @@ public class BattlePlayer implements IPlayerUtil
         this.kills = newKills;
     }
 
-    public synchronized void setPick(TieredItem pick) {
+    public synchronized void setPickUpwards(TieredItem pick) {
         this.pick = pick;
         TieredItem upgrade = ItemHelper.getNextTier(pick);
            shopManager.replaceItem(pick.getItem(),upgrade == null? pick.getItem() : upgrade.getItem());
 
     }
 
-    public synchronized void setAxe(TieredItem axe) {
+    public synchronized void setPickDownwards(TieredItem pick) {
+        TieredItem pickCloned = this.pick;
+        this.pick = pick;
+
+        TieredItem prevUpgrade = ItemHelper.getNextTier(pickCloned);
+        TieredItem currentUpgrade = ItemHelper.getNextTier(pick);
+
+        shopManager.replaceItem(prevUpgrade == null ? pick.getItem(): prevUpgrade.getItem(),currentUpgrade == null ? pick.getItem() : currentUpgrade.getItem());
+
+    }
+
+    public synchronized void setAxeUpwards(TieredItem axe) {
         this.axe = axe;
         TieredItem upgrade = ItemHelper.getNextTier(axe);
         shopManager.replaceItem(axe.getItem(),upgrade == null? axe.getItem() : upgrade.getItem());
+    }
+
+
+
+    public synchronized void setAxeDownwards(TieredItem axe) {
+        TieredItem axeCloned = this.axe;
+        this.axe = axe;
+
+        TieredItem prevUpgrade = ItemHelper.getNextTier(axeCloned);
+        TieredItem currentUpgrade = ItemHelper.getNextTier(axe);
+
+        shopManager.replaceItem(prevUpgrade == null ? axe.getItem(): prevUpgrade.getItem(),currentUpgrade == null ? axe.getItem() : currentUpgrade.getItem());
+
+    }
+
+    public void hideEliminatedPlayers(){
+        Collection<BattlePlayer> players = arena.getPlayers().values();
+
+        for (BattlePlayer player: players)
+        {
+            if (player.isEliminated && !player.equals(this))
+              sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER,((CraftPlayer)player.getRawPlayer()).getHandle()));
+        }
     }
 
     /*
@@ -919,7 +981,7 @@ public class BattlePlayer implements IPlayerUtil
         return armor;
     }
 
-    public synchronized GameItem getShears() {
+    public synchronized ShopItem getShears() {
         return shears;
     }
 

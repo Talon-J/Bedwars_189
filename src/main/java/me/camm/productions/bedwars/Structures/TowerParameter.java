@@ -6,7 +6,7 @@ public enum TowerParameter
     BASE_WIDTH(2),
 
 
-
+  //priming measurements for building
     PRIME_ONE(1),
     PRIME_TWO(2),
 

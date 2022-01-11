@@ -1,6 +1,6 @@
 package me.camm.productions.bedwars.Files.FileStreams;
 
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Util.Helpers.StringToolBox;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -22,7 +22,7 @@ public class InventoryFileReader extends StringToolBox
         this.player = player;
     }
 
-    public HashMap<Integer, GameItem> read()
+    public HashMap<Integer, ShopItem> read()
     {
         final int UPPER_BOUND = 18;  //greater than 18, less than 44
         final int LOWER_BOUND = 44;
@@ -33,8 +33,8 @@ public class InventoryFileReader extends StringToolBox
          */
 
 
-        HashMap<Integer, GameItem> setup = new HashMap<>();
-        GameItem[] items = GameItem.values();
+        HashMap<Integer, ShopItem> setup = new HashMap<>();
+        ShopItem[] items = ShopItem.values();
 
       try {
             BufferedReader reader = new BufferedReader(new FileReader(getInventoryPath(player)));

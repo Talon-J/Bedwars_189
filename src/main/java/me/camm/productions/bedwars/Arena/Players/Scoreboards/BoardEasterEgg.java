@@ -20,6 +20,7 @@ public enum BoardEasterEgg
     DARKNESS(ChatColor.YELLOW+"GR3aterG0ld"),
     WAKIEZ(ChatColor.YELLOW+"XxwakiezxX"),
     FORTNITE_KID(ChatColor.YELLOW+"fortnite kid"),
+    CHASE_BEST(ChatColor.YELLOW+"Chase is Best"),
     ZENITSU(ChatColor.YELLOW+"dodo Zenitsu"),
     ZENITSU52(ChatColor.YELLOW+"zenitsu52"),
     BW_POG(ChatColor.YELLOW+"Bedwars pog"),

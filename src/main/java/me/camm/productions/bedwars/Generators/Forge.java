@@ -2,6 +2,8 @@ package me.camm.productions.bedwars.Generators;
 
 import me.camm.productions.bedwars.Arena.Teams.TeamColors;
 import me.camm.productions.bedwars.Files.FileKeywords.TeamFileKeywords;
+import me.camm.productions.bedwars.Util.Randoms.WeightedItem;
+import me.camm.productions.bedwars.Util.Randoms.WeightedRandom;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -14,7 +16,9 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.NoSuchElementException;
 import java.util.Random;
 
 public class Forge implements Runnable
@@ -32,15 +36,15 @@ public class Forge implements Runnable
 
     private volatile int tier;
     private volatile boolean isAlive;
-    private int next;
-
 
     private final Random spawningTimeRand;
-    private final Random spawningChance;
 
     private static final double PICKUP_DISTANCE;
     private static final int MAX_GOLD;
     private static final int MAX_IRON;
+
+    private final WeightedRandom<WeightedItem<Material>> spawningRandom;
+    private final WeightedItem<Material> emeraldChance;
 
     static {
         PICKUP_DISTANCE = 1.5;
@@ -70,7 +74,6 @@ Supposedly, /n = the percentage we need.
       this.initialTime = initialTime;
       this.world = world;
       this.tier = 0;
-      this.next = 0;
       this.plugin = plugin;
       this.type = TeamFileKeywords.FORGE_SPAWN.getKey();
 
@@ -82,8 +85,14 @@ Supposedly, /n = the percentage we need.
       if (!chunk.isLoaded())
           chunk.load();
 
-      spawningChance = new Random();
       spawningTimeRand = new Random();
+      emeraldChance = new WeightedItem<>(Material.EMERALD,0);
+
+      ArrayList<WeightedItem<Material>> materials = new ArrayList<>();
+      materials.add(new WeightedItem<>(Material.IRON_INGOT,0.8));
+      materials.add(new WeightedItem<>(Material.GOLD_INGOT,0.2));
+      materials.add(emeraldChance);
+      spawningRandom = new WeightedRandom<>(materials);
 
   }
 
@@ -122,8 +131,13 @@ Supposedly, /n = the percentage we need.
                 spawnTime = (long)(initialTime/2.5);
                 break;
 
+            case 3:
+                emeraldChance.setWeight(0.005);
+                break;
+
             case 4:
                 spawnTime = (long)(initialTime/3.5);
+                emeraldChance.setWeight(0.01);
                 break;
         }
     }
@@ -137,61 +151,29 @@ Supposedly, /n = the percentage we need.
 
     public synchronized void spawnItem()
     {
-       int chance = spawningChance.nextInt(101);  // 0 --> 100
         int freedom = verifyCount();
-        Material spawnMaterial = null;
-        next++;
+        Material mat = spawningRandom.getNext().getItem();
 
+        switch (freedom) {
+            case -1:
+                mat = null;
+                break;
 
-        if (freedom<0) {
+            case 0:
+                  mat = Material.IRON_INGOT;
+                break;
+
+            case 1:
+                mat = Material.GOLD_INGOT;
+                break;
+
+        }
+
+        if (mat == null)
             return;
-        }
 
-            switch (tier) {
-                case 0:
-                case 1:
-                case 2:
-                    if (chance>=80)
-                    {
-
-                        if (freedom>0)  //freedom is either 1 or 2
-                            spawnMaterial = Material.GOLD_INGOT;
-                        else
-                            spawnMaterial = Material.IRON_INGOT;  //freedom is 0
-                    }
-                    else if (freedom==0||freedom==2)
-                    {
-                        spawnMaterial = Material.IRON_INGOT;
-                    }
-
-
-                    break;
-
-                case 3:
-                case 4:
-                    if (chance>=80)
-                    {
-                        if (freedom>0) //if freedom is 1 or 2
-                        {
-                            spawnMaterial = Material.GOLD_INGOT;
-                        }
-                        else if (next>=120)  //freedom = 0
-                        {
-                            next = 0;
-                            spawnMaterial = Material.EMERALD;
-                        }
-                        else
-                            spawnMaterial = Material.IRON_INGOT;
-                    }
-                    break;
-            }
-
-            if (spawnMaterial!=null)
-                drop(spawnMaterial);
-
-     //   plugin.getServer().broadcastMessage("[DEBUG:] color: "+color+" Freedom: "+freedom);
-
-        }
+        drop(mat);
+    }
 
 
         private void drop(Material mat)
@@ -215,39 +197,45 @@ Supposedly, /n = the percentage we need.
 
         private int verifyCount()
         {
-            int goldCount = 0;
-            int ironCount = 0;
-            Collection<Entity> nearby = world.getNearbyEntities(location, PICKUP_DISTANCE, PICKUP_DISTANCE, PICKUP_DISTANCE);
-            for (Entity entity: nearby)
-            {
+            try {
+                int goldCount = 0;
+                int ironCount = 0;
+                Collection<Entity> nearby = world.getNearbyEntities(location, PICKUP_DISTANCE, PICKUP_DISTANCE, PICKUP_DISTANCE);
+                for (Entity entity : nearby) {
 
-                if (!(entity instanceof Item))
-                    continue;
+                    if (!(entity instanceof Item))
+                        continue;
 
 
-                    Item item = (Item)entity;
+                    Item item = (Item) entity;
                     if (!item.hasMetadata(type))
                         continue;
 
-                        ItemStack stack = item.getItemStack();
-                        Material mat = stack.getType();
+                    ItemStack stack = item.getItemStack();
+                    Material mat = stack.getType();
 
-                        switch (mat)
-                        {
-                            case GOLD_INGOT:
-                            goldCount+= stack.getAmount();
-                                break;
-                            case IRON_INGOT:
-                               ironCount += stack.getAmount();
-                        }
+                    switch (mat) {
+                        case GOLD_INGOT:
+                            goldCount += stack.getAmount();
+                            break;
+                        case IRON_INGOT:
+                            ironCount += stack.getAmount();
+                    }
 
+                }
+
+
+                if (goldCount >= MAX_GOLD) //if gold is invalid
+                    return ironCount >= MAX_IRON ? SpawningFreedom.NO_SPAWNING.getFreedom() : SpawningFreedom.ONLY_IRON.getFreedom();
+                else
+                    return ironCount >= MAX_IRON ? SpawningFreedom.ONLY_GOLD.getFreedom() : SpawningFreedom.FULL_SPAWNING.getFreedom();
             }
-
-
-         if (goldCount>=MAX_GOLD) //if gold is invalid
-             return ironCount >= MAX_IRON?SpawningFreedom.NO_SPAWNING.getFreedom():SpawningFreedom.ONLY_IRON.getFreedom();
-         else
-             return ironCount >= MAX_IRON? SpawningFreedom.ONLY_GOLD.getFreedom():SpawningFreedom.FULL_SPAWNING.getFreedom();
+            catch (NoSuchElementException e)  //this is thrown by getNearByentities() in world.
+            {
+                e.printStackTrace();
+                plugin.getServer().broadcastMessage("[WARN] - Forge for team "+color+" encountered an exception. It might not work as intended.");
+                return -1;
+            }
         }
 
 
@@ -267,6 +255,10 @@ Supposedly, /n = the percentage we need.
             }
         }
 
+    }
+
+    public synchronized int getTier(){
+      return tier;
     }
 
     private enum SpawningFreedom {

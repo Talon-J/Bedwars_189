@@ -3,9 +3,16 @@ package me.camm.productions.bedwars.Util.Helpers;
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Players.Managers.PlayerInventoryManager;
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
+import me.camm.productions.bedwars.Arena.Teams.TeamTraps.*;
+import me.camm.productions.bedwars.Generators.Forge;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
+import me.camm.productions.bedwars.Items.ItemDatabases.TeamItem;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.QuickBuySection;
+import me.camm.productions.bedwars.Items.SectionInventories.Inventories.TeamBuyInventory;
+import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.TeamInventoryConfig;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryAction;
@@ -20,9 +27,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class InventoryOperationHelper
 {
 
-    private final static GameItem[] gameItems;
+    private final static ShopItem[] gameItems;
+    private final static TeamInventoryConfig[] config;
     static {
-        gameItems = GameItem.values();
+        gameItems = ShopItem.values();
+        config = TeamInventoryConfig.values();
     }
 
     /*
@@ -52,22 +61,31 @@ public class InventoryOperationHelper
         Inventory playerInventory = event.getWhoClicked().getInventory();
         Inventory topInventory = event.getInventory();
 
+
+        if (event.isShiftClick() && topInventory.equals(restrictedInventory)) {
+            System.out.println("[DEBUG] Place in attempt (A) - true");
+            return true;
+        }
         /*
         if the clicked inventory equals the player's inventory and the
         top inventory is not the shop inventory
          */
         if (clickedInventory.equals(playerInventory) && !(topInventory.equals(restrictedInventory))) {
+            System.out.println("[DEBUG] Place in attempt (B) - false");
             return false;
         }
 
         if (clickedInventory.equals(playerInventory) &&
                 !(name.contains("MOVE") || name.contains("SWAP") || name.contains("COLLECT"))) {
+            System.out.println("[DEBUG] Place in attempt (C) - false");
             return false;
         }
 
-        return name.contains("HOTBAR") || name.contains("PLACE")||name.contains("MOVE")||
+        boolean test = name.contains("HOTBAR") || name.contains("PLACE") || name.contains("MOVE") ||
                 name.contains("COLLECT") || name.contains("SWAP");
+        System.out.println("[DEBUG] Place in attempt (D) - "+ (test));
 
+        return test;
     }
 
     public static boolean didTryToDragIn(InventoryDragEvent event, Inventory restrictedInventory)
@@ -75,11 +93,159 @@ public class InventoryOperationHelper
         return event.getInventory().equals(restrictedInventory);
     }
 
+    public static void doTeamBuy(InventoryClickEvent event, Arena arena) {
+
+        System.out.println("[DEBUG] doing team buy (Inv operation helper) ");
+
+        ConcurrentHashMap<UUID, BattlePlayer> registeredPlayers = arena.getPlayers();
+        UUID id = event.getWhoClicked().getUniqueId();
+        if (!registeredPlayers.containsKey(id))
+            return;
+
+        BattlePlayer clicked = registeredPlayers.get(id);
+        BattleTeam team = clicked.getTeam();
+        TeamBuyInventory teamInventory = team.getTeamInventory();
+
+        if (event.getClickedInventory().equals(teamInventory)||didTryToPlaceIn(event,teamInventory)) {
+            event.setCancelled(true);
+        }
+
+        int slot = event.getRawSlot();
+        TeamInventoryConfig configItem = null;
+
+        for (TeamInventoryConfig current: config)
+        {
+            for (int index: current.getSlots())
+                if (slot == index)
+                {
+                    configItem = current;
+                    break;
+                }
+        }
+
+        if (configItem == null)
+            return;
+
+
+        event.setCancelled(true);
+
+        TeamItem teamItem = configItem.getItems();
+        if (teamItem.name().contains("SLOT"))
+            return;
+
+        int cost;
+        if (teamItem.isRenewable()) {
+            cost = team.countTraps()+1;
+
+            if (team.countTraps() >= team.getMaxTrapNumber()) {
+                clicked.sendMessage(ChatColor.RED+"Your trap slots are full!");
+                return;
+            }
+        }
+        else
+        {
+            int index = team.getUpgradeIndex(teamItem);
+
+            if (index == teamItem.getCost().length + 1)
+            {
+              clicked.sendMessage(ChatColor.RED+"You have the max upgrades for this category!");
+              return;
+            }
+            cost = index == -1 ? teamItem.getCost()[0] : teamItem.getCost()[index-1];
+        }
+
+              //check for current traps and upgrade limits here.
+
+
+        boolean paid = ItemHelper.didPay(clicked,teamItem.getCostMat(),cost);
+
+        if (paid)
+        {
+            if (teamItem.isRenewable())
+            {
+
+                clicked.sendMessage("[DEBUG] Bought trap");
+                //add a trap here.
+
+                Trap trap = null;
+                switch (teamItem) {
+                    case TRAP_ALARM:
+                        trap = new AlarmTrap(team,team.getTrapArea());
+                        break;
+
+                    case TRAP_MINER_SLOW:
+                        trap = new MiningTrap(team, team.getTrapArea());
+                        break;
+
+                    case TRAP_OFFENSIVE:
+                        trap = new OffensiveTrap(team, team.getTrapArea());
+                        break;
+
+                    case TRAP_SIMPLE:
+                        trap = new SimpleTrap(team,team.getTrapArea());
+                        break;
+                }
+
+               if (trap == null)
+                   throw new IllegalArgumentException("Trap should not be null! Given team item: "+teamItem);
+
+               team.addTrap(trap);
+               team.updateTrapDisplay();
+
+                return;
+            }
+
+
+            // Only updates the hashmap for level keeping
+           boolean upgraded = team.updateUpgradeTeamModifier(teamItem);
+
+           if (!upgraded)
+           {
+               clicked.sendMessage(ChatColor.RED+"[ERROR] Could not upgrade team modifier. (This should not be)");
+               return;
+           }
+
+           //if it's not a trap, then we should make do to update modifiers. (saves resources)
+            team.applyPlayerTeamModifiers();
+
+           clicked.sendMessage("[DEBUG] Bought team item");
+
+           //updates everything in the inv.
+           team.updateModifierDisplay(configItem);
+
+           //do the modifiers here. Only these should be here, since an update to the applications will
+            //refresh everything including this. (We don't want 9999 dragons spawning, etc)
+            //These upgrades only have a limited amount they can be upgraded, so no if statement
+            //needed here.
+           switch (teamItem) {
+
+               case BUFF_DRAGONS: //
+                   team.setDragonSpawnNumber(team.getDragonSpawnNumber()+1);
+                   break;
+
+               case UPGRADE_FORGE: //
+                  Forge forge = team.getForge();
+                  forge.setTier(forge.getTier()+1);
+                  clicked.sendMessage("[DEBUG] Forge tier now "+forge.getTier());
+                   break;
+
+               case BUFF_BASE_REGEN:  //
+                   team.loadAura();
+                   break;
+           }
+
+
+
+
+
+
+        }
+    }
+
 
 
     /*
     @Author CAMM
-    Unfinished. Refactor to include section inventories.
     Takes an inventory click event and determines whether action on the quick buy inventory should be
     executed to sell an item, etc.
 
@@ -117,13 +283,13 @@ public class InventoryOperationHelper
 
         try
         {
-            GameItem clickedItem = null;
+            ShopItem clickedItem = null;
             String name = item.getItemMeta().getDisplayName();
             if (name == null)
                 return;
 
 
-            for (GameItem current: gameItems)
+            for (ShopItem current: gameItems)
             {
                 if ((current.name).equalsIgnoreCase(name) || name.equalsIgnoreCase(current.name))
                 {
@@ -158,7 +324,7 @@ public class InventoryOperationHelper
                 //if it is the quickbuy inventory, we have the option of replacing items.
                 if (event.getClick().isShiftClick())
                 {
-                    quickBuy.setItem(event.getRawSlot(),GameItem.EMPTY_SLOT);
+                    quickBuy.setItem(event.getRawSlot(), ShopItem.EMPTY_SLOT);
                 }
                 else
                     ItemHelper.sellItem(clickedItem, currentPlayer, isInflated);
@@ -187,7 +353,7 @@ public class InventoryOperationHelper
    Takes an Inventory item, and a battle player.
    If the item is a navigation item, brings the player to a different inventory interface.
     */
-    private static void navigate(GameItem item, BattlePlayer player)
+    private static void navigate(ShopItem item, BattlePlayer player)
     {
         Player rawPlayer = player.getRawPlayer();
         PlayerInventoryManager manager = player.getShopManager();
@@ -215,6 +381,10 @@ public class InventoryOperationHelper
 
             case HOTBAR_NAV:
                 player.sendMessage("[DEBUG]nav to hotbar mngr");
+                break;
+
+            case TRACKER_NAV:
+                player.sendMessage("[DEBUG] nav to tracker");
                 break;
 
             case RANGED_NAV:

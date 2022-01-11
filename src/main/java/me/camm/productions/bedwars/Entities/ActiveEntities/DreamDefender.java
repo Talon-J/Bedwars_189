@@ -10,7 +10,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.IronGolem;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
+import java.util.Collection;
 import java.util.UUID;
 
 
@@ -41,20 +43,58 @@ public class DreamDefender implements ILifeTimed
 
 
 
+
     @Override
     public void handleLifeTime()
     {
+        Collection<BattlePlayer> players = arena.getPlayers().values();
+
+
+
         new BukkitRunnable()
         {
+            BattlePlayer target = null;
             @Override
             public void run() {
 
-                if (timeLeft <=0 || golem.isDead()) {
+                if (timeLeft <=0 || golem.isDead())
+                {
                     unregister();
                     golem.remove();
                     cancel();
                     return;
                 }
+
+                TARGET:
+                {
+
+                    if (golem.getTarget()!=null && target != null) {
+                        if (golem.getTarget().equals(target.getRawPlayer()) && target.getIsAlive())
+                        break TARGET;
+                    }
+                    target = null;
+                            golem.setTarget(null);
+
+
+
+
+                    for (BattlePlayer player : players) {
+                        if (!player.getIsAlive())
+                            continue;
+
+                        if (player.getTeam().equals(team))
+                            continue;
+
+
+                        if (player.getRawPlayer().getLocation().distanceSquared(golem.getLocation()) <= 576) {
+                          golem.setTarget(player.getRawPlayer());
+                          target = player;
+                          break;
+                        }
+                    }
+                }
+
+
 
                 golem.setCustomName(team.getColor().getChatColor()+""+team.getTeamColor().getName()+" Dream Defender ["+timeLeft+"]");
                 timeLeft --;
@@ -99,14 +139,14 @@ public class DreamDefender implements ILifeTimed
                 public void run() {
 
                     //so it doesn't spawn in the ground.
-                    Location spawning = toSpawn.add(owner.getRawPlayer().getEyeLocation().getDirection().multiply(-1.5));
+                    Location spawning = toSpawn.add(owner.getRawPlayer().getEyeLocation().getDirection().multiply(-1.5).add(new Vector(0,1,0)));
 
                     golem = arena.getWorld().spawn(spawning,IronGolem.class);
                     golem.setPlayerCreated(false);
-                    golem.setCustomName(team.getColor().getChatColor()+""+team.getTeamColor().getName()+" Dream Defender");
-                    golem.setHealth(20);
+                    golem.setCustomName(team.getColor().getChatColor()+""+team.getTeamColor().getName()+" Dream Defender (WIP)");
+                    golem.setHealth(16);
                     register();
-                    handleLifeTime();
+                    cancel();
                 }
             }.runTask(arena.getPlugin());
             handleLifeTime();

@@ -2,6 +2,16 @@ package me.camm.productions.bedwars.Arena.GameRunning.Events;
 
 import me.camm.productions.bedwars.Arena.GameRunning.GameRunner;
 import me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeader;
+import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
+import me.camm.productions.bedwars.Entities.ActiveEntities.GameDragon;
+import me.camm.productions.bedwars.Listeners.EntityActionListener;
+import me.camm.productions.bedwars.Util.Locations.Coordinate;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
+import org.bukkit.plugin.Plugin;
+
+import java.util.Collection;
 
 public class DragonSpawnAction extends GameActionPhysical {
     private final GameRunner runner;
@@ -18,6 +28,37 @@ public class DragonSpawnAction extends GameActionPhysical {
             return;
         spent = true;
         runner.sendMessage("[DEBUG] Spawn dragons now!");
+        Plugin plugin = runner.getArena().getPlugin();
+
+        EntityActionListener listener = runner.getDamageListener();
+        World world = runner.getArena().getWorld();
+
+       final Coordinate centre = runner.getArena().getBounds().getCoordinateAverage();
+       final double y = centre.getY();
+
+        Collection<BattleTeam> teams = runner.getArena().getTeams().values();
+
+        teams.forEach(battleTeam ->
+        {
+           Coordinate current = battleTeam.getBed().getCoordinateAverage();
+           double delta = Math.abs(current.getY() - y);
+
+           int iterations = battleTeam.getDragonSpawnNumber();
+           runner.sendMessage(battleTeam.getColor().getChatColor()+"+ "+iterations+""+battleTeam.getColor().getName()+" dragons");
+
+           while (iterations > 0) {
+               Location spawn = new Location(world, current.getX(),current.getY() + (delta*iterations), current.getZ());
+               GameDragon dragon = new GameDragon(((CraftWorld)world).getHandle(), new Location(world,centre.getX(),centre.getY(),centre.getZ()),spawn,battleTeam,plugin, listener,runner.getArena());
+               battleTeam.sendTeamMessage("[DEBUG] Dragon spawned at :"+spawn.getX()+" "+spawn.getY()+" "+spawn.getZ());
+               dragon.spawn();
+               dragon.register();
+
+
+               iterations --;
+           }
+        });
+
+
     }
 
     @Override

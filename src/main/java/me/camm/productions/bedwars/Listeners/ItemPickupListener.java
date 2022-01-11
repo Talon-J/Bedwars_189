@@ -7,7 +7,6 @@ import me.camm.productions.bedwars.Items.ItemDatabases.TieredItem;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,17 +24,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.ARENA;
 
-public class DroppedItemListener implements Listener
+public class ItemPickupListener implements Listener
 {
     private final Plugin plugin;
     private final Arena arena;
 
-    public DroppedItemListener(Plugin plugin, Arena arena)
+    public ItemPickupListener(Plugin plugin, Arena arena)
     {
         this.plugin = plugin;
         this.arena = arena;
-
-
     }
 
     @EventHandler

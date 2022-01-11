@@ -4,8 +4,8 @@ import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Arena.Teams.TeamTitle;
+import me.camm.productions.bedwars.Entities.ActiveEntities.GameDragon;
 import me.camm.productions.bedwars.Entities.ActiveEntities.GameTNT;
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
 import me.camm.productions.bedwars.Structures.SoakerSponge;
 import me.camm.productions.bedwars.Structures.Tower;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
@@ -14,6 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -36,7 +37,6 @@ public class BlockInteractListener implements Listener   //unfinished
     private final Plugin plugin;
     private final Arena arena;
     private final HashSet<String> activeSponges;
-    //private final EntityActionListener actionListener;
 
     public BlockInteractListener(Plugin plugin, Arena arena)  //construct
     {
@@ -106,13 +106,21 @@ public class BlockInteractListener implements Listener   //unfinished
                 //For debug testing
                 case BEDROCK:
                 {
-                  if (players.containsKey(event.getPlayer().getUniqueId()))
-                  {
-                      BattlePlayer test = players.get(event.getPlayer().getUniqueId());
 
-                      test.sendMessage("Replacing...");
-                      test.getShopManager().replaceItem(GameItem.DIAMOND_PICKAXE,GameItem.GOLD_PICKAXE);
+
+                  if (players.containsKey(event.getPlayer().getUniqueId())) {
+
+                      BattlePlayer test = players.get(event.getPlayer().getUniqueId());
+                      BattleTeam testTeam = test.getTeam();
+                      test.sendMessage("Test - SPAWNING");
+
+
+                      GameDragon dragon = new GameDragon(((CraftWorld)test.getRawPlayer().getWorld()).getHandle(),testTeam.getArena().getBounds().getCenter(test.getRawPlayer().getWorld()),test.getRawPlayer().getLocation(),testTeam,plugin,null,testTeam.getArena());
+                      dragon.spawn();
+
                   }
+
+
                 }
                 break;
             }
@@ -167,7 +175,7 @@ public class BlockInteractListener implements Listener   //unfinished
 
             //If we can't find a team that the bed belonged to, send an error message.
             if (broken == null) {
-                arena.sendMessage(ChatColor.RED+"[BEDWARS - ERROR]: A bed was broken at "+x+" "+y+" "+z+", " +
+                arena.sendMessage(ChatColor.RED+"[ERROR]: A bed was broken at "+x+" "+y+" "+z+", " +
                         "but we couldn't find a team that it belonged to! (Error with configuration???)");
                 return;
             }

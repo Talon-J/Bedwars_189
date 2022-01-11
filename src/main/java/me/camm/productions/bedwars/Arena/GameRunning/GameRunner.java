@@ -6,20 +6,21 @@ import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Players.IPlayerUtil;
 import me.camm.productions.bedwars.Arena.Players.Scoreboards.PlayerBoard;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
-import me.camm.productions.bedwars.Entities.PacketHandler;
+import me.camm.productions.bedwars.Listeners.PacketHandler;
 import me.camm.productions.bedwars.Entities.ShopKeeper;
 import me.camm.productions.bedwars.Generators.Generator;
 import me.camm.productions.bedwars.Items.ItemDatabases.InventoryName;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.TeamJoinInventory;
 import me.camm.productions.bedwars.Listeners.*;
 import me.camm.productions.bedwars.Arena.GameRunning.Events.EventTime;
+import me.camm.productions.bedwars.Util.ExecutableBoundaryLoader;
 import me.camm.productions.bedwars.Util.Helpers.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -65,9 +66,7 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
     private final Inventory joinInventory;
 
     private final ConcurrentHashMap<UUID, BattlePlayer> registeredPlayers;
-   // private ConcurrentHashMap<String, GameItem> items;
 
-    //private HashMap<String, BattleTeam> teams;
     private PacketHandler packetHandler;
     private final ArrayList<ShopKeeper> keepers;
 
@@ -77,11 +76,13 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
     private BlockInteractListener blockListener;
     private ItemInteractListener itemListener;
     private ExplosionHandler explosionListener;
-    private DroppedItemListener droppedListener;
+    private ItemPickupListener droppedListener;
     private EntityActionListener.NPCDisplayManager npcManager;
     private MobSpawnListener mobSpawnListener;
     private EntityActionListener damageListener;
     private LogListener playerLogListener;
+    private ProjectileListener projectileListener;
+    private ExecutableBoundaryLoader boundaryLoader;
 
 
     private  final ArrayList<ActionEvent> eventList;
@@ -170,9 +171,12 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
             generator.setPlayerNumber(maxPlayers);
         }
 
+        boundaryLoader = new ExecutableBoundaryLoader(arena);
+
         for (BattleTeam team: arena.getTeams().values())  //looping through the teams
         {
             team.startForge();
+            team.setLoader(boundaryLoader);
             //if there are no players on there, then eliminate the team.
             if (team.getRemainingPlayers()==0) {
                 team.eliminate();
@@ -184,9 +188,7 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
 
 
         //Initiating the listeners
-
-
-        droppedListener = new DroppedItemListener(plugin, arena);
+        droppedListener = new ItemPickupListener(plugin, arena);
         plugin.getServer().getPluginManager().registerEvents(droppedListener,plugin);
 
         mobSpawnListener = new MobSpawnListener();
@@ -195,21 +197,22 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
         playerLogListener = new LogListener(arena,this,keepers);
         plugin.getServer().getPluginManager().registerEvents(playerLogListener,plugin);
 
-
-
-
         damageListener = new EntityActionListener(arena,plugin,this);
         plugin.getServer().getPluginManager().registerEvents(damageListener,plugin);
 
         blockListener = new BlockInteractListener(plugin, arena);
         plugin.getServer().getPluginManager().registerEvents(blockListener,plugin);
 
-        explosionListener = new ExplosionHandler(plugin, arena);
+        explosionListener = new ExplosionHandler(plugin, arena,damageListener);
         plugin.getServer().getPluginManager().registerEvents(explosionListener,plugin);
 
         itemListener = new ItemInteractListener(plugin,arena,packetHandler,damageListener);
         plugin.getServer().getPluginManager().registerEvents(itemListener,plugin);
 
+        projectileListener = new ProjectileListener(plugin, arena, damageListener);
+        plugin.getServer().getPluginManager().registerEvents(projectileListener,plugin);
+
+        boundaryLoader.start();
 
         Collection<BattlePlayer> players = registeredPlayers.values();
         for (BattlePlayer player: players)
@@ -219,7 +222,9 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
                 packetHandler.addPlayer(player.getRawPlayer());
         }
 
-        npcManager = new EntityActionListener.NPCDisplayManager(plugin,arena,keepers,getPacketHandler());
+        //(Plugin plugin, Arena arena, ArrayList<ShopKeeper> keepers, PacketHandler handler, GameRunner runner)
+        //(Arena arena, Plugin plugin, GameRunner runner)
+        npcManager = new EntityActionListener.NPCDisplayManager(plugin,arena,keepers,packetHandler,this);
         Thread thread = new Thread(npcManager);
         thread.start();
 
@@ -275,7 +280,6 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
                 // We increase the fraction. (Fraction of n/1 second) When it is equal to the whole, we increase the
                 //player timer. (The fraction is for the generators since they don't move once per second.)
                 fraction++;
-               // System.out.println("[DEBUG]: fraction:"+fraction);
                 if (fraction>=runnableFraction)
                 {
                    // System.out.println("[DEBUG]: currentgameTime:"+currentGameTime);
@@ -319,7 +323,12 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
         Inventory inv = event.getInventory();
 
         Inventory section = player.getShopManager().isSectionInventory(inv);
-        if (InventoryOperationHelper.didTryToDragIn(event, section))
+        if (InventoryOperationHelper.didTryToDragIn(event, section)) {
+            event.setCancelled(true);
+            return;
+        }
+
+        if (InventoryOperationHelper.didTryToDragIn(event, player.getTeam().getTeamInventory()))
             event.setCancelled(true);
     }
 
@@ -363,10 +372,14 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
             //in survival.
             if (ItemHelper.isArmor(stack.getType()))
             {
-                event.setCurrentItem(stack);
-                event.setResult(Event.Result.DENY);
-                event.setCancelled(true);
-                return;
+                GameMode mode = player.getGameMode();
+                if (mode != GameMode.CREATIVE && mode != GameMode.SPECTATOR) {
+                    event.setCurrentItem(stack);
+                    event.setCancelled(true);
+                    return;
+                }
+                else
+                    player.sendMessage(ChatColor.YELLOW+"[Notice] You're in creative/spectator. Just a notice that functionality might not work as it should.");
             }
 
             if (!registeredPlayers.containsKey(player.getUniqueId()))
@@ -376,8 +389,16 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
 
             //if it is a top inv
             Inventory topInventory = event.getInventory();
+
+            boolean valid = false;
+            if (joinInventory.equals(topInventory)){
+                event.setCancelled(true);
+                valid = true;
+            }
+
+
             Inventory sectionInv = battlePlayer.getShopManager().isSectionInventory(topInventory);
-            if (sectionInv == null)
+            if (sectionInv == null && !valid)
                 return;
 
             if (InventoryOperationHelper.didTryToPlaceIn(event,sectionInv)) {
@@ -399,9 +420,9 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
                 break;
 
             case TEAM_BUY:
+                InventoryOperationHelper.doTeamBuy(event, arena);
                 break;
 
-                //TODO add the option for the team buy
             default:
                 InventoryOperationHelper.doQuickBuy(event,arena,isInflated);
                 //do the rest of the invs here.
@@ -430,16 +451,19 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
             currentGameTime++;
            checkForEvents(currentGameTime);
 
-            for (BattlePlayer player: registeredPlayers.values())
-            {
-                PlayerBoard board = player.getBoard();
-                if (board!=null) {
-                    board.setScoreName(TIME.getPhrase(), getTimeFormatted());
-                    board.switchPrimaryBuffer();
-                    player.updatePlayerStatistics();
-                    player.sendHealthUpdatePackets();
-                }
-            }
+
+         registeredPlayers.forEach((uuid, player) -> {
+             PlayerBoard board = player.getBoard();
+             if (board!=null) {
+                 board.setScoreName(TIME.getPhrase(), getTimeFormatted());
+                 board.switchPrimaryBuffer();
+                 player.updatePlayerStatistics();
+
+                 ///might cause a bit of packet lag.
+                 player.sendHealthUpdatePackets();
+             }
+
+         });
         }
     }
 
@@ -521,6 +545,17 @@ as a string.
             }
     }
 
+
+    /*
+    Attempts to end the game by seeing if there is a team remaining
+     */
+    public void attemptEndGame(){
+                BattleTeam candidate = RunningTeamHelper.isVictorFound(arena.getTeams().values());
+                if (candidate!=null)
+                    this.endGame(candidate);
+        RunningTeamHelper.updateTeamBoardStatus(registeredPlayers.values());
+    }
+
     /*
     @Author CAMM
     @Param candidate: If the candidate is null, invokes a tie sequence. If not, the given team is the
@@ -539,6 +574,7 @@ as a string.
         for (BattleTeam all : teams)
             all.getForge().disableForge();
         npcManager.setRunning(false);
+        boundaryLoader.stop();
 
         if (candidate!=null) {
             sendMessage(ChatColor.GOLD + "All other teams have been eliminated!",plugin);
@@ -681,5 +717,13 @@ as a string.
 
     public Arena getArena(){
         return arena;
+    }
+
+    public ExecutableBoundaryLoader getLoader(){
+        return boundaryLoader;
+    }
+
+    public EntityActionListener getDamageListener(){
+        return damageListener;
     }
 }

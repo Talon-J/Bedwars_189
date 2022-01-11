@@ -1,63 +1,59 @@
 package me.camm.productions.bedwars.Items.SectionInventories.Inventories;
 
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
-import me.camm.productions.bedwars.Items.SectionInventories.Templates.TeamInventorySetter;
-import me.camm.productions.bedwars.Util.DataSets.ItemSet;
-import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
+import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.TeamInventoryConfig;
+
+import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
+import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftInventoryCustom;
+
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
+import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryName.TEAM_BUY;
 
-public class TeamBuyInventory extends TeamInventorySetter
+
+public class TeamBuyInventory extends CraftInventoryCustom
 {
 
-    public TeamBuyInventory(InventoryHolder owner, InventoryType type) {
-        super(owner, type);
+    public TeamBuyInventory() {
+        super(null,54,TEAM_BUY.getTitle());
+        setTemplateItems();
     }
 
-    public TeamBuyInventory(InventoryHolder owner, InventoryType type, String title) {
-        super(owner, type, title);
+    private void setTemplateItems()
+    {
+        TeamInventoryConfig[] config = TeamInventoryConfig.values();
+        for (TeamInventoryConfig item: config)
+        {
+           ItemStack display = ItemHelper.toTeamDisplayItem(item.getItems(),1); //1 is put there for the initial description to be orange.
+            for (int slot: item.getSlots())
+                setItem(slot, display);
+        }
     }
 
-    public TeamBuyInventory(InventoryHolder owner, int size) {
-        super(owner, size);
+
+    public void setItem(TeamInventoryConfig config, int index){
+        ItemStack display = ItemHelper.toTeamDisplayItem(config.getItems(),index);
+        super.setItem(config.getSlots()[0],display);
     }
 
-    public TeamBuyInventory(InventoryHolder owner, int size, String title) {
-        super(owner, size, title);
-    }
+    public void setItem(TeamInventoryConfig config, int arrayDisplayIndex, int inventorySlotIndex)
+    {
+        try {
+        ItemStack display = ItemHelper.toTeamDisplayItem(config.getItems(), arrayDisplayIndex);
 
+        if (display != null) {
+            System.out.println("Setting item: ========================");
+            display.getItemMeta().getLore().forEach(string -> {
+                System.out.println("Lore Phrase:"+string);
+            });
+        }
 
-
-    @Override
-    public void setTemplate(boolean isInflated, boolean includeEmpties) {
-
-    }
-
-    @Override
-    public void setInventoryItems() {
-
-    }
-
-    @Override
-    public void setItem(int index, GameItem item, boolean isInflated) {
-
-    }
-
-    @Override
-    public void setItem(int slot, GameItem item) {
-
-    }
-
-    @Override
-    public ArrayList<ItemSet> packageInventory(Inventory inv) {
-        return null;
-    }
-
-    @Override
-    public void setItem(int slot, ItemStack item) {
+        super.setItem(inventorySlotIndex,display);
+        System.out.println("===Set item end===");
+          }
+    catch(Exception e)
+     {
+         e.printStackTrace();
+     }
 
     }
 }

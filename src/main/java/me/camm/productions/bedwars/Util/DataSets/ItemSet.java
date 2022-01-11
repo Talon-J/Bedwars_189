@@ -1,6 +1,6 @@
 package me.camm.productions.bedwars.Util.DataSets;
 
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 
 /*
@@ -10,12 +10,12 @@ ItemToolBox class, method isFileRestricted(GameItem item)
  */
 public class ItemSet
 {
-    private final GameItem item;
+    private final ShopItem item;
     private final int slot;
 
-  public ItemSet(GameItem item, int slot)
+  public ItemSet(ShopItem item, int slot)
   {
-      this.item = ItemHelper.isFileRestricted(item) ? GameItem.EMPTY_SLOT:item;
+      this.item = ItemHelper.isFileRestricted(item) ? ShopItem.EMPTY_SLOT:item;
       this.slot = slot;
   }
 
@@ -24,7 +24,7 @@ public class ItemSet
       return slot;
   }
 
-  public GameItem getItem()
+  public ShopItem getItem()
   {
       return item;
   }

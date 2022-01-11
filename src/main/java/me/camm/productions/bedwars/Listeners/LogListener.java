@@ -5,13 +5,11 @@ import me.camm.productions.bedwars.Arena.GameRunning.GameRunner;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Players.IPlayerUtil;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
-import me.camm.productions.bedwars.Entities.PacketHandler;
 import me.camm.productions.bedwars.Entities.ShopKeeper;
 import me.camm.productions.bedwars.Util.Helpers.IArenaChatHelper;
 import me.camm.productions.bedwars.Util.Helpers.IArenaWorldHelper;
 import me.camm.productions.bedwars.Util.Helpers.RunningTeamHelper;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -20,7 +18,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -67,7 +64,7 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
         //setting the quit message
         BattlePlayer current = registeredPlayers.get(event.getPlayer().getUniqueId());
         event.setQuitMessage(current.getTeam().getColor().getChatColor()+current.getRawPlayer().getName()+ ChatColor.YELLOW+" has Quit!");
-        current.dropInventory();
+        current.dropInventory(current.getRawPlayer().getLocation().clone());
 
         if (!runner.isRunning()) {
             RunningTeamHelper.updateTeamBoardStatus(registeredPlayers.values());
@@ -84,8 +81,6 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
             RunningTeamHelper.updateTeamBoardStatus(registeredPlayers.values());
             //check for the team stuff to see if there's a win here.
         }
-
-
 
         if (team.getRemainingPlayers()==0)
         {
@@ -155,6 +150,8 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
             keeper.sendNPC(player);
             keeper.setRotation(player);
         }
+
+        current.handlePlayerIntoSpectator(packetHandler,!team.doesBedExist(),null);
 
     }
 }

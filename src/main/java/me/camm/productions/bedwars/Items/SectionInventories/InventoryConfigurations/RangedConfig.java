@@ -1,21 +1,21 @@
 package me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations;
 
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_START;
 
 public enum RangedConfig
 {
-    ARROW(QUICK_INV_BORDER_START.getValue(), GameItem.ARROW),
-    BOW(QUICK_INV_BORDER_START.getValue()+1, GameItem.BOW),
-    POWER(QUICK_INV_BORDER_START.getValue()+2, GameItem.POW_BOW),
-    PUNCH(QUICK_INV_BORDER_START.getValue()+3, GameItem.PUNCH_BOW);
+    ARROW(QUICK_INV_BORDER_START.getValue(), ShopItem.ARROW),
+    BOW(QUICK_INV_BORDER_START.getValue()+1, ShopItem.BOW),
+    POWER(QUICK_INV_BORDER_START.getValue()+2, ShopItem.POW_BOW),
+    PUNCH(QUICK_INV_BORDER_START.getValue()+3, ShopItem.PUNCH_BOW);
     //start from slot 19
 
     private final int slot;
-    private final GameItem item;
+    private final ShopItem item;
 
-    RangedConfig(int slot, GameItem item) {
+    RangedConfig(int slot, ShopItem item) {
         this.slot = slot;
         this.item = item;
     }
@@ -24,7 +24,7 @@ public enum RangedConfig
         return slot;
     }
 
-    public GameItem getItem() {
+    public ShopItem getItem() {
         return item;
     }
 }

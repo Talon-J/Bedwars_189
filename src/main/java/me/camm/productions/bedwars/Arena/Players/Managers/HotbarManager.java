@@ -1,6 +1,6 @@
 package me.camm.productions.bedwars.Arena.Players.Managers;
 
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
 import me.camm.productions.bedwars.Items.ItemDatabases.TieredItem;
 import me.camm.productions.bedwars.Util.Helpers.IArenaWorldHelper;
@@ -14,9 +14,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 
+import java.util.ArrayList;
+
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.HOT_BAR_END;
 import static me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory.ARMOR;
-import static me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory.MELEE;
 
 
 /*
@@ -62,7 +63,7 @@ public class HotbarManager implements IArenaWorldHelper
             addCategory(ItemCategory.MELEE,0);
 
         for (int slot=0;slot<this.layout.length;slot++)
-            System.out.println("slot:"+slot+" layout:"+this.layout[slot]);
+            System.out.println("[DEBUG] slot:"+slot+" layout:"+this.layout[slot]);
 
     }
 
@@ -73,18 +74,6 @@ public class HotbarManager implements IArenaWorldHelper
             return;
 
         layout[slot] = category;
-    }
-
-    public ItemCategory getCategory(int slot)
-    {
-        try
-        {
-            return layout[slot];
-        }
-        catch (ArrayIndexOutOfBoundsException e)
-        {
-            return null;
-        }
     }
 
     public ItemCategory[] getLayout()
@@ -145,7 +134,7 @@ public class HotbarManager implements IArenaWorldHelper
 
          */
 
-    public void set(ItemStack item, GameItem enumItem, Player player)
+    public void set(ItemStack item, ShopItem enumItem, Player player)
     {
         ItemCategory category = enumItem.category;
         Inventory playerInv = player.getInventory();
@@ -165,12 +154,7 @@ public class HotbarManager implements IArenaWorldHelper
 
         TieredItem enumTiered = ItemHelper.isTieredItem(enumItem);
         // normal item
-        if (enumTiered==null)
-        {
-            doNormalSet(playerInv,enumItem, item);
-        }
-        else //tiered item
-        {
+        if (enumTiered != null) {
 
             if (enumTiered.getIndex() == ItemHelper.getLowestTier(enumTiered).getIndex()) {
 
@@ -180,58 +164,52 @@ public class HotbarManager implements IArenaWorldHelper
 
             //If the item does not replace other things
 
-             //First we try to find items that it is trying to replace.
-                ItemStack[] items = playerInv.getContents();
-                for (int slot=0;slot<items.length;slot++)
-                {
-                    ItemStack residing = items[slot];
-                    if (ItemHelper.isItemInvalid(residing))
-                        continue;
+            //First we try to find items that it is trying to replace.
+            ItemStack[] items = playerInv.getContents();
+            for (int slot = 0; slot < items.length; slot++) {
+                ItemStack residing = items[slot];
+                if (ItemHelper.isItemInvalid(residing))
+                    continue;
 
-                    GameItem associate = ItemHelper.getAssociate(residing);
-                    if (associate == null)
-                        continue;
+                ShopItem associate = ItemHelper.getAssociate(residing);
+                if (associate == null)
+                    continue;
 
-                    TieredItem associateTier = ItemHelper.isTieredItem(associate);
-                    if (associateTier == null)
-                        continue;
+                TieredItem associateTier = ItemHelper.isTieredItem(associate);
+                if (associateTier == null)
+                    continue;
 
-                    if (associateTier.getCategory() != enumTiered.getCategory())
-                        continue;
+                if (associateTier.getCategory() != enumTiered.getCategory())
+                    continue;
 
-                    //It replaces everything
-                    if (enumTiered.isTotalReplacing())
-                    {
-                        if (associateTier.getIndex() < enumTiered.getIndex()) {
-                            playerInv.setItem(slot, item);
-                            return;
-                        }
+                //It replaces everything
+                if (enumTiered.isTotalReplacing()) {
+                    if (associateTier.getIndex() < enumTiered.getIndex()) {
+                        playerInv.setItem(slot, item);
+                        return;
                     }
-                    else
-                    {
-                        //If it is the smallest index
-                        if (associateTier.getIndex() == ItemHelper.getLowestTier(associateTier).getIndex()) {
-                            playerInv.setItem(slot, item);
-                            return;
-                        }
-
+                } else {
+                    //If it is the smallest index
+                    if (associateTier.getIndex() == ItemHelper.getLowestTier(associateTier).getIndex()) {
+                        playerInv.setItem(slot, item);
+                        return;
                     }
-
 
                 }
-
-                //if there is nothing to replace, do a normal set.
-                doNormalSet(playerInv,enumItem,item);
-
             }
+
+            //if there is nothing to replace, do a normal set.
+
+        }
+        doNormalSet(playerInv,enumItem, item);
 
     }
 
 
     //When we need behaviour similar to that of setting normally
-    private void doNormalSet(Inventory playerInv, GameItem enumItem, ItemStack item)
+    private void doNormalSet(Inventory playerInv, ShopItem enumItem, ItemStack item)
     {
-        for (int slot=0;slot<9;slot++)
+        for (int slot=0;slot<layout.length;slot++)
         {
             ItemCategory reserved = layout[slot];
             ItemStack residing = playerInv.getItem(slot);
@@ -239,36 +217,50 @@ public class HotbarManager implements IArenaWorldHelper
             // if the reserved slot is in the same category
             if (reserved == enumItem.category || reserved == null)
             {
-                //if the slot is vacant
-                if (ItemHelper.isItemInvalid(residing) && !ItemHelper.isCurrencyItem(residing)) {
+
+                    // if the slot isn't vacant
+             ShopItem residingAssociate = ItemHelper.getAssociate(residing);
+
+
+                if (item.isSimilar(residing) &&
+                        ((item.getAmount() + residing.getAmount() ) <= residing.getMaxStackSize()))
+                {
+                    item.setAmount(item.getAmount() + residing.getAmount());
                     playerInv.setItem(slot, item);
                     return;
                 }
 
-                    // if the slot isn't vacant
-             GameItem associate = ItemHelper.getAssociate(residing);
 
-             if (associate == null) { //if we cannot resolve the item as an enum item
+             if (residingAssociate == null) { //if we cannot resolve the residing item as an enum item
+
 
                  if (ItemHelper.isCurrencyItem(residing))
                  {
                      ItemStack residingPlaceholder = residing.clone();
                      playerInv.setItem(slot, item);
                      playerInv.addItem(residingPlaceholder);
+
                  }
                  else
-                    playerInv.setItem(slot, item);
+                 {
+                     playerInv.setItem(slot, item);
+                 }
 
                     return;
                 }
 
 
-             System.out.println("CATS:"+associate.category+"||"+enumItem.category+"||"+reserved);
+
+                if (ItemHelper.isItemInvalid(residing) && !ItemHelper.isCurrencyItem(residing)) {
+                    playerInv.setItem(slot, item);
+                    return;
+                }
+
+
 
                         //so if they're not the same, and the residing is in a reserved slot:
-             if ((associate.category != enumItem.category) && (enumItem.category == reserved))
+             if ((residingAssociate.category != enumItem.category) && (enumItem.category == reserved))
                  {
-                    System.out.println("Not same and residing in reserved");
                      //replace the item in the slot.
                      //Add the replaced item back.
                      ItemStack residingPlaceholder = residing.clone();
@@ -282,9 +274,8 @@ public class HotbarManager implements IArenaWorldHelper
 
 
 
-             if ((associate.category == enumItem.category) && (enumItem.category == reserved))
+             if ((residingAssociate.category == enumItem.category) && (enumItem.category == reserved))
              {
-                 System.out.println("same and residing in reserved");
 
                  if (!item.isSimilar(residing))
                      continue;
@@ -315,19 +306,4 @@ public class HotbarManager implements IArenaWorldHelper
         //If the entire hotbar is unavailable, then just add the item to the inv.
         playerInv.addItem(item);
     }
-
-
-
-    public boolean isSlotEmpty(Inventory inv, int slot)
-    {
-        try {
-            return inv.getItem(slot) == null || inv.getItem(slot).getType() == Material.AIR;
-        }
-        catch (IndexOutOfBoundsException e)
-        {
-            return false;
-        }
-    }
-
-
 }

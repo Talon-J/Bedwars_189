@@ -2,16 +2,22 @@ package me.camm.productions.bedwars.Listeners;
 
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
+import me.camm.productions.bedwars.Entities.ActiveEntities.GameDragon;
+import me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy.IGameTeamable;
 import me.camm.productions.bedwars.Explosions.ExplosionParticle;
 import me.camm.productions.bedwars.Explosions.Vectors.ExplosionVector;
 import me.camm.productions.bedwars.Explosions.VectorToolBox;
 import me.camm.productions.bedwars.Explosions.Vectors.TracerVector;
 import me.camm.productions.bedwars.Explosions.VelocityComponent;
+import net.minecraft.server.v1_8_R3.DamageSource;
+import net.minecraft.server.v1_8_R3.Explosion;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -26,13 +32,22 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
+import java.util.UUID;
 
+
+/*
+
+
+TODO
+add a reference to the entityListener here so you can relate to the enderdragons. (Since their damage() method is screwed up)
+ */
 public class ExplosionHandler implements Listener
 {
     private final Plugin plugin;
     private final int[] colors;
     private final Arena arena;
     private final static int BLOCK_BREAK_RANGE;
+    private final EntityActionListener actionListener;
 
     private final static Random rand;
 
@@ -42,11 +57,12 @@ public class ExplosionHandler implements Listener
     }
 
 
-    public ExplosionHandler(Plugin plugin, Arena arena)
+    public ExplosionHandler(Plugin plugin, Arena arena, EntityActionListener listener)
     {
         this.plugin = plugin;
         this.colors = arena.getTeamColorsAsInt();
         this.arena = arena;
+        this.actionListener = listener;
     }
 
     @EventHandler
@@ -93,9 +109,9 @@ public class ExplosionHandler implements Listener
         ArrayList<Block> fireCandidates = new ArrayList<>();
 
         Location explosionCenter = exploded.getLocation();
-        double damageDistance = incendiary ? 8:10;
-        //since the bounding box is centred on the location, we divide by 2 so that we have equal sides.
-        damageDistance /= 2;
+        double damageDistance = incendiary ? 6:8;
+
+
         Collection<Entity> entities = explosionCenter.getWorld().getNearbyEntities(explosionCenter,damageDistance,damageDistance,damageDistance);
 
         //now we calculate the damage for the entities first since we need to account for the blocks that might be
@@ -118,8 +134,8 @@ public class ExplosionHandler implements Listener
                         TracerVector tracer = new TracerVector(direction.clone().normalize(), origin.clone(), length, world);
                         ArrayList<Material> obstructions = tracer.getObstructionLayers();
 
-                        double damage = rand.nextDouble() + 3;
-                        damage = -0.1 * (length + damage + obstructions.size()) + 1;
+                        double damage = rand.nextDouble() + 2;
+                        damage *= -0.1 * (0.3*length + 0.3*obstructions.size()) + 1;  // this is a function
                         if (damage < 0)
                             damage = 0;
 
@@ -129,10 +145,29 @@ public class ExplosionHandler implements Listener
 
                         if (!event.isCancelled())
                         {
-                            //TODO
-                            //Also account for the enderdragon here.(since they don't get "damaged")
-                            ((LivingEntity)entity).damage(event.getFinalDamage(), exploded);
-                            entity.setLastDamageCause(event);
+                            UUID id = entity.getUniqueId();
+                            if (actionListener.contains(id))
+                            {
+
+                                //accounting for enderdragons.
+                              IGameTeamable teamEntity = actionListener.getEntity(id);
+                              if (teamEntity instanceof GameDragon)
+                              {
+                                  //Explosion(World world, Entity entity, double d0, double d1, double d2, float f, boolean flag, boolean flag1)
+                                  Explosion explosion = new Explosion(((CraftWorld)world).getHandle(),((CraftEntity)exploded).getHandle(),location.getX(), location.getY(), location.getZ(),0,false, false);
+                                  ((GameDragon)teamEntity).dealRawDamage(DamageSource.explosion(explosion),(float)event.getFinalDamage());
+                              }
+                              else
+                              {
+                                  ((LivingEntity)entity).damage(event.getFinalDamage(), exploded);
+                                  entity.setLastDamageCause(event);
+                              }
+                              return;
+                            }
+
+                            if (arena.getPlayers().containsKey(entity.getUniqueId())) {
+                                ((LivingEntity)entity).damage(event.getFinalDamage(), exploded);
+                            }
                         }
 
                         if (!VectorToolBox.isValidVelocityType(entity))
@@ -174,7 +209,7 @@ public class ExplosionHandler implements Listener
             }//for
 
             //Advance the vectors by 0.5 blocks.
-            distance += 0.5;
+            distance += 0.3;
 
         } //while
 

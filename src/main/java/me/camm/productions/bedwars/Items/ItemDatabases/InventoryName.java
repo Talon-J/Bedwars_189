@@ -13,6 +13,7 @@ public enum InventoryName
     TOOLS("Tools"),
     RANGED("Ranged"),
     POTION("Potions"),
+    TRACKER("Tracker"),
     HOTBAR_MANAGER("Hotbar Manager"),
     UTILITY("Utility");
 

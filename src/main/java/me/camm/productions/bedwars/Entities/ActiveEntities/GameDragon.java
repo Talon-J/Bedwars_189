@@ -8,6 +8,7 @@ import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Arena.Teams.TeamColors;
 import me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy.IGameAutonomous;
 
+import me.camm.productions.bedwars.Explosions.ExplosionParticle;
 import me.camm.productions.bedwars.Listeners.EntityActionListener;
 import net.minecraft.server.v1_8_R3.*;
 
@@ -24,38 +25,56 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.GENERATOR;
+
 
 //Unfinished
 //Still need to do the nms methods
 public class GameDragon extends EntityEnderDragon implements IGameAutonomous
 {
 
-    private final Location centre;
-    private final BattleTeam team;
-    private final Plugin plugin;
-    private final EntityActionListener listener;
-    private final org.bukkit.World bukkitWorld;
-    private final Arena arena;
+    private Location centre;
+    private BattleTeam team;
+    private Plugin plugin;
+    private EntityActionListener listener;
+    private org.bukkit.World bukkitWorld;
+    private Arena arena;
+    private static int number = 0;
+    private Location spawn;
+    private final boolean invalid;
+    private int id;
 
 
-
-    //   private Explosion explosionSource = new Explosion((World)null, this, NaN, NaN, NaN, NaN, true, true);
-
-    public GameDragon(World world, Location loc, BattleTeam team, Plugin plugin, EntityActionListener register, Arena arena)
+    public GameDragon(World world, Location centre, Location spawn, BattleTeam team, Plugin plugin, EntityActionListener register, Arena arena)
     {
         super(world);
         this.dead = false;
         this.dimension = 0;
-        this.centre = loc;
-        this.setPosition(loc.getX(),loc.getY(),loc.getZ());
+        this.centre = centre;
+        this.setPosition(spawn.getX(),spawn.getY(),spawn.getZ());
+
+        this.a = centre.getX();
+        this.b = centre.getY();
+        this.c = centre.getZ();
+
         this.team = team;
         this.plugin = plugin;
         this.listener = register;
-        this.bukkitWorld = loc.getWorld();
+        this.bukkitWorld = centre.getWorld();
         this.arena = arena;
+        this.spawn = spawn;
+        this.invalid = false;
 
         TeamColors color = team.getColor();
-        this.setCustomName(color.getChatColor()+""+color.getName()+" Dragon");
+        number ++;
+        this.setCustomName(color.getChatColor()+""+color.getName()+" Dragon ("+number+")");
+        id = number;
+    }
+
+    public GameDragon(World world)
+    {
+        super(world);
+        this.invalid = true;
     }
 
     public synchronized void setTarget(net.minecraft.server.v1_8_R3.Entity entity)
@@ -128,27 +147,29 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
 
                 this.bk[this.bl][0] = this.yaw;
                 this.bk[this.bl][1] = this.locY;
-                double d3;
-                double d0;
-                double d1;
-                double d2;
+                double deltaX;
+                double deltaY;
+                double deltaZ;
+                double distanceSquared;
                 float f3;
                 float f6;
                 float f7;
 
+                this.target = target;
 
                 //////////////////Originally in the if-else
 
 
-                d3 = this.a - this.locX;
-                d0 = this.b - this.locY;
-                d1 = this.c - this.locZ;
-                d2 = d3 * d3 + d0 * d0 + d1 * d1;
+                deltaX = this.a - this.locX;
+                deltaY = this.b - this.locY;
+                deltaZ = this.c - this.locZ;
+                distanceSquared = deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ;  ///dist sqrd
                 double d8;
                 double d9;
                 double d4;
                 if (this.target != null)
                 {
+                    System.out.println("[DEBUG] Target not null");
                     this.a = this.target.locX;
                     this.c = this.target.locZ;
 
@@ -161,23 +182,24 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
                     }
 
                     this.b = this.target.getBoundingBox().b + d4;
-                } else
+                }
+                else
                 {
                     this.a += this.random.nextGaussian() * 2.0D;
                     this.c += this.random.nextGaussian() * 2.0D;
                 }
-
-                if (this.bw || d2 < 100.0D || d2 > 22500.0D || this.positionChanged || this.E)
+                                      //30 -> 120
+                if (this.bw || distanceSquared < 100.0D || distanceSquared > 14400.0D || this.positionChanged || this.E)
                 {
                     this.attemptTargetRandomPlayer();
                 }
 
-                d0 /= MathHelper.sqrt(d3 * d3 + d1 * d1);
+                deltaY /= MathHelper.sqrt(deltaX * deltaX + deltaZ * deltaZ);
                 f3 = 0.6F;
-                d0 = MathHelper.a(d0,(-f3),f3);
-                this.motY += d0 * 0.10000000149011612D;
+                deltaY = MathHelper.a(deltaY,(-f3),f3);
+                this.motY += deltaY * 0.10000000149011612D;
                 this.yaw = MathHelper.g(this.yaw);
-                d8 = 180.0D - MathHelper.b(d3, d1) * 180.0D / 3.1415927410125732D;
+                d8 = 180.0D - MathHelper.b(deltaX, deltaZ) * 180.0D / 3.1415927410125732D;
                 d9 = MathHelper.g(d8 - (double)this.yaw);
                 if (d9 > 50.0D) {
                     d9 = 50.0D;
@@ -323,6 +345,9 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
     //This doesn't actually do anything in terms of damaging entities.
     // It really justs sets some values to false or true about knockback. It doesn't even change velocity of the entity.
     private void attemptKnockBackHitEntities(List<net.minecraft.server.v1_8_R3.Entity> list) {
+       if (invalid)
+           return;
+
         for (net.minecraft.server.v1_8_R3.Entity entity : list) {
             if (entity instanceof EntityLiving) {
 
@@ -335,7 +360,11 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
     }
 
 
-    private void setHitEntityVelocity(List<net.minecraft.server.v1_8_R3.Entity> list) {
+    private void setHitEntityVelocity(List<net.minecraft.server.v1_8_R3.Entity> list)
+    {
+        if (this.invalid)
+            return;
+
         double boxDistanceX = (this.bo.getBoundingBox().a + this.bo.getBoundingBox().d) / 2.0D;
         double boxDistanceZ = (this.bo.getBoundingBox().c + this.bo.getBoundingBox().f) / 2.0D;
 
@@ -346,7 +375,7 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
                 double d4 = distanceX * distanceX + distanceZ * distanceZ;
 
                 //adding velocity to the hit entity
-                entity.g(distanceX / d4 * 4.0D, 0.20000000298023224D, distanceZ / d4 * 4.0D);
+                entity.g((distanceX / d4 * 4.0D)*0.5, 0.20000000298023224D, (distanceZ / d4 * 4.0D) * 0.5);
             }
         }
         setTarget(null);
@@ -354,7 +383,10 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
     }
 
 
-    private boolean breakBlocks(AxisAlignedBB axisalignedbb) {
+    private boolean breakBlocks(AxisAlignedBB axisalignedbb)
+    {
+        if (this.invalid)
+            return false;
 
         //Getting the edges of the hitboxes of the body parts.
         int i = MathHelper.floor(axisalignedbb.a);
@@ -399,9 +431,14 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
             for (org.bukkit.block.Block block : destroyedBlocks) {
                 org.bukkit.Material blockId = block.getType();
                 if (blockId != org.bukkit.Material.AIR) {
+
+                    if (block.hasMetadata(GENERATOR.getData()))
+                        continue;
+
                     int blockX = block.getX();
                     int blockY = block.getY();
                     int blockZ = block.getZ();
+
 
                     this.world.setAir(new BlockPosition(blockX, blockY, blockZ));
                 }
@@ -413,16 +450,13 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
 
 
     //Attempts to damage entities and regain health
-    private void attemptToBattle() {
+    private void attemptToBattle()
+    {
+        if (this.invalid)
+            return;
         if (this.bz != null) {
             if (this.bz.dead) {
-                if (!this.world.isClientSide) {
-                    //  CraftEventFactory.entityDamage = this.bz;
-
                     this.damageEntity(this.bn, DamageSource.explosion(null), 10.0F);
-                    //   CraftEventFactory.entityDamage = null;
-                }
-
                 this.bz = null;
             }
         }
@@ -440,6 +474,8 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
     @Override
     public boolean a(EntityComplexPart entitycomplexpart, DamageSource damageSource, float damage) {
 
+        if (this.invalid)
+            return true;
         //bn is probably the head of the dragon.
         if (entitycomplexpart != this.bn) {
             damage = damage / 4.0F + 1.0F;
@@ -456,7 +492,22 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
         return true;
     }
 
+    //This is to deal damage to the dragon ignoring everything else
+    public void dealRawDamage(DamageSource source, float damage){
+
+        this.a = centre.getX();
+        this.b = centre.getY();
+        this.c = centre.getZ();
+
+        this.target = null;
+
+        super.dealDamage(source,damage);
+    }
+
     private void attemptTargetRandomPlayer() {
+        if (this.invalid)
+            return;
+
         this.bw = false;
 
         Collection<BattlePlayer> players = arena.getPlayers().values();
@@ -473,19 +524,28 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
                     iterations++;
                 }
 
-                if (target.getTeam().equals(this.team))
+                // if after 10 iterations it still cannot find a target, break
+                team.sendTeamMessage("[DEBUG] dragon "+id+" target: "+target.getRawPlayer().getName());
+                if (target.getTeam().equals(this.team)) {
+                    setTarget(null);
                     break TARGET_SUCCESS;
+                }
 
                 handleEntityTarget(target.getRawPlayer());
                 return;
             }
         }
 
+
+
+        if (target!=null)
+            return;
+
             boolean checkDistanceSquared;
 
             do {
                 this.a = centre.getX();
-                this.b = centre.getY() + this.random.nextFloat() * 50.0F;
+                this.b = centre.getY() + this.random.nextFloat() * 80.0F;
                 this.c = centre.getZ();
 
                 this.a += this.random.nextFloat() * 80.0F - 60.0F;
@@ -495,7 +555,7 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
                 double deltaY = this.locY - this.b;
                 double deltaZ = this.locZ - this.c;
 
-                checkDistanceSquared = deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ > 100.0D;
+                checkDistanceSquared = deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ > 2025.0D;
             } while (!checkDistanceSquared);
 
 
@@ -506,6 +566,8 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
     //death animation thingy
     @Override
     protected void aZ() {
+        if (this.invalid)
+            return;
 
         if (!this.dead) {
             ++this.by;
@@ -514,6 +576,9 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
                 float f1 = (this.random.nextFloat() - 0.5F) * 4.0F;
                 float f2 = (this.random.nextFloat() - 0.5F) * 8.0F;
                 this.world.addParticle(EnumParticle.EXPLOSION_HUGE, this.locX + (double)f, this.locY + 2.0D + (double)f1, this.locZ + (double)f2, 0.0D, 0.0D, 0.0D);
+
+                new ExplosionParticle(new Location(bukkitWorld,locX,locY,locZ),bukkitWorld,plugin);
+
             }
 
             this.aI = this.yaw += 20.0F;
@@ -536,17 +601,24 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
     @Override
     public void register()
     {
+        if (this.invalid)
+            return;
        listener.addEntity(this);
     }
 
     @Override
     public void unregister() {
+        if (this.invalid)
+            return;
         listener.removeEntity(this.getUUID());
     }
 
     @Override
     public void spawn()
     {
+        if (this.invalid)
+            return;
+
         GameDragon d = this;
    new BukkitRunnable()
    {
@@ -555,7 +627,7 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
 
            CraftWorld cWorld = (CraftWorld)bukkitWorld;
            cWorld.addEntity(d, CreatureSpawnEvent.SpawnReason.CUSTOM);
-           setPosition(centre.getX(),centre.getY(),centre.getZ());
+           setPosition(spawn.getX(),spawn.getY(),spawn.getZ());
            cancel();
        }
    }.runTask(plugin);

@@ -1,14 +1,13 @@
 package me.camm.productions.bedwars.Arena.Players.Managers;
 
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.*;
 import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
 import me.camm.productions.bedwars.Util.DataSets.ItemSet;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 
@@ -74,6 +73,9 @@ public class PlayerInventoryManager
 
     public Inventory isSectionInventory(Inventory inv)
     {
+        if (inv == null)
+            return null;
+
       for (ShopInventorySetter i: inventories)
       {
           if (i.equals(inv))
@@ -82,38 +84,33 @@ public class PlayerInventoryManager
       return null;
     }
 
-    public void replaceItem(GameItem toReplace, GameItem replacement)
+    public void replaceItem(ShopItem toReplace, ShopItem replacement)
     {
         searchAndReplace(armorSection,toReplace, replacement);
         searchAndReplace(quickBuy,toReplace, replacement);
         searchAndReplace(toolsSection,toReplace, replacement);
     }
 
-    private void searchAndReplace(Inventory inv, GameItem toReplace, GameItem replacement)
+    private void searchAndReplace(Inventory inv, ShopItem toReplace, ShopItem replacement)
     {
         if (owner == null)
             return;
 
 
-        ItemStack set = ItemHelper.toDisplayItem(replacement, isInflated);
-        ItemStack replaced = ItemHelper.toDisplayItem(toReplace, isInflated);
+        ItemStack toBeSet = ItemHelper.toDisplayItem(replacement, isInflated);
+        ItemStack toBeReplaced = ItemHelper.toDisplayItem(toReplace, isInflated);
 
         for (int i = 0;i< inv.getSize();i++)
         {
-            ItemStack stack = inv.getItem(i);
-            if (ItemHelper.isItemInvalid(stack))
+            ItemStack residing = inv.getItem(i);
+            if (ItemHelper.isItemInvalid(residing))
                 continue;
 
-
             //Enchantments can change the name, so....yup.
-            if (stack.equals(replaced)) {
-                inv.setItem(i, set);
-                System.out.println("[DEBUG] S&R Replaced item: "+toReplace.sellMaterial+" with "+replacement.sellMaterial);
-                return;
+            if (residing.isSimilar(toBeReplaced)) {
+                inv.setItem(i, toBeSet);
             }
         }
-        System.out.println("[DEBUG]S&R Nothing replaced");
-
     }
 
 

@@ -217,6 +217,6 @@ public class StringToolBox
     public void printParseError(String value)
     {
        Logger logger =  plugin.getLogger();
-       logger.warning(ChatColor.GOLD+"Attempted to parse "+value+"to a number. Defaulted to 0.");
+       logger.warning(ChatColor.GOLD+"Attempted to parse "+value+" to a number. Defaulted to 0.");
     }
 }

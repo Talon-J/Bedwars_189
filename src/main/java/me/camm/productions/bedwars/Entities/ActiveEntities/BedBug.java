@@ -5,6 +5,7 @@ import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy.ILifeTimed;
 import me.camm.productions.bedwars.Listeners.EntityActionListener;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -12,6 +13,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Silverfish;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.Collection;
 import java.util.UUID;
 
 
@@ -24,9 +26,7 @@ public class BedBug implements ILifeTimed
     private final Location loc;
 
     private final EntityActionListener listener;
-
     private static final int MAX_TIME;
-
     private int aliveTime;
 
     static {
@@ -46,14 +46,17 @@ public class BedBug implements ILifeTimed
     public void spawn()
     {
         World world = arena.getWorld();
+        ChatColor chatColor = team.getColor().getChatColor();
+        String teamName = team.getColor().getName();
         new BukkitRunnable()
         {
             @Override
             public void run() {
                 bug = world.spawn(loc,Silverfish.class);
-                bug.setCustomName(team.getTeamColor().getName()+"'s"+"Bed bug");
+                bug.setCustomName(chatColor+teamName+"'s"+" Bed bug (WIP)");
                 bug.setCustomNameVisible(true);
                 register();
+                cancel();
             }
         }.runTask(arena.getPlugin());
         handleLifeTime();
@@ -73,7 +76,9 @@ public class BedBug implements ILifeTimed
     public void handleLifeTime()
     {
         listener.addEntity(this);
+        Collection<BattlePlayer> players = arena.getPlayers().values();
         new BukkitRunnable() {
+            BattlePlayer target = null;
             @Override
             public void run()
             {
@@ -91,6 +96,33 @@ public class BedBug implements ILifeTimed
                     unregister();
                     remove();
                     cancel();
+                }
+
+                TARGET:
+                {
+                    if (bug.getTarget()!=null&&target!=null) {
+                        if (bug.getTarget().equals(target.getRawPlayer()) && target.getIsAlive())
+                        break TARGET;
+                    }
+                    bug.setTarget(null);
+                            target = null;
+
+
+
+                    for (BattlePlayer player : players) {
+                        if (!player.getIsAlive())
+                            continue;
+
+                        if (player.getTeam().equals(team))
+                            continue;
+
+
+                        if (player.getRawPlayer().getLocation().distanceSquared(bug.getLocation()) <= 576) {
+                            bug.setTarget(player.getRawPlayer());
+                            target = player;
+                            break;
+                        }
+                    }
                 }
             }
         }.runTaskTimer(arena.getPlugin(),0,20);

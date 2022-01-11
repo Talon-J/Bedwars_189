@@ -23,7 +23,6 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
     private boolean isSetUp;
     private final Plugin plugin;
     private static Arena arena = null;
-   // private final String path;
     private GameRunner runner;
     private Inventory joinInventory;
     private boolean isGameRunning;
@@ -32,7 +31,6 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
     {
        this.plugin = plugin;
        this.isSetUp = false;
-     //  this.path = path+ Paths.MAIN.value;
        this.isGameRunning = false;
 
     }
@@ -42,7 +40,6 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
     {
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatColor.RED+"Must be a player to use this command.");
-            sendMessage("[D] - console send setup detect");
             return true;
         }
 
@@ -59,7 +56,6 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
                     teams = new TeamFileReader(plugin, arena).read();
 
                     plugin.getServer().broadcastMessage(ChatColor.AQUA+"[BEDWARS] Registering the map. Expect some lag.");
-                    sendMessage("[D] registering map");
 
                     arena.registerMap();
                     if (teams!=null&&teams.size()!=0)
@@ -72,12 +68,12 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
                         this.joinInventory = runner.getJoinInventory();
                         this.isSetUp = true;
                         plugin.getServer().broadcastMessage(ChatColor.GREEN+"[BEDWARS] Map is registered! Do /register to join teams.");
-                        sendMessage("registered");
+
                     }
                     else
                     {
                         plugin.getServer().getConsoleSender().sendMessage(ChatColor.RED+"[BEDWARS] Could not initialize teams. Make sure the teams are configured correctly. [TEAMS DNE]");
-                        sendMessage("teams dne");
+
 
                        if (teams==null) {
                            sendStackTrace(true);
@@ -91,7 +87,6 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
                 else
                 {
                    plugin.getServer().getConsoleSender().sendMessage(ChatColor.RED+"[BEDWARS] Could not Initialize the Arena. Please make sure that the configuration is initialized. [ARENA DNE]");
-                   sendMessage("arena dne");
                 }
 
         }
@@ -106,17 +101,6 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
                     else
                         sender.sendMessage(ChatColor.RED+"Please wait for the current game to finish first!");
                 }
-                else
-                {
-                    if (runner==null)
-                        sender.sendMessage("[DEBUG] TJ is null");
-
-                    if (joinInventory==null)
-                        sender.sendMessage("[DEBUG] INV is null");
-
-                    sender.sendMessage("[DEBUG]Is game running: "+isGameRunning+" setup: "+isSetUp);
-                }
-
             }
             else if (label.equalsIgnoreCase("start"))
             {

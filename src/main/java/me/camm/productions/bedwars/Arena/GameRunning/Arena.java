@@ -3,7 +3,7 @@ package me.camm.productions.bedwars.Arena.GameRunning;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Generators.Generator;
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
 import me.camm.productions.bedwars.Util.Locations.Boundaries.GameBoundary;
 import me.camm.productions.bedwars.Util.Locations.RegisterType;
@@ -31,7 +31,7 @@ public class Arena
 {
   private final GameBoundary bounds;
   private final int voidLevel;
-  private  HashMap<String, BattleTeam> teams;  //the string is the team color
+  private final HashMap<String, BattleTeam> teams;  //the string is the team color
   private ArrayList<Generator> generators;
   private final World world;
  // private boolean isRunning;
@@ -69,9 +69,6 @@ public class Arena
 
           specSpawn = spectatorSpawn.getAsLocation(world);
 
-          //DEBUG TESTING. Please remove after.
-          spectatorSpawn.print();
-
           healthBoard = Bukkit.getScoreboardManager().getNewScoreboard();
 
          nameHealth = healthBoard.registerNewObjective(HEALTH_CATEGORY.getPhrase(),HEALTH_CRITERIA.getPhrase());
@@ -90,11 +87,11 @@ public class Arena
 
   }
 
-    private HashMap<String, GameItem> setShopItems()
+    private HashMap<String, ShopItem> setShopItems()
     {
-        HashMap<String, GameItem> shopItems = new HashMap<>();
+        HashMap<String, ShopItem> shopItems = new HashMap<>();
 
-        for (GameItem item: GameItem.values())
+        for (ShopItem item: ShopItem.values())
         {
             if (!shopItems.containsKey(item.name))
                 shopItems.put(item.name, item);
@@ -104,7 +101,12 @@ public class Arena
 
     public synchronized void removePlayer(UUID uuid)
     {
-        players.remove(uuid);
+        if (players.containsKey(uuid))
+        {
+            BattlePlayer player = players.get(uuid);
+            player.getTeam().removePlayer(player.getRawPlayer()); // infinite recursion???
+            players.remove(uuid);
+        }
     }
 
     public synchronized void addPlayer(UUID uuid, BattlePlayer player)
@@ -167,9 +169,9 @@ public class Arena
       return arrayValues;
   }
 
-  public void updateAllPlayerBoards()
-  {
-
+  public void hideEliminated(){
+      for (BattlePlayer player: players.values())
+          player.hideEliminatedPlayers();
   }
 
 
@@ -234,6 +236,10 @@ public class Arena
 
     public Objective getTabHealth() {
         return tabHealth;
+    }
+
+    public GameBoundary getBounds(){
+      return bounds;
     }
 }
 

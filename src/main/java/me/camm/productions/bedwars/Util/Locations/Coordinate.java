@@ -104,13 +104,6 @@ public class Coordinate
         world.getBlockAt((int)x,(int)y,(int)z).setMetadata(type,new FixedMetadataValue(plugin,1));
     }
 
-    //Debug method.
-    public void print()
-    {
-         System.out.println("[DEBUG] Coords: "+x+"||"+y+"||"+z);
-    }
-
-
     public SoakBoundary toBoundaryPoint()
     {
         return new SoakBoundary(x,x,y,y,z,z);

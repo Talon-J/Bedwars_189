@@ -1,9 +1,15 @@
 package me.camm.productions.bedwars.Arena.Teams.TeamTraps;
 
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
+import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.TeamInventoryConfig;
 
 public interface Trap
 {
-    public void activate();
-    public void coolDown(BattleTeam team);
+    /* Activates the trap*/
+    void activate();
+
+    BattleTeam getTeam();
+
+    /* get the configuration item for the trap */
+    TeamInventoryConfig getTrapConfig();
 }

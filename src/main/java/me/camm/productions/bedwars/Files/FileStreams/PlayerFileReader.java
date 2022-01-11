@@ -2,7 +2,7 @@ package me.camm.productions.bedwars.Files.FileStreams;
 
 import me.camm.productions.bedwars.Arena.Players.Managers.HotbarManager;
 import me.camm.productions.bedwars.Arena.Players.Managers.PlayerInventoryManager;
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
 import me.camm.productions.bedwars.Util.DataSets.ItemSet;
 import me.camm.productions.bedwars.Util.Helpers.StringToolBox;
@@ -116,7 +116,7 @@ public class PlayerFileReader extends StringToolBox
                try
                {
                    //get the inventoryitems representation, and put into an itemset
-                   GameItem item = GameItem.valueOf(key);
+                   ShopItem item = ShopItem.valueOf(key);
                    items.add(new ItemSet(item,slotNumber.intValue()));
                }
                catch (IllegalArgumentException | NullPointerException ignored)

@@ -3,8 +3,10 @@ package me.camm.productions.bedwars;
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.GameRunning.Commands.CommandKeyword;
 import me.camm.productions.bedwars.Arena.GameRunning.Commands.SetUp;
+import me.camm.productions.bedwars.Arena.GameRunning.GameRunner;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
-import me.camm.productions.bedwars.Entities.PacketHandler;
+import me.camm.productions.bedwars.Entities.ActiveEntities.GameDragon;
+import me.camm.productions.bedwars.Listeners.PacketHandler;
 import me.camm.productions.bedwars.Files.FileCreators.DirectoryCreator;
 import me.camm.productions.bedwars.Files.FileStreams.GameFileWriter;
 import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
@@ -20,18 +22,24 @@ import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 
 public final class BedWars extends JavaPlugin
 {
     private SetUp initialization;
+    private final String name = "EnderDragon";
+    private final int id = 63;
 
-    @Override
+    @Override @SuppressWarnings("unchecked")
     public void onEnable()
     {
         sendMessage(ChatColor.GREEN+"[BEDWARS] - STARTING UP");
+        sendMessage(ChatColor.AQUA+"[BEDWARS] - It is recommended that you make a backup of this world before starting the game, if you haven't done so.");
         DirectoryCreator fileCreator = new DirectoryCreator(this);
 
        if (!fileCreator.createFolders())
@@ -41,35 +49,88 @@ public final class BedWars extends JavaPlugin
        }
        else
        {
-           initialization = new SetUp(this);
-           getCommand(CommandKeyword.SETUP.getWord()).setExecutor(initialization);
-           getCommand(CommandKeyword.REGISTER.getWord()).setExecutor(initialization);
-           getCommand(CommandKeyword.START.getWord()).setExecutor(initialization);
-          // EntityTypes
-         //  BiomeBase
+
+           try {
+               Field c = EntityTypes.class.getDeclaredField("c");
+               c.setAccessible(true);
+               Map<String, Class<? extends Entity>> cMap = (Map<String, Class<? extends Entity>>) c.get(EntityTypes.class);
+               cMap.remove(name);
+
+               Field e = EntityTypes.class.getDeclaredField("e");
+               e.setAccessible(true);
+               Map<Integer, Class<? extends Entity>> eMap = (Map<Integer, Class<? extends Entity>>) e.get(EntityTypes.class);
+               eMap.remove(id);
+
+               Method aMethod = EntityTypes.class.getDeclaredMethod("a",Class.class,String.class,int.class);
+               aMethod.setAccessible(true);
+               aMethod.invoke(EntityTypes.class, GameDragon.class,name,id);
+
+               initialization = new SetUp(this);
+               getCommand(CommandKeyword.SETUP.getWord()).setExecutor(initialization);
+               getCommand(CommandKeyword.REGISTER.getWord()).setExecutor(initialization);
+               getCommand(CommandKeyword.START.getWord()).setExecutor(initialization);
+
+           }
+           catch (Exception e)
+           {
+               sendMessage(ChatColor.RED+"[BEDWARS]Attempted to register custom entities for EnderDragons. Failed. Game cannot proceed at this point.");
+               e.printStackTrace();
+           }
        }
+
+
+
     }
 
-    @Override
+    @Override @SuppressWarnings("unchecked")
     public void onDisable()
     {
+        try {
+            Field c = EntityTypes.class.getDeclaredField("c");
+            c.setAccessible(true);
+            Map<String, Class<? extends Entity>> cMap = (Map<String, Class<? extends Entity>>) c.get(EntityTypes.class);
+            cMap.remove(name);
+
+            Field e = EntityTypes.class.getDeclaredField("e");
+            e.setAccessible(true);
+            Map<Integer, Class<? extends Entity>> eMap = (Map<Integer, Class<? extends Entity>>) e.get(EntityTypes.class);
+            eMap.remove(id);
+
+            Method aMethod = EntityTypes.class.getDeclaredMethod("a",Class.class,String.class,int.class);
+            aMethod.setAccessible(true);
+            aMethod.invoke(EntityTypes.class, EntityEnderDragon.class,name,id);
+
+        }
+        catch (Exception e)
+        {
+            sendMessage(ChatColor.RED+"[BEDWARS]Attempted to unregister custom entities for the EnderDragons. Failed.");
+            e.printStackTrace();
+        }
+
+
+
         if (initialization==null)
             return;
 
         if (initialization.getRunner()==null)
             return;
 
-        initialization.getRunner().setIsRunning(false);
+        GameRunner runner = initialization.getRunner();
+
+        runner.setIsRunning(false);
         initialization.getArena().getTeams().forEach((string, team) -> {
             if (team!=null&&team.getForge()!=null)
             team.getForge().disableForge();
         });
-      PacketHandler handler = initialization.getRunner().getPacketHandler();
+      PacketHandler handler = runner.getPacketHandler();
 
       if (handler!=null) {
           for (Player player : Bukkit.getOnlinePlayers())
               handler.removePlayer(player);
       }
+
+      if (runner.getLoader() != null)
+      runner.getLoader().stop();
 
         World world = initialization.getArena().getWorld();
         Scoreboard initial = ((CraftWorld)world).getHandle().getScoreboard();
@@ -99,7 +160,7 @@ public final class BedWars extends JavaPlugin
         //writing to bar file
             registered.forEach(battlePlayer -> {
                ItemCategory[] barItems = battlePlayer.getBarManager().getLayout();
-                GameFileWriter barWriter = new GameFileWriter(box.getPlayerPath(battlePlayer.getRawPlayer()),this);
+                GameFileWriter barWriter = new GameFileWriter(box.getHotBarPath(battlePlayer.getRawPlayer()),this);
                 barWriter.clear();
                 ArrayList<String> valueList = new ArrayList<>();
 
@@ -107,6 +168,7 @@ public final class BedWars extends JavaPlugin
                        item == null ? "" :item.toString()));
                String[] barList = valueList.toArray(new String[valueList.size()]);
                barWriter.write(barList,false);
+
 
                //writing to shop file
                 QuickBuySection playerShop = battlePlayer.getShopManager().getQuickBuy();
@@ -142,10 +204,11 @@ TODO: (In the very near future)
  - Do the research for overriding the EntityEnderDragon class [IN PROGRESS] - remember to register it!
  - Find a better solution to the explosives problem. [IN PROGRESS]
  - Do testing while the player is in spectator
- - The hotbar manager is active. Refactor code please. Also, whenever a player buys a tool, it does not replace that tool. Please fix that.
- - add code for the dragon spawning locations and trap locations
- - Test the code for the hBar mngr
- - So the degradable items are updated upwards, but they are not updated downwards when a player dies. pls fix that.
+ - haste has 2 levels, not 1. Apply that in Battleplayer class
+ - also apply modifiers when the player relogs.
+ - add tracker shop
+ - add code to not activate traps if a player is not online
+ - add code for dream defender and bedbug targeting and health
 
 
  NOTE: The check for opposition in the CLASS "Setup" is currently ----   ---- disabled for testing purposes.

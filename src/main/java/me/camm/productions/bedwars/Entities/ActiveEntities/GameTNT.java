@@ -3,7 +3,6 @@ package me.camm.productions.bedwars.Entities.ActiveEntities;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy.IGameOwnable;
-import me.camm.productions.bedwars.Listeners.EntityActionListener;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -53,7 +52,7 @@ public class GameTNT implements IGameOwnable
                 tnt.setCustomName(owner.getRawPlayer().getUniqueId().toString());
 
                 tnt.setFuseTicks(54);
-                tnt.setYield(0F); // set yield to 0 so it doesn't interfere with (originally 6)
+                tnt.setYield(0F); // set yield to 0 so it doesn't interfere with velocity (originally 6)
 
                 //This is basically random velocity for the tnt.
                 tnt.setVelocity(new Vector( ((random.nextDouble()*0.3)-0.15)*0.2,0.3, ((random.nextDouble()*0.3)-0.15)*0.2));

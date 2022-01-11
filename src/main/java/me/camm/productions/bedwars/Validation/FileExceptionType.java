@@ -1,6 +1,6 @@
 package me.camm.productions.bedwars.Validation;
 
-public enum FileProblem
+public enum FileExceptionType
 {
     FILE_NOT_FOUND("File not found."),
     CANNOT_ACCESS_FILE("Can't access file."),
@@ -9,7 +9,7 @@ public enum FileProblem
 
     private final String problem;
 
-    FileProblem(String problem)
+    FileExceptionType(String problem)
     {
         this.problem = problem;
     }

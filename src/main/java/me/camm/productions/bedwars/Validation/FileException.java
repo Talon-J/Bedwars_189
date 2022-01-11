@@ -6,9 +6,9 @@ public class FileException extends Exception
 {
 
     private final String fileOrigin;
-    private final FileProblem problemType;
+    private final FileExceptionType problemType;
 
-    public FileException(String fileOrigin, FileProblem problemType)
+    public FileException(String fileOrigin, FileExceptionType problemType)
     {
         this.fileOrigin = fileOrigin;
         this.problemType = problemType;

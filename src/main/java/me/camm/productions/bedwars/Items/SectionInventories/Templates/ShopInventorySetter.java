@@ -1,7 +1,7 @@
 package me.camm.productions.bedwars.Items.SectionInventories.Templates;
 
 import me.camm.productions.bedwars.Items.ItemDatabases.DefaultTemplateNavigation;
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Util.DataSets.ItemSet;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftInventoryCustom;
@@ -37,12 +37,12 @@ public abstract class ShopInventorySetter extends CraftInventoryCustom implement
     }
 
     @Override
-    public void setItem(int slot, GameItem item) {
+    public void setItem(int slot, ShopItem item) {
         this.setItem(slot, item, false);
     }
 
     @Override
-    public void setItem(int index, GameItem item, boolean isInflated) {
+    public void setItem(int index, ShopItem item, boolean isInflated) {
         try
         {
            super.setItem(index, ItemHelper.toDisplayItem(item, isInflated));
@@ -103,7 +103,7 @@ public abstract class ShopInventorySetter extends CraftInventoryCustom implement
             ItemStack stack = inv.getItem(slot);
             try
             {
-                GameItem item = GameItem.valueOf(stack.getItemMeta().getDisplayName());
+                ShopItem item = ShopItem.valueOf(stack.getItemMeta().getDisplayName());
                 items.add(new ItemSet(item,slot));
             }
             catch (IllegalArgumentException | NullPointerException ignored)

@@ -42,7 +42,7 @@ public class BridgeEgg
                     return;
                 }
 
-                if (iterations > 90)
+                if (iterations > 35)
                 {
                     egg.remove();
                     cancel();

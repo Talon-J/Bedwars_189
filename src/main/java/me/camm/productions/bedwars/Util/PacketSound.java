@@ -4,6 +4,7 @@ public enum PacketSound
 {
     DRAGON("mob.enderdragon.growl",1F),
     PLING("note.pling",1.4F),
+    DING("note.pling",2F),
     RECORD_STAL("records.stal",1F),
     ALARM("note.pling",1.5F),
     ALARM_TWO("note.pling",1.6F),

@@ -1,20 +1,20 @@
 package me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations;
 
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_START;
 
 public enum ArmorConfig
 {
     //Note that this enum should be synced up with both the quick buy and section inventories of the player.
-    CHAIN(QUICK_INV_BORDER_START.getValue(), GameItem.CHAIN_MAIL),
-    IRON(QUICK_INV_BORDER_START.getValue()+1, GameItem.IRON_ARMOR),
-    DIAMOND(QUICK_INV_BORDER_START.getValue()+2, GameItem.DIAMOND_ARMOR);
+    CHAIN(QUICK_INV_BORDER_START.getValue(), ShopItem.CHAIN_MAIL),
+    IRON(QUICK_INV_BORDER_START.getValue()+1, ShopItem.IRON_ARMOR),
+    DIAMOND(QUICK_INV_BORDER_START.getValue()+2, ShopItem.DIAMOND_ARMOR);
 
     private final int slot;
-    private final GameItem item;
+    private final ShopItem item;
 
-    ArmorConfig(int slot, GameItem item)
+    ArmorConfig(int slot, ShopItem item)
     {
         this.slot = slot;
         this.item = item;
@@ -24,7 +24,7 @@ public enum ArmorConfig
         return slot;
     }
 
-    public GameItem getItem() {
+    public ShopItem getItem() {
         return item;
     }
 }

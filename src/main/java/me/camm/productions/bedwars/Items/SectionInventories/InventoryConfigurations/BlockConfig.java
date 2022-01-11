@@ -1,24 +1,24 @@
 package me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations;
 
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_START;
 
 public enum BlockConfig
 {
-    WOOL(QUICK_INV_BORDER_START.getValue(), GameItem.WOOL),
-    CLAY(QUICK_INV_BORDER_START.getValue()+1, GameItem.HARDENED_CLAY),
-    GLASS(QUICK_INV_BORDER_START.getValue()+2, GameItem.STAINED_GLASS),
-    END_STONE(QUICK_INV_BORDER_START.getValue()+3, GameItem.ENDER_STONE),
-    LADDER(QUICK_INV_BORDER_START.getValue()+4, GameItem.LADDER),
-    WOOD(QUICK_INV_BORDER_START.getValue()+5, GameItem.PLANKS),
-    OBSIDIAN(QUICK_INV_BORDER_START.getValue()+6, GameItem.OBSIDIAN);
+    WOOL(QUICK_INV_BORDER_START.getValue(), ShopItem.WOOL),
+    CLAY(QUICK_INV_BORDER_START.getValue()+1, ShopItem.HARDENED_CLAY),
+    GLASS(QUICK_INV_BORDER_START.getValue()+2, ShopItem.STAINED_GLASS),
+    END_STONE(QUICK_INV_BORDER_START.getValue()+3, ShopItem.ENDER_STONE),
+    LADDER(QUICK_INV_BORDER_START.getValue()+4, ShopItem.LADDER),
+    WOOD(QUICK_INV_BORDER_START.getValue()+5, ShopItem.PLANKS),
+    OBSIDIAN(QUICK_INV_BORDER_START.getValue()+6, ShopItem.OBSIDIAN);
 
 
     private final int slot;
-    private final GameItem item;
+    private final ShopItem item;
 
-    BlockConfig(int slot, GameItem item)
+    BlockConfig(int slot, ShopItem item)
     {
         this.slot = slot;
         this.item = item;
@@ -29,7 +29,7 @@ public enum BlockConfig
         return slot;
     }
 
-    public GameItem getItem() {
+    public ShopItem getItem() {
         return item;
     }
 }

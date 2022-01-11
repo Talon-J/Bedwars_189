@@ -1,29 +1,29 @@
 package me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations;
 
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_START;
 
 public enum PotionConfig
 {
-    SPEED(QUICK_INV_BORDER_START.getValue(), GameItem.SPEED_POT),
-    JUMP(QUICK_INV_BORDER_START.getValue()+1, GameItem.JUMP_POT),
-    INVIS(QUICK_INV_BORDER_START.getValue()+2, GameItem.INVIS_POT);
+    SPEED(QUICK_INV_BORDER_START.getValue(), ShopItem.SPEED_POT),
+    JUMP(QUICK_INV_BORDER_START.getValue()+1, ShopItem.JUMP_POT),
+    INVIS(QUICK_INV_BORDER_START.getValue()+2, ShopItem.INVIS_POT);
 
 
-    PotionConfig(int slot, GameItem item) {
+    PotionConfig(int slot, ShopItem item) {
         this.slot = slot;
         this.item = item;
     }
 
     private final int slot;
-    private final GameItem item;
+    private final ShopItem item;
 
     public int getSlot() {
         return slot;
     }
 
-    public GameItem getItem() {
+    public ShopItem getItem() {
         return item;
     }
 }

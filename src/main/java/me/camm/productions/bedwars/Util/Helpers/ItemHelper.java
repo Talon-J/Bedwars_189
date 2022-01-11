@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.BattleEnchantment.*;
-import static me.camm.productions.bedwars.Items.ItemDatabases.GameItem.SHEARS;
+import static me.camm.productions.bedwars.Items.ItemDatabases.ShopItem.SHEARS;
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_END;
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_START;
 import static me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory.*;
@@ -43,19 +43,16 @@ import static me.camm.productions.bedwars.Items.ItemDatabases.PotionData.*;
 import static org.bukkit.Material.*;
 
 
-/*
-TODO: Add code to create the dream defender spawn egg formal [DONE]
- */
 public class ItemHelper implements IPlayerUtil
 {
-  private static final ArrayList<GameItem> restrictedFileItems;
+  private static final ArrayList<ShopItem> restrictedFileItems;
   private static final ArrayList<TieredItem> tieredItemList;
   private static final ArrayList<TieredItem> lowestTiers;
 
 
  static {
          TieredItem[] tieredItems = TieredItem.values();
-         GameItem[] inventory = GameItem.values();
+         ShopItem[] inventory = ShopItem.values();
 
          restrictedFileItems = new ArrayList<>();
 
@@ -69,7 +66,7 @@ public class ItemHelper implements IPlayerUtil
                  lowestTiers.add(item);
          }
 
-         for (GameItem item : inventory) {
+         for (ShopItem item : inventory) {
              if (item.category != NAV)
                  continue;
              restrictedFileItems.add(item);
@@ -108,7 +105,7 @@ public class ItemHelper implements IPlayerUtil
 
     // sells an item. accounts for team enchants and inflation. also accounts for if the item is a placeholder.
     //unfinished. requires code for dream defender. ***CODE ADDED. PLEASE TEST.
-    public static void sellItem(GameItem item, BattlePlayer player, boolean isInflated)
+    public static void sellItem(ShopItem item, BattlePlayer player, boolean isInflated)
     {
 
         if (item==null)
@@ -187,7 +184,7 @@ public class ItemHelper implements IPlayerUtil
                 if (!didPay(player,item,isInflated))
                     return;
 
-                if (item== GameItem.STICK)
+                if (item== ShopItem.STICK)
                 {
                     enchant(bought, Enchantment.KNOCKBACK, 1);
                     manager.set(bought,item,player.getRawPlayer());
@@ -227,12 +224,12 @@ public class ItemHelper implements IPlayerUtil
                     switch (toolCategory) {
                         case PICK:
                             player.sendMessage("[DEBUG]: SET PICK");
-                            player.setPick(possible);
+                            player.setPickUpwards(possible);
                             break;
 
                         case AXE:
                             player.sendMessage("[DEBUG]: SET AXE");
-                            player.setAxe(possible);
+                            player.setAxeUpwards(possible);
                     }
                 }
 
@@ -249,6 +246,82 @@ public class ItemHelper implements IPlayerUtil
             }
         }
 
+
+   //the index is the string in the list that is targeted.
+    //for all of the strings before it, they are highlighted.
+
+    /*
+    E.g
+
+    Forge with 1 upgrade: index = 1
+    A//
+    B
+    C
+    D
+     */
+        public static ItemStack toTeamDisplayItem(TeamItem item, int index)
+        {
+            Material mat = item.getMat();
+            try {
+                ItemStack sell;
+                if (item == TeamItem.SLOT_BARRIER)
+                    sell = createColoredGlass(mat, DyeColor.GRAY);
+                else
+                    sell = new ItemStack(mat,1);
+
+                if (sell == null)
+                    return null;
+
+                ItemMeta meta = sell.getItemMeta();
+                String[] names = item.getNames();
+                if (index >= names.length)
+                    meta.setDisplayName(names[names.length-1]);
+                else
+                    meta.setDisplayName(names[index]);
+
+
+                List<String> lore = new ArrayList<>();
+                String[] descriptions = item.getLore();
+
+                VALID_DESC:
+                {
+
+                    if (descriptions.length < 1)
+                        break VALID_DESC;
+
+                    if (descriptions.length - 1 < index)  //3, 2
+                    {
+                        for (String phrase : descriptions)
+                            lore.add(ChatColor.GOLD + phrase);
+
+                    } else {
+
+                        for (int slot = 0; slot < index; slot++) {
+                            String phrase = descriptions[slot];
+                            lore.add(ChatColor.GOLD + phrase);
+                        }
+                    }
+
+                    for (int slot = index; slot < descriptions.length; slot++)
+                        lore.add(ChatColor.AQUA + descriptions[slot]);
+                }
+
+               meta.setLore(lore);
+               sell.setItemMeta(meta);
+
+
+
+               return sell;
+            }
+            catch (IndexOutOfBoundsException e)
+            {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+
+        //returns the number of empty slots in an inventory.
         public static int getEmptyNumber(Inventory inv)
         {
             int empty = 0;
@@ -265,7 +338,7 @@ public class ItemHelper implements IPlayerUtil
     //Does not account for armor.
     //can return null
     @SuppressWarnings("deprecation")
-    public static ItemStack toSoldItem(GameItem item, BattlePlayer player)
+    public static ItemStack toSoldItem(ShopItem item, BattlePlayer player)
     {
         if (item == null)
             return null;
@@ -291,7 +364,12 @@ public class ItemHelper implements IPlayerUtil
                 break;
 
             case MELEE:
+            {
                 stack = hideFlags(setUnbreakable(new ItemStack(item.sellMaterial,item.sellAmount)));
+                BattleEnchantment teamEnchant = player.getTeam().getMeleeEnchant();
+                if (isSword(item.sellMaterial) && teamEnchant != null)
+                    stack = enchant(stack,teamEnchant);
+            }
                 break;
 
             case RANGED:
@@ -305,7 +383,7 @@ public class ItemHelper implements IPlayerUtil
 
             default: {
 
-                if (item== GameItem.DREAM_DEFENDER)
+                if (item== ShopItem.DREAM_DEFENDER)
                     stack = new ItemStack(item.sellMaterial,1,EntityType.IRON_GOLEM.getTypeId());
                     else
                 stack = new ItemStack(item.sellMaterial, item.sellAmount);
@@ -321,7 +399,7 @@ public class ItemHelper implements IPlayerUtil
        return stack;
     }
 
-    public static ItemStack toDegradableTool(GameItem item)
+    public static ItemStack toDegradableTool(ShopItem item)
     {
         if (item == null)
             return null;
@@ -372,7 +450,7 @@ public class ItemHelper implements IPlayerUtil
 
     //creates the item that is to be displayed in the shop, with price depending on player number
     @SuppressWarnings("deprecation")
-    public static ItemStack toDisplayItem(GameItem item, boolean isInflated)
+    public static ItemStack toDisplayItem(ShopItem item, boolean isInflated)
     {
         ItemCategory category = item.category;
 
@@ -399,7 +477,7 @@ public class ItemHelper implements IPlayerUtil
 
             default: {
 
-                stack = (item == GameItem.DREAM_DEFENDER) ? addLore(addName(new ItemStack(item.sellMaterial, 1, EntityType.IRON_GOLEM.getTypeId()), item), item, isInflated)
+                stack = (item == ShopItem.DREAM_DEFENDER) ? addLore(addName(new ItemStack(item.sellMaterial, 1, EntityType.IRON_GOLEM.getTypeId()), item), item, isInflated)
                       : addLore(addName(new ItemStack(item.sellMaterial, item.sellAmount), item), item, isInflated);
             }
         }
@@ -409,7 +487,7 @@ public class ItemHelper implements IPlayerUtil
 
     //creates an item based on the inv.item provided. returns null otherwise.
     //accounts for enchants.
-    public static ItemStack toRangedItem(GameItem item)
+    public static ItemStack toRangedItem(ShopItem item)
     {
         ItemStack stack;
         if (item.category!=RANGED)
@@ -418,15 +496,15 @@ public class ItemHelper implements IPlayerUtil
         switch (item)
         {
             case BOW:
-                stack = hideFlags(setUnbreakable(new ItemStack(item.sellMaterial,item.sellAmount)));
+                stack = setUnbreakable(new ItemStack(item.sellMaterial,item.sellAmount));
                 break;
 
             case PUNCH_BOW:
-                stack = enchant(enchant(hideFlags(setUnbreakable(new ItemStack(item.sellMaterial, item.sellAmount))),PUNCH_ONE),POWER_ONE);
+                stack = enchant(enchant(setUnbreakable(new ItemStack(item.sellMaterial, item.sellAmount)),PUNCH_ONE),POWER_ONE);
                 break;
 
             case POW_BOW:
-                stack = enchant(hideFlags(setUnbreakable(new ItemStack(item.sellMaterial,item.sellAmount))),POWER_ONE);
+                stack = enchant(setUnbreakable(new ItemStack(item.sellMaterial,item.sellAmount)),POWER_ONE);
                 break;
 
             default:
@@ -436,7 +514,7 @@ public class ItemHelper implements IPlayerUtil
     }
 
     //adds color to blocks if they can be colored.
-    public static ItemStack addBlockColor(byte color, GameItem item)
+    public static ItemStack addBlockColor(byte color, ShopItem item)
     {
         ItemStack stack;
 
@@ -475,8 +553,15 @@ public class ItemHelper implements IPlayerUtil
              return null;
     }
 
+    @SuppressWarnings("deprecation")
+    public static ItemStack createColoredGlass(Material mat, DyeColor color){
+            if (mat == STAINED_GLASS || mat == STAINED_GLASS_PANE)
+                return new ItemStack(mat, 1, color.getData());
+            return null;
+    }
+
     //returns colored armor along with any enchantments a battle team has. does not set armor for the player
-    public static ItemStack[] inventoryItemToArmor(GameItem item, BattlePlayer player)
+    public static ItemStack[] inventoryItemToArmor(ShopItem item, BattlePlayer player)
     {
         if (item.category!=ARMOR)
             return null;
@@ -489,8 +574,8 @@ public class ItemHelper implements IPlayerUtil
         ItemStack boots;
 
 
-        head = hideFlags(enchant(setColor(setUnbreakable(new ItemStack(LEATHER_HELMET)),color),AQUA));
-        chest = hideFlags(setColor(setUnbreakable(new ItemStack(LEATHER_CHESTPLATE)), color));
+        head = hideFlags(enchant(setLeatherColor(setUnbreakable(new ItemStack(LEATHER_HELMET)),color),AQUA));
+        chest = hideFlags(setLeatherColor(setUnbreakable(new ItemStack(LEATHER_CHESTPLATE)), color));
 
 
         //set the armor to unbreakable first before adding enchants or color.
@@ -498,8 +583,8 @@ public class ItemHelper implements IPlayerUtil
         switch (item)
         {
             case LEATHER_ARMOR:
-                legs = hideFlags(setColor(setUnbreakable(new ItemStack(LEATHER_LEGGINGS)), color));
-                boots = hideFlags(setColor(setUnbreakable(new ItemStack(LEATHER_BOOTS)), color));
+                legs = hideFlags(setLeatherColor(setUnbreakable(new ItemStack(LEATHER_LEGGINGS)), color));
+                boots = hideFlags(setLeatherColor(setUnbreakable(new ItemStack(LEATHER_BOOTS)), color));
                 break;
 
             case CHAIN_MAIL:
@@ -556,9 +641,23 @@ public class ItemHelper implements IPlayerUtil
         return false;
     }
 
+    public static boolean isAxe(ItemStack axe){
+            if (isItemInvalid(axe))
+                return false;
+            Material mat = axe.getType();
+            return mat.name().toLowerCase().contains("axe") && !(mat.name().toLowerCase().contains("pick"));
+    }
+
+    public static boolean isPick(ItemStack pick){
+            if (isItemInvalid(pick))
+                return false;
+            Material mat = pick.getType();
+            return mat.name().toLowerCase().contains("pick");
+    }
 
 
-    public static ItemStack getPotion(GameItem item)
+
+    public static ItemStack getPotion(ShopItem item)
     {
         if (item.category!=ItemCategory.POTION)
             return null;
@@ -611,7 +710,7 @@ public class ItemHelper implements IPlayerUtil
         return original;
     }
 
-    public static boolean isSword(GameItem item)
+    public static boolean isSword(ShopItem item)
     {
         if (item == null)
             return false;
@@ -672,7 +771,7 @@ public class ItemHelper implements IPlayerUtil
 
 
     //adds lore for cost and sell amount to an item
-    public static ItemStack addLore(ItemStack item, GameItem id, boolean isInflated)
+    public static ItemStack addLore(ItemStack item, ShopItem id, boolean isInflated)
     {
         if (isItemInvalid(item))
             return item;
@@ -694,7 +793,7 @@ public class ItemHelper implements IPlayerUtil
     /*
     Returns true if the item is not allowed to appear in configuration files, otherwise returns false.
      */
-    public static boolean isFileRestricted(GameItem item)
+    public static boolean isFileRestricted(ShopItem item)
     {
        TieredItem tier = isTieredItem(item);
        if (tier==null)
@@ -702,7 +801,7 @@ public class ItemHelper implements IPlayerUtil
       return !tier.getIsFileValid();
     }
 
-    public static ItemStack addName(ItemStack item, GameItem id)
+    public static ItemStack addName(ItemStack item, ShopItem id)
     {
         if (isItemInvalid(item))
             return item;
@@ -714,7 +813,7 @@ public class ItemHelper implements IPlayerUtil
     }
 
 
-    public static TieredItem isTieredItem(GameItem item)
+    public static TieredItem isTieredItem(ShopItem item)
     {
         for (TieredItem tier: tieredItemList)
         {
@@ -725,7 +824,7 @@ public class ItemHelper implements IPlayerUtil
     }
 
 
-    public static String getPriceName(GameItem item)
+    public static String getPriceName(ShopItem item)
     {
        return getPriceName(item.costMaterial);
     }
@@ -752,7 +851,7 @@ public class ItemHelper implements IPlayerUtil
                 break;
 
             default:
-                name = "Umm... Something...grass blocks?";
+                name = "Umm... Something...Ducks?";
         }
         return name;
     }
@@ -768,7 +867,7 @@ public class ItemHelper implements IPlayerUtil
         return CraftItemStack.asCraftMirror(item);
     }
 
-    public static boolean isArmorBetter(GameItem current, GameItem isBetter)
+    public static boolean isArmorBetter(ShopItem current, ShopItem isBetter)
     {
        TieredItem currentArmor = isTieredItem(current);
        TieredItem nextArmor = isTieredItem(isBetter);
@@ -787,7 +886,7 @@ public class ItemHelper implements IPlayerUtil
     }
 
 
-    public static GameItem getArmor(Player player)
+    public static ShopItem getArmor(Player player)
     {
         StringBuilder complexity = new StringBuilder();
         ItemStack[] items = player.getInventory().getArmorContents();
@@ -819,16 +918,16 @@ public class ItemHelper implements IPlayerUtil
         return analyzeComplexity(complexity.toString());
     }
 
-    private static GameItem analyzeComplexity(String string)
+    private static ShopItem analyzeComplexity(String string)
     {
         if (string.contains("d"))
-            return GameItem.DIAMOND_ARMOR;
+            return ShopItem.DIAMOND_ARMOR;
         else if (string.contains("i"))
-            return GameItem.IRON_ARMOR;
+            return ShopItem.IRON_ARMOR;
         else if (string.contains("c"))
-            return GameItem.CHAIN_MAIL;
+            return ShopItem.CHAIN_MAIL;
         else
-            return GameItem.LEATHER_ARMOR;
+            return ShopItem.LEATHER_ARMOR;
     }
 
     private static boolean isLeather(Material mat)
@@ -912,7 +1011,7 @@ public class ItemHelper implements IPlayerUtil
     {
         for (TieredItem item: tieredItemList)
         {
-            if (item.getCategory()==current.getCategory()&&item.getIndex()==(current.getIndex()+1))
+            if ((item.getCategory()==current.getCategory()) && (item.getIndex()==(current.getIndex()+1)))
                 return item;
         }
         return null;
@@ -922,7 +1021,7 @@ public class ItemHelper implements IPlayerUtil
     {
         for (TieredItem item: tieredItemList)
         {
-            if (item.getCategory()==current.getCategory()&&item.getIndex()==(current.getIndex()-1))
+            if ((item.getCategory()==current.getCategory()) && (item.getIndex()==(current.getIndex()-1)) )
                 return item;
         }
         return null;
@@ -962,7 +1061,7 @@ public class ItemHelper implements IPlayerUtil
 
     //Try to associate an itemstack to a game item.
     //Note that the empty slot game item has a sell item of glass pane , while the rest have sell item of air.
-    public static GameItem getAssociate(ItemStack stack)
+    public static ShopItem getAssociate(ItemStack stack)
     {
         if (stack == null)
             return null;
@@ -971,7 +1070,7 @@ public class ItemHelper implements IPlayerUtil
             return null;
 
         Material mat = stack.getType();
-        for (GameItem item: GameItem.values())
+        for (ShopItem item: ShopItem.values())
             if (mat == item.sellMaterial)
                 return item;
 
@@ -979,7 +1078,7 @@ public class ItemHelper implements IPlayerUtil
 
     }
 
-    public static ItemStack setColor(ItemStack stack, Color color)
+    public static ItemStack setLeatherColor(ItemStack stack, Color color)
     {
         if (isItemInvalid(stack)) {
             return stack;
@@ -1033,7 +1132,7 @@ public class ItemHelper implements IPlayerUtil
     }
 
     //attempts to do a transaction with a player.
-    public static boolean didPay(BattlePlayer current, GameItem item, boolean isInflated)
+    public static boolean didPay(BattlePlayer current, ShopItem item, boolean isInflated)
     {
         return didPay(current,item.costMaterial,isInflated?item.inflatedPrice:item.cost);
     }

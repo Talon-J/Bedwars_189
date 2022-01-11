@@ -9,7 +9,7 @@ public enum GameEventText
     DESTROY_BEDS(ChatColor.RED+"[BEDWARS] All beds have been destroyed!"),
     DRAGON_SPAWN_SCHEDULED_WARNING(ChatColor.RED+"[BEDWARS] Sudden Death in 5 minutes!"),
     GAME_END_SCHEDULED_WARNING(ChatColor.RED+"[BEDWARS] The game ends in 5 minutes!"),
-    GAME_END_TEXT(ChatColor.YELLOW+"[BEDWARS] The game has ended!"),
+    GAME_END_TEXT(ChatColor.YELLOW +"[BEDWARS] The game has ended!"),
     UPGRADE_DIAMONDS(ChatColor.AQUA+"Diamond"+ChatColor.YELLOW+" generators have been upgraded to tier "+ChatColor.RED),
     UPGRADE_EMERALDS(ChatColor.GREEN+"Emerald"+ ChatColor.YELLOW+" generators have been upgraded to tier "+ChatColor.RED);
 

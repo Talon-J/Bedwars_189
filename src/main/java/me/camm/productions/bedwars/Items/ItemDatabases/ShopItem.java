@@ -5,7 +5,7 @@ import org.bukkit.Material;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory.*;
 
-public enum GameItem
+public enum ShopItem
 {
     WOOL(4, 16, Material.WOOL, Material.IRON_INGOT, ChatColor.GRAY + "Wool", BLOCK, false, false, 4),
     LADDER(4, 16, Material.LADDER, Material.IRON_INGOT, ChatColor.GRAY + "Ladder", BLOCK, false, false, 4),
@@ -14,7 +14,8 @@ public enum GameItem
     ENDER_STONE(24, 12, Material.ENDER_STONE, Material.IRON_INGOT, ChatColor.GRAY + "End Stone", BLOCK, false, false, 24),
     POPUP_TOWER(24, 1, Material.CHEST, Material.IRON_INGOT, ChatColor.AQUA + "Compact Popup Tower", UTILITY, true, false, 24),
     FIREBALL(40, 1, Material.FIREBALL, Material.IRON_INGOT, ChatColor.GOLD + "Fireball", UTILITY, true, false, 40),
-    BEDBUG(40, 1, Material.SNOW_BALL, Material.IRON_INGOT, ChatColor.AQUA + "BedBug", UTILITY, true, false, 40),
+
+    BEDBUG(30, 1, Material.SNOW_BALL, Material.IRON_INGOT, ChatColor.AQUA + "BedBug", UTILITY, true, false, 30),
     DREAM_DEFENDER(120, 1, Material.MONSTER_EGG, Material.IRON_INGOT, ChatColor.GOLD + "Dream Defender", UTILITY, true, false, 120),
 
     GOLDEN_APPLE(3, 1, Material.GOLDEN_APPLE, Material.GOLD_INGOT, ChatColor.GRAY + "Golden Apple", UTILITY, false, false, 3),
@@ -50,7 +51,7 @@ public enum GameItem
     PUNCH_BOW(6, 1, Material.BOW, Material.EMERALD, ChatColor.GRAY + "Punch I Power 1 Bow", RANGED, false, false, 6),
 
     LEATHER_ARMOR(0, 1, Material.LEATHER_BOOTS, Material.AIR, ChatColor.GRAY + "Leather armor", ARMOR, false, true, 0),
-    CHAIN_MAIL(40, 1, Material.CHAINMAIL_BOOTS, Material.IRON_INGOT, ChatColor.GOLD + "Permanent Chainmail Armor", ARMOR, false, true, 40),
+    CHAIN_MAIL(30, 1, Material.CHAINMAIL_BOOTS, Material.IRON_INGOT, ChatColor.GOLD + "Permanent Chainmail Armor", ARMOR, false, true, 30),
     IRON_ARMOR(12, 1, Material.IRON_BOOTS, Material.GOLD_INGOT, ChatColor.GRAY + "Permanent Iron Armor", ARMOR, false, true, 12),
     DIAMOND_ARMOR(4, 1, Material.DIAMOND_BOOTS, Material.EMERALD, ChatColor.GRAY + "Permanent Diamond Armor", ARMOR, true, true, 4),
 
@@ -61,8 +62,12 @@ public enum GameItem
     ENDER_PEARL(4, 1, Material.ENDER_PEARL, Material.EMERALD, ChatColor.GRAY + "Ender Pearl", UTILITY, false, false, 4),
     OBSIDIAN(4, 4, Material.OBSIDIAN, Material.EMERALD, ChatColor.GRAY + "Obsidian", BLOCK, false, false, 4),
 
+    //team items
+
     //Navigational and utility items
     SEPARATOR(1, 1, Material.STAINED_GLASS_PANE, Material.AIR, ChatColor.DARK_GRAY+"\u21e7 Categories "+ChatColor.GRAY+"\u21e9 Items", ItemCategory.SEPARATOR, false, false, 0),
+
+    TRACKER_NAV(1,1,Material.COMPASS,Material.AIR,ChatColor.GOLD+"Tracker",NAV,false, false, 0),
     BLOCKS_NAV(1, 1, Material.HARD_CLAY, Material.AIR, ChatColor.DARK_GREEN+"Blocks", NAV, false, false, 0),
     MELEE_NAV(1, 1, Material.GOLD_SWORD, Material.AIR, ChatColor.DARK_AQUA+"Melee", NAV, false, false, 0),
     ARMOR_NAV(1, 1, Material.CHAINMAIL_BOOTS, Material.AIR, ChatColor.YELLOW+"Armor", NAV, false, false, 0),
@@ -86,7 +91,7 @@ public enum GameItem
     public int inflatedPrice;
 
 
-    private GameItem(int cost, int sellAmount, Material sellMaterial, Material costMaterial, String name, ItemCategory category, boolean keepName, boolean isPermanent, int inflatedPrice) {
+    ShopItem(int cost, int sellAmount, Material sellMaterial, Material costMaterial, String name, ItemCategory category, boolean keepName, boolean isPermanent, int inflatedPrice) {
         this.cost = cost;
         this.sellAmount = sellAmount;
         this.sellMaterial = sellMaterial;

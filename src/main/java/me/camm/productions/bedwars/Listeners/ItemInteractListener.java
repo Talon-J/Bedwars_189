@@ -4,8 +4,7 @@ import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Entities.ActiveEntities.DreamDefender;
 import me.camm.productions.bedwars.Entities.ActiveEntities.ThrownFireball;
-import me.camm.productions.bedwars.Entities.PacketHandler;
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -29,6 +28,7 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.material.SpawnEgg;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -79,24 +79,58 @@ public class ItemInteractListener implements Listener
         if (stack==null || stack.getType()==null || stack.getItemMeta() == null)
             return;
 
-        if (stack.getType()!=Material.POTION)
-            return;
-
         if (!isRegistered(player))
             return;
 
-        //If it is an invis potion.
+        if (stack.getType()==Material.POTION) {
 
-        //Unfinished. Use packets to see if the player should be set to visible
-        //and also do it in the damage listener.
-        PotionMeta meta = (PotionMeta)stack.getItemMeta();
-       if  (meta.hasCustomEffect(PotionEffectType.INVISIBILITY))
-       {
-           BattlePlayer battlePlayer = arena.getPlayers().get(player.getUniqueId());
-           battlePlayer.togglePotionInvisibility(true,handler);
-       }
+            //If it is an invis potion.
+
+            //Unfinished. Use packets to see if the player should be set to visible
+            //and also do it in the damage listener.
+            PotionMeta meta = (PotionMeta) stack.getItemMeta();
+            if (meta.hasCustomEffect(PotionEffectType.INVISIBILITY)) {
+                BattlePlayer battlePlayer = arena.getPlayers().get(player.getUniqueId());
+                battlePlayer.togglePotionInvisibility(true, handler);
+            }
+
+            new BukkitRunnable(){
+                @Override
+                public void run() {
+                    ItemStack item = player.getItemInHand();
+                    if (!ItemHelper.isItemInvalid(item) && item.getType()==Material.GLASS_BOTTLE)
+                        player.setItemInHand(null);
+                        cancel();
+                }
+            }.runTaskLater(plugin,1);
+        }
+        else if (stack.getType()==Material.MILK_BUCKET)
+        {
+            player.setItemInHand(null);
+            BattlePlayer battlePlayer = arena.getPlayers().get(player.getUniqueId());
+            battlePlayer.setLastMilkTime(System.currentTimeMillis());
+
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    ItemStack item = player.getItemInHand();
+                    if (!ItemHelper.isItemInvalid(item) && item.getType()==Material.BUCKET)
+                        player.setItemInHand(null);
+                    cancel();
+                }
+            }.runTaskLater(plugin,1);
+
+            new BukkitRunnable(){
+                @Override
+                public void run()
+                {
+                    if (System.currentTimeMillis()- battlePlayer.getLastMilk() > 30000)
+                    battlePlayer.sendMessage(ChatColor.RED+"Your Magic Milk ran out!");
+                    cancel();
+                }
+            }.runTaskLater(plugin,600);
+        }
     }
-
 
 
     @EventHandler
@@ -112,8 +146,6 @@ public class ItemInteractListener implements Listener
             return;
 
         BattlePlayer currentPlayer = players.get(player.getUniqueId());
-
-
 
         if (stack == null)
             return;
@@ -146,6 +178,31 @@ public class ItemInteractListener implements Listener
                     updateInventory(player,Material.MONSTER_EGG);
                 }
                 break;
+
+
+            case WATER_BUCKET:
+            {
+                if (action == Action.RIGHT_CLICK_BLOCK && block != null && block.getType() != null && block.getType() != Material.AIR)
+                {
+                    if (player.getGameMode() == GameMode.CREATIVE)
+                        return;
+
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            ItemStack stack = player.getInventory().getItemInHand();
+                            if (!ItemHelper.isItemInvalid(stack) && stack.getType()==Material.BUCKET)
+                                player.setItemInHand(null);
+                            cancel();
+                        }
+                    }.runTaskLater(plugin,1);
+
+
+
+
+                }
+            }
+            break;
         }
     }
 
@@ -181,11 +238,17 @@ public class ItemInteractListener implements Listener
             return;
 
         BattlePlayer current = registered.get(player.getUniqueId());
-        GameItem item = ItemHelper.getAssociate(stack);
+        ShopItem item = ItemHelper.getAssociate(stack);
+
+        if ( (ItemHelper.isAxe(stack) || ItemHelper.isPick(stack)) && (stack.getType().name().toLowerCase().contains("wood")) ) {
+            event.setCancelled(true);
+            return;
+        }
+
         if (!ItemHelper.isSword(item))
             return;
 
-        if (item == GameItem.WOODEN_SWORD || (stack.getType() == Material.WOOD_SWORD)) {
+        if (item == ShopItem.WOODEN_SWORD || (stack.getType() == Material.WOOD_SWORD)) {
             event.setCancelled(true);
             return;
         }
@@ -201,10 +264,8 @@ public class ItemInteractListener implements Listener
         }).count();
 
         //if they don't have any swords, add a wood sword to their inv.
-        if (count <= 0)
-            current.getBarManager().set(ItemHelper.toSoldItem(GameItem.WOODEN_SWORD,current),GameItem.WOODEN_SWORD,current.getRawPlayer());
-
-
+        if (count <= 0 && current.getIsAlive() && !current.getIsEliminated())
+            current.getBarManager().set(ItemHelper.toSoldItem(ShopItem.WOODEN_SWORD,current), ShopItem.WOODEN_SWORD,current.getRawPlayer());
     }
 
     public void updateMap(Player player)
@@ -242,10 +303,6 @@ public class ItemInteractListener implements Listener
         }
 
     }
-
-
-
-
 
 
     public void updateInventory(Player player, Material toDecrease)

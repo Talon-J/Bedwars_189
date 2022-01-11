@@ -5,6 +5,8 @@ public enum InventoryLocation
     HOT_BAR_START(0),
     HOT_BAR_END(9),
 
+
+    //the first row (Highest row) in a double chest
     LARGE_ROW_ONE_END(8),
     LARGE_ROW_ONE_START(0),
 
@@ -20,6 +22,7 @@ public enum InventoryLocation
     LARGE_ROW_FIVE_END(44),
     LARGE_ROW_FIVE_START(36),
 
+    //the last row (lowest row) in a double chest
     LARGE_ROW_SIX_END(53),
     LARGE_ROW_SIX_START(45),
 

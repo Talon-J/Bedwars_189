@@ -1,7 +1,7 @@
 package me.camm.productions.bedwars.Items.SectionInventories.Inventories;
 
-import me.camm.productions.bedwars.Items.ItemDatabases.DefaultQuickItemConfig;
-import me.camm.productions.bedwars.Items.ItemDatabases.GameItem;
+import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.DefaultQuickItemConfig;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
 import me.camm.productions.bedwars.Util.DataSets.ItemSet;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
@@ -53,6 +53,6 @@ public class QuickBuySection extends ShopInventorySetter {
     {
         for (int slot=QUICK_INV_BORDER_START.getValue();slot<=QUICK_INV_BORDER_END.getValue();slot++)
             if (getItem(slot)==null && !(slot%9 == 0 || (slot+1)%9 == 0))
-                setItem(slot,GameItem.EMPTY_SLOT);
+                setItem(slot, ShopItem.EMPTY_SLOT);
     }
 }

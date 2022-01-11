@@ -52,8 +52,8 @@ public class ThrownFireball implements IGameOwnable
 
         //converting to unit vector * 0.1 (note that 1 m/tick = 20 m/s, so *0.1 makes it less fast)
         //initially *0.1
-        fireBall.dirX = (x/distance)*0.15;
-        fireBall.dirY = (y/distance)*0.15;
+        fireBall.dirX = (x/distance)*0.15;  //getting the unit value ratio then multiply it.
+        fireBall.dirY = (y/distance)*0.15;   //so as long as it is the same ratio for each, it is fine.
         fireBall.dirZ = (z/distance)*0.15;
 
         ((CraftPlayer)player).getHandle().collidesWithEntities = false;

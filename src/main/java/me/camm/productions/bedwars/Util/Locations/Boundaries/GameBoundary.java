@@ -2,20 +2,28 @@ package me.camm.productions.bedwars.Util.Locations.Boundaries;
 
 
 import me.camm.productions.bedwars.Util.Helpers.IArenaChatHelper;
+import me.camm.productions.bedwars.Util.Locations.Coordinate;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
+
+import java.util.Collection;
+import java.util.Random;
 
 
 public class GameBoundary extends Boundary<Integer> implements IArenaChatHelper
 {
     private int[] bounds;
+    private final Random rand;
 
     public GameBoundary(int[] bounds) {
         this.bounds = bounds;
+        rand = new Random();
         analyze();
         reArrange();
         dissectArray();
@@ -109,7 +117,6 @@ public class GameBoundary extends Boundary<Integer> implements IArenaChatHelper
                                 //Break from the current targeted block in the registration process.
 
                             }
-
                     }
                 }
             }
@@ -153,6 +160,20 @@ public class GameBoundary extends Boundary<Integer> implements IArenaChatHelper
 
     }
     //1 = all, 0 = !air, -1 = air only
+
+    public Coordinate getRandomCoordinateWithin() {
+        double x = (rand.nextDouble() * (x2-x1) ) + x1;
+        double y = (rand.nextDouble() * (y2-y1) ) + y1;
+        double z = (rand.nextDouble() * (z2-z1) ) + z1;
+        return new Coordinate(x,y,z);
+    }
+
+    public Coordinate getCoordinateAverage(){
+        double x = (x2+x1) /2.0;
+        double y = (y2+y1) /2.0;
+        double z = (z2+z1) /2.0;
+        return new Coordinate(x,y,z);
+    }
 
 
 
@@ -222,10 +243,21 @@ public class GameBoundary extends Boundary<Integer> implements IArenaChatHelper
 
     private void sendRegistry(Plugin plugin, String type)
     {
-        sendMessage(ChatColor.YELLOW + "[BEDWARS - D] [MAP REGISTER] Registered Zone from (x1=" + x1 + ",y1=" + y1 + ",z1=" + z1 + ") to (x2=" + x2 + ",y2=" + y2 + ",z2=" + z2 + ") with " + type);
+        sendMessage(ChatColor.YELLOW + "[MAP REGISTER] Registered Zone from (x1=" + x1 + ",y1=" + y1 + ",z1=" + z1 + ") to (x2=" + x2 + ",y2=" + y2 + ",z2=" + z2 + ") with " + type,plugin);
     }
 
     public int[] getValues() {
         return bounds;
+    }
+
+    public Location getCenter(World world)
+    {
+        return new Location(world,(x2+x1)/2.0, (y2+y1)/2.0, (z2+z1)/2.0);
+    }
+
+    public Collection<Entity> getCloseEntities(World world)
+    {
+        Location center = getCenter(world);
+        return world.getNearbyEntities(center, (x2-x1)/2.0, (y2-y1)/2.0,(z2-z1)/2.0);
     }
 }
