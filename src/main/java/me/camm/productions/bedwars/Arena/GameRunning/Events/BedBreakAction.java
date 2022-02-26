@@ -29,6 +29,8 @@ public class BedBreakAction extends GameActionPhysical {
 
             if (!battleTeam.doesBedExist())
                 battleTeam.sendTeamTitle(ALL_BEDS_DESTROYED.getMessage(), "",10,40,10);  //say that all beds have been destroyed
+                //10, 40, and 10 are just arbitrary values. We could have them as any positive int. It's just that these values
+            //work out well
 
             battleTeam.putOnLastStand();
         });

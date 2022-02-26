@@ -2,8 +2,8 @@ package me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurat
 
 import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 
-import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_ROW2_START;
-import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_START;
+import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.QUICK_INV_BORDER_ROW2_START;
+import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.QUICK_INV_BORDER_START;
 
 public enum UtilityConfig
 {

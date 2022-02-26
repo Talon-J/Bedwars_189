@@ -4,9 +4,13 @@ import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Entities.ActiveEntities.BedBug;
 import me.camm.productions.bedwars.Entities.Consumables.BridgeEgg;
+import me.camm.productions.bedwars.Util.PacketSound;
+
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -33,11 +37,16 @@ public class ProjectileListener implements Listener
     }
 
     @EventHandler
-    public void onEnderPearlTeleport(PlayerTeleportEvent event)
+    public void onTeleport(PlayerTeleportEvent event)
     {
        PlayerTeleportEvent.TeleportCause cause = event.getCause();
-       if (cause == PlayerTeleportEvent.TeleportCause.ENDER_PEARL)
-           event.setCancelled(true);
+       switch (cause) {
+           case ENDER_PEARL:
+           case END_PORTAL:
+           case NETHER_PORTAL:
+               event.setCancelled(true);
+       }
+
     }
 
     @EventHandler
@@ -63,28 +72,44 @@ public class ProjectileListener implements Listener
 
     public void handlePearlPlacement(EnderPearl pearl, Player shooter)
     {
-        //please test this. Not finished.
-        Vector direction = pearl.getVelocity().normalize().multiply(-1);
+        Vector direction = pearl.getVelocity().clone().normalize().multiply(-1);
         Vector origin = pearl.getLocation().toVector();
         Location loc = pearl.getLocation();
         double distance = shooter.getLocation().distance(loc);
         World w = shooter.getWorld();
 
+        final float pitch, yaw;
+        pitch = shooter.getLocation().getPitch();
+        yaw = shooter.getLocation().getYaw();
+        Location foot = origin.toLocation(w);
+
         int travelled = 0;
         do
         {
-            Location foot = direction.add(origin).toLocation(w);
+
             Block bottom = foot.getBlock();
             Block top = foot.clone().add(0,1,0).getBlock();
 
-            if (!bottom.getType().isSolid() || !top.getType().isSolid())
+
+
+            if ( (bottom == null || bottom.getType()== Material.AIR ) && (top == null || top.getType()==Material.AIR))
             {
-                shooter.teleport(foot, PlayerTeleportEvent.TeleportCause.PLUGIN);
+
+
+                Location floored = new Location(foot.getWorld(),foot.getBlockX(),foot.getBlockY(),foot.getBlockZ());
+                floored.setPitch(pitch);
+                floored.setYaw(yaw);
+                shooter.teleport(floored.add(0.5,0,0.5), PlayerTeleportEvent.TeleportCause.PLUGIN);
+                arena.sendLocalizedSound(PacketSound.ENDERMAN,floored, 10);
+                shooter.setFallDistance(0f);
+                //shooter.sendMessage("[DEBUG] Teleport loc: "+ foot.getX()+" "+foot.getY()+" "+foot.getZ());
+
                 break;
             }
 
-            origin.add(direction.clone());
+
             travelled += 1;
+            foot = origin.add(direction.clone()).toLocation(w);//
         }
         while (travelled < distance);
     }
@@ -116,10 +141,5 @@ public class ProjectileListener implements Listener
 
         if (p instanceof Egg)
             new BridgeEgg((Egg)p,plugin,(byte)arena.getPlayers().get(shooter.getUniqueId()).getTeam().getTeamColor().getValue());
-
-
-        /*
-        TODO also require code for enderpearls and snowballs.
-         */
     }
 }

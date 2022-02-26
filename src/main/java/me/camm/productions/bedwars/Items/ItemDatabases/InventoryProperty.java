@@ -1,6 +1,6 @@
 package me.camm.productions.bedwars.Items.ItemDatabases;
 
-public enum InventoryLocation
+public enum InventoryProperty
 {
     HOT_BAR_START(0),
     HOT_BAR_END(9),
@@ -37,16 +37,20 @@ public enum InventoryLocation
 
 
     //Slots of the items in the inv. (Ones you can buy.)
+    //start of the wall of items (includes start, not the slot before which is air)
     QUICK_INV_BORDER_START(19),
     QUICK_INV_BORDER_ROW2_START(28),
+
+    //end of the wall of items (up to end, not including slot after which is air)
     QUICK_INV_BORDER_END(43),
 
-    //28
+    SMALL_SHOP_SIZE(27),
+    SMALL_CRAFTING_GRID(4),
     SHOP_SIZE(54);
 
     private final int value;
 
-    InventoryLocation(int value)
+    InventoryProperty(int value)
     {
         this.value = value;
     }

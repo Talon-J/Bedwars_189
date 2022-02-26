@@ -4,7 +4,7 @@ import me.camm.productions.bedwars.Arena.Players.Managers.HotbarManager;
 import me.camm.productions.bedwars.Arena.Players.Managers.PlayerInventoryManager;
 import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
-import me.camm.productions.bedwars.Util.DataSets.ItemSet;
+import me.camm.productions.bedwars.Util.DataSets.ShopItemSet;
 import me.camm.productions.bedwars.Util.Helpers.StringToolBox;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -15,7 +15,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.HOT_BAR_END;
+import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.HOT_BAR_END;
 
 public class PlayerFileReader extends StringToolBox
 {
@@ -90,12 +90,13 @@ public class PlayerFileReader extends StringToolBox
 
     public PlayerInventoryManager readInvFile()
     {
+        System.out.println("playerInvMngr readInvFile(): inflated: "+isInflated);
         try
         {
             BufferedReader reader = new BufferedReader(new FileReader(inventoryFile));
 
             //deal with the possibility of restricted items in the manager.
-            ArrayList<ItemSet> items = new ArrayList<>();
+            ArrayList<ShopItemSet> items = new ArrayList<>();
             String current = reader.readLine();
 
             while (current!=null)
@@ -117,7 +118,7 @@ public class PlayerFileReader extends StringToolBox
                {
                    //get the inventoryitems representation, and put into an itemset
                    ShopItem item = ShopItem.valueOf(key);
-                   items.add(new ItemSet(item,slotNumber.intValue()));
+                   items.add(new ShopItemSet(item,slotNumber.intValue()));
                }
                catch (IllegalArgumentException | NullPointerException ignored)
                {

@@ -8,12 +8,12 @@ This class is a package for configuration of items, preserving slot and the item
 For a list of items that should not appear as the gameItem, refer to the
 ItemToolBox class, method isFileRestricted(GameItem item)
  */
-public class ItemSet
+public class ShopItemSet
 {
     private final ShopItem item;
     private final int slot;
 
-  public ItemSet(ShopItem item, int slot)
+  public ShopItemSet(ShopItem item, int slot)
   {
       this.item = ItemHelper.isFileRestricted(item) ? ShopItem.EMPTY_SLOT:item;
       this.slot = slot;

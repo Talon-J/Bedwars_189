@@ -4,7 +4,8 @@ import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Players.IPlayerUtil;
 import me.camm.productions.bedwars.Arena.Players.Managers.HotbarManager;
 import me.camm.productions.bedwars.Items.ItemDatabases.*;
-import me.camm.productions.bedwars.Util.DataSets.ItemSet;
+import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.HotBarConfig;
+import me.camm.productions.bedwars.Util.DataSets.ShopItemSet;
 import me.camm.productions.bedwars.Util.PacketSound;
 import net.minecraft.server.v1_8_R3.NBTTagCompound;
 import net.minecraft.server.v1_8_R3.PacketPlayOutNamedSoundEffect;
@@ -34,8 +35,8 @@ import java.util.Objects;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.BattleEnchantment.*;
 import static me.camm.productions.bedwars.Items.ItemDatabases.ShopItem.SHEARS;
-import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_END;
-import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_START;
+import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.QUICK_INV_BORDER_END;
+import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.QUICK_INV_BORDER_START;
 import static me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory.*;
 import static me.camm.productions.bedwars.Items.ItemDatabases.LorePhrases.COST;
 import static me.camm.productions.bedwars.Items.ItemDatabases.LorePhrases.SELL;
@@ -240,10 +241,9 @@ public class ItemHelper implements IPlayerUtil
 
                 manager.set(boughtTool, item, player.getRawPlayer());
                }
-
-
-
             }
+
+            player.sendMessage(ChatColor.GREEN+"You bought "+item.format());
         }
 
 
@@ -309,8 +309,6 @@ public class ItemHelper implements IPlayerUtil
                meta.setLore(lore);
                sell.setItemMeta(meta);
 
-
-
                return sell;
             }
             catch (IndexOutOfBoundsException e)
@@ -320,19 +318,78 @@ public class ItemHelper implements IPlayerUtil
             }
         }
 
+        public static void replaceItem(ItemStack replaced, ItemStack toReplaceWith, Player player){
+            Inventory inv = player.getInventory();
+            for (int slot=0;slot<inv.getSize();slot++) {
+                ItemStack stack = inv.getItem(slot);
 
-        //returns the number of empty slots in an inventory.
-        public static int getEmptyNumber(Inventory inv)
-        {
-            int empty = 0;
-            for (ItemStack stack:inv){
-                if (isItemInvalid(stack) || stack.getType()==Material.AIR)
-                    empty ++;
+                if (isItemInvalid(stack))  {
+                    if (replaced == toReplaceWith) {
+                        inv.setItem(slot, toReplaceWith);
+                        return;
+                    }
+                }
+
+
+                if (stack.isSimilar(replaced)) {
+                    inv.setItem(slot, toReplaceWith);
+                    return;
+                }
             }
-
-                return empty;
         }
 
+        public static void clearAll(ItemStack toReplace, Inventory inv){
+
+            if (isItemInvalid(toReplace))
+                return;
+
+            for (int slot=0;slot<inv.getSize();slot++)
+            {
+                ItemStack stack = inv.getItem(slot);
+
+                if (isItemInvalid(stack))  {
+                  continue;
+                }
+
+                if (stack.isSimilar(toReplace)) {
+                    inv.setItem(slot, null);
+                }
+            }
+        }
+
+        public static void clearAll(Material mat, Inventory inv) {
+            for (int slot=0;slot<inv.getSize();slot++)
+            {
+                ItemStack stack = inv.getItem(slot);
+
+                if (isItemInvalid(stack))  {
+                    continue;
+                }
+
+                if (stack.getType()==mat) {
+                    inv.setItem(slot, null);
+                }
+            }
+        }
+
+        public static boolean isInventoryPlaceRestrict(ItemStack stack){
+            if (isItemInvalid(stack)) {
+                return false;
+            }
+
+
+            System.out.println("pick?"+isPick(stack));
+            System.out.println("axe?"+isAxe(stack));
+            System.out.println("sword?"+isSword(stack.getType()));
+            System.out.println("wood?"+isWooden(stack.getType()));
+
+            return isPick(stack) || isAxe(stack) || (isSword(stack.getType()) && isWooden(stack.getType()));
+        }
+
+        public static boolean isWooden(Material mat){
+            return mat.name().toLowerCase().contains("wood");
+
+        }
 
     //takes an inventory item and returns the item that is actually sold
     //Does not account for armor.
@@ -452,6 +509,7 @@ public class ItemHelper implements IPlayerUtil
     @SuppressWarnings("deprecation")
     public static ItemStack toDisplayItem(ShopItem item, boolean isInflated)
     {
+        System.out.println("to display item: "+item.name+": inflated: "+isInflated);
         ItemCategory category = item.category;
 
         ItemStack stack;
@@ -702,7 +760,7 @@ public class ItemHelper implements IPlayerUtil
     Removes an item from the list if it shouldn't be contained in the file, or if the slot value is invalid.
     @param original
      */
-    public static ArrayList<ItemSet> filter(ArrayList<ItemSet> original)
+    public static ArrayList<ShopItemSet> filter(ArrayList<ShopItemSet> original)
     {
         original.removeIf(item -> restrictedFileItems.contains(item.getItem()));
         original.removeIf(item -> !isInQuickBuyRange(item.getSlot()));
@@ -723,19 +781,32 @@ public class ItemHelper implements IPlayerUtil
         if (mat == null)
             return false;
 
-        boolean sword = false;
-
-        switch (mat)
-        {
-            case WOOD_SWORD:
-            case STONE_SWORD:
-            case DIAMOND_SWORD:
-            case IRON_SWORD:
-            case GOLD_SWORD:
-                sword = true;
-        }
-        return sword;
+        return mat.name().toLowerCase().contains("sword");
     }
+
+    public static boolean isSword(ItemStack stack){
+
+        if (isItemInvalid(stack))
+            return false;
+
+        return isSword(stack.getType());
+
+    }
+
+
+    public static int countSwords(Inventory inv){
+        int swords = 0;
+        for (ItemStack stack: inv.getContents()) {
+            if (isItemInvalid(stack))
+                continue;
+
+            if (isSword(stack.getType()))
+                swords ++;
+        }
+
+        return swords;
+    }
+
 
 
 
@@ -760,7 +831,7 @@ public class ItemHelper implements IPlayerUtil
 
     public static boolean isPlaceHolder(ItemCategory category)
     {
-        return category==NONE||category==NAV||category==SEPARATOR;
+        return category==NONE||category==NAV||category==SEPARATOR||category==TRACKER;
     }
 
     public static boolean isItemInvalid(ItemStack item)
@@ -773,6 +844,7 @@ public class ItemHelper implements IPlayerUtil
     //adds lore for cost and sell amount to an item
     public static ItemStack addLore(ItemStack item, ShopItem id, boolean isInflated)
     {
+
         if (isItemInvalid(item))
             return item;
 
@@ -835,23 +907,23 @@ public class ItemHelper implements IPlayerUtil
         switch (mat)
         {
             case IRON_INGOT:
-                name = "Iron Ingot";
+                name = ChatColor.GRAY+"Iron Ingot";
                 break;
 
             case GOLD_INGOT:
-                name = "Gold Ingot";
+                name = ChatColor.YELLOW+"Gold Ingot";
                 break;
 
             case DIAMOND:
-                name = "Diamond";
+                name = ChatColor.DARK_AQUA+"Diamond";
                 break;
 
             case EMERALD:
-                name = "Emerald";
+                name = ChatColor.GREEN+"Emerald";
                 break;
 
             default:
-                name = "Umm... Something...Ducks?";
+                name = ChatColor.MAGIC+"Umm... Something...Ducks?";
         }
         return name;
     }
@@ -1059,14 +1131,13 @@ public class ItemHelper implements IPlayerUtil
         return stack;
     }
 
+
+
     //Try to associate an itemstack to a game item.
     //Note that the empty slot game item has a sell item of glass pane , while the rest have sell item of air.
     public static ShopItem getAssociate(ItemStack stack)
     {
-        if (stack == null)
-            return null;
-
-        if (stack.getItemMeta()==null)
+        if (isItemInvalid(stack))
             return null;
 
         Material mat = stack.getType();
@@ -1076,6 +1147,29 @@ public class ItemHelper implements IPlayerUtil
 
             return null;
 
+    }
+
+    public static ItemStack toBarItem(ItemCategory category){
+        if (category == null)
+            return null;
+
+        for (HotBarConfig config: HotBarConfig.values()) {
+            if (config.getCategory()==category)
+                return toSimpleItem(config.getMat(),config.getName());
+        }
+        return null;
+    }
+
+    public static ItemCategory getHotBarAssociate(ItemStack stack){
+        if (isItemInvalid(stack))
+            return null;
+
+        Material mat = stack.getType();
+        for (HotBarConfig config: HotBarConfig.values()) {
+            if (config.getMat()==mat)
+                return config.getCategory();
+        }
+        return null;
     }
 
     public static ItemStack setLeatherColor(ItemStack stack, Color color)
@@ -1106,6 +1200,14 @@ public class ItemHelper implements IPlayerUtil
         ).count();
 
         return freeSpace >= 1;
+    }
+
+    public static ItemStack toSimpleItem(Material mat, String name){
+        ItemStack stack = new ItemStack(mat, 1);
+        ItemMeta meta = stack.getItemMeta();
+        meta.setDisplayName(name);
+        stack.setItemMeta(meta);
+        return stack;
     }
 
 
@@ -1203,14 +1305,14 @@ public class ItemHelper implements IPlayerUtil
     }
 
 
+
+
     private static void playSound(boolean didTrade, Player player)
     {
         PacketSound soundPair = didTrade ? PacketSound.PLING : PacketSound.ENDERMAN;
         Location loc = player.getLocation();
         PacketPlayOutNamedSoundEffect effect = new PacketPlayOutNamedSoundEffect(soundPair.getSoundName(),loc.getX(),loc.getY(),loc.getZ(),1, soundPair.getPitch());
         sendPacket(player,effect);
-
-
 
     }
 
@@ -1219,7 +1321,7 @@ public class ItemHelper implements IPlayerUtil
         ((CraftPlayer)player).getHandle().playerConnection.sendPacket(packet);
     }
 
-    public void dropItem(ItemStack item, Location loc, Plugin plugin)
+    public static void dropItem(ItemStack item, Location loc, Plugin plugin)
     {
         new BukkitRunnable()
         {
@@ -1231,4 +1333,20 @@ public class ItemHelper implements IPlayerUtil
             }
         }.runTask(plugin);
     }
+
+    public static int getPresent(Material mat, Inventory inv){
+
+        int slots = 0;
+        for (int slot=0;slot<inv.getSize();slot++) {
+            ItemStack stack = inv.getItem(slot);
+            if (isItemInvalid(stack))
+                continue;
+
+            if (stack.getType()==mat)
+                slots++;
+        }
+        return slots;
+    }
+
+
 }

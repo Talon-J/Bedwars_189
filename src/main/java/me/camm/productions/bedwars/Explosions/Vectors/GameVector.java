@@ -10,7 +10,7 @@ public abstract class GameVector
     protected World world;
 
 
-    public Vector getPosition(double blocks) //Should be fixed now...I think?
+    public Vector getPosition(double blocks)
     {
         return direction.clone().multiply(blocks).add(origin.clone());
     }

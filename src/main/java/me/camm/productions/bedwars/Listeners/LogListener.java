@@ -15,29 +15,41 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelper, IPlayerUtil
 {
-    private final PacketHandler packetHandler;
+    private PacketHandler packetHandler;
     private final Arena arena;
     private final Plugin plugin;
     private final GameRunner runner;
 
     private final ArrayList<ShopKeeper> keepers;
+    private final HashMap<UUID, PermissionAttachment[]> perms;
 
     public LogListener(Arena arena, GameRunner runner,ArrayList<ShopKeeper> keepers) {
-        this.packetHandler = runner.getPacketHandler();
+        this.packetHandler = null;
         this.arena = arena;
         this.plugin = arena.getPlugin();
         this.runner = runner;
         this.keepers = keepers;
+        perms = new HashMap<>();
 
     }
+
+
+    public void initPacketHandler(PacketHandler handler){
+        if (handler == null)
+            throw new IllegalArgumentException("handler is null");
+        this.packetHandler = handler;
+    }
+
 
     /*
 @author CAMM
@@ -49,6 +61,9 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
     public void onPlayerLogOut(PlayerQuitEvent event)
     {
 
+        if (!runner.isRunning())
+            return;
+
         ConcurrentHashMap<UUID,BattlePlayer> registeredPlayers = arena.getPlayers();
 
         if (packetHandler!=null) {
@@ -59,12 +74,15 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
         if (!registeredPlayers.containsKey(event.getPlayer().getUniqueId()))
             return;
 
-
-
         //setting the quit message
         BattlePlayer current = registeredPlayers.get(event.getPlayer().getUniqueId());
+
+        if (current.getIsEliminated())
+            return;
+
+
         event.setQuitMessage(current.getTeam().getColor().getChatColor()+current.getRawPlayer().getName()+ ChatColor.YELLOW+" has Quit!");
-        current.dropInventory(current.getRawPlayer().getLocation().clone());
+        current.dropInventory(current.getRawPlayer().getLocation().clone(),null);
 
         if (!runner.isRunning()) {
             RunningTeamHelper.updateTeamBoardStatus(registeredPlayers.values());
@@ -99,11 +117,45 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
  It handles if a player was previously registered in the game, updating scoreboards,
  replacing the previous player object, and resetting their spot on the packet handler.
   */
+    public void addPerms(Player player){
+        if (!runner.isRunning()) {
+
+            if (!perms.containsKey(player.getUniqueId())) {
+                PermissionAttachment[] attachments = new PermissionAttachment[5];
+                attachments[0] = player.addAttachment(plugin);
+                attachments[1] = player.addAttachment(plugin);
+                attachments[2] = player.addAttachment(plugin);
+                attachments[3] = player.addAttachment(plugin);
+                attachments[4] = player.addAttachment(plugin);
+
+                perms.put(player.getUniqueId(), attachments);
+
+                perms.get(player.getUniqueId())[0].setPermission("setup.do", true);
+                perms.get(player.getUniqueId())[1].setPermission("register.do", true);
+                perms.get(player.getUniqueId())[2].setPermission("game.do", true);
+                perms.get(player.getUniqueId())[3].setPermission("shout.do", true);
+                perms.get(player.getUniqueId())[4].setPermission("unregister.do",true);
+
+
+                player.recalculatePermissions();
+
+            }
+
+        }
+
+    }
+
+
+
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event)
     {
+        Player player = event.getPlayer();
+
+       addPerms(player);
+
+
         BattlePlayer current;
-        Player player;
         BattleTeam team;
         boolean isBedExists;
 
@@ -115,14 +167,14 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
 
         current = registeredPlayers.get(event.getPlayer().getUniqueId());
         team = current.getTeam();
-        player = event.getPlayer();
+
 
 
         current.refactorPlayer(player);
 
         isBedExists = team.doesBedExist();
 
-        if (runner.isRunning())
+        if (runner.isRunning() && packetHandler != null)
         {
             if (!isBedExists)
                 current.handlePlayerIntoSpectator(packetHandler,true);

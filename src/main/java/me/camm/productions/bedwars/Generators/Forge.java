@@ -45,6 +45,7 @@ public class Forge implements Runnable
 
     private final WeightedRandom<WeightedItem<Material>> spawningRandom;
     private final WeightedItem<Material> emeraldChance;
+    private final WeightedItem<Material> goldChance;
 
     static {
         PICKUP_DISTANCE = 1.5;
@@ -87,10 +88,11 @@ Supposedly, /n = the percentage we need.
 
       spawningTimeRand = new Random();
       emeraldChance = new WeightedItem<>(Material.EMERALD,0);
+      goldChance = new WeightedItem<>(Material.GOLD_INGOT,0);
 
       ArrayList<WeightedItem<Material>> materials = new ArrayList<>();
       materials.add(new WeightedItem<>(Material.IRON_INGOT,0.8));
-      materials.add(new WeightedItem<>(Material.GOLD_INGOT,0.2));
+      materials.add(goldChance);
       materials.add(emeraldChance);
       spawningRandom = new WeightedRandom<>(materials);
 
@@ -137,14 +139,12 @@ Supposedly, /n = the percentage we need.
 
             case 4:
                 spawnTime = (long)(initialTime/3.5);
-                emeraldChance.setWeight(0.01);
+                emeraldChance.setWeight(0.005);
                 break;
         }
     }
 
-
-//normal method
-    public synchronized long randomize()
+    public long randomize()
     {
        return (long)(spawnTime*(spawningTimeRand.nextDouble()*1.5));
     }
@@ -152,7 +152,7 @@ Supposedly, /n = the percentage we need.
     public synchronized void spawnItem()
     {
         int freedom = verifyCount();
-        Material mat = spawningRandom.getNext().getItem();
+        Material mat;
 
         switch (freedom) {
             case -1:
@@ -167,6 +167,9 @@ Supposedly, /n = the percentage we need.
                 mat = Material.GOLD_INGOT;
                 break;
 
+            default:
+                 mat = spawningRandom.getNext().getItem();
+
         }
 
         if (mat == null)
@@ -180,6 +183,8 @@ Supposedly, /n = the percentage we need.
         {
             if (!isAlive || !plugin.isEnabled())
                 return;
+
+            goldChance.setWeight(Math.min(goldChance.getWeight()+0.01, 0.2));
 
             new BukkitRunnable()
             {
@@ -200,6 +205,7 @@ Supposedly, /n = the percentage we need.
             try {
                 int goldCount = 0;
                 int ironCount = 0;
+
                 Collection<Entity> nearby = world.getNearbyEntities(location, PICKUP_DISTANCE, PICKUP_DISTANCE, PICKUP_DISTANCE);
                 for (Entity entity : nearby) {
 
@@ -265,7 +271,7 @@ Supposedly, /n = the percentage we need.
       NO_SPAWNING(-1),  //Don't spawn anything
         ONLY_IRON(0),
         ONLY_GOLD(1),
-        FULL_SPAWNING(2);  //spawn
+        FULL_SPAWNING(2);  //spawn everything
 
       int freedom;
 

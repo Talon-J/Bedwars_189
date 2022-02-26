@@ -13,8 +13,9 @@ public enum InventoryName
     TOOLS("Tools"),
     RANGED("Ranged"),
     POTION("Potions"),
-    TRACKER("Tracker"),
-    HOTBAR_MANAGER("Hotbar Manager"),
+    TRACKER("(WIP) Tracker"),
+    EDIT_QUICKBUY("(WIP) Adding item to Quick Buy..."),
+    HOTBAR_MANAGER("(WIP) Hotbar Manager"),
     UTILITY("Utility");
 
     private final String title;

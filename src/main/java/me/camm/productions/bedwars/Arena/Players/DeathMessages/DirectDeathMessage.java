@@ -3,17 +3,49 @@ package me.camm.productions.bedwars.Arena.Players.DeathMessages;
 public enum DirectDeathMessage
 {
     //a direct death is where a player directly kills another player, either with a bow or melee
-    FRIED(),
-    GRAVY_SAUCE(),
-    TOOK_L(),
-    NORMAL(),
+    FRIED("was deep fried by"),
+    GRAVY_SAUCE("slipped in gravy sauce spilled by"),
+    TOOK_L("took the L to"),
+    COVID("caught covid from"),
+    NORMAL("died to"),
+    FLIPPED("got Bit Flipped by"),
+    AMONGUS("played too much Among us because of"),
+    CHOPPED("was chuffed to bits by"),
+    REJECTED("was rejected by"),
+    BRAIN("'s mind was frizzled by a math test given by"),
+    FAILED_MATH(" f4Iled there engrish coarse doo 2"),
+    STAND_UP("stood up too fast due to"),
+    EATEN("was eaten by"),
+    PHASED("was phased out of existence by"),
+    REVERSED("didn't have enough uno reverse cards when fighting"),
+    TRAVELLER("was a traveller like you, but then they were killed by"),
 
-    CIRCUITS(),  //this should be a specific message for "robotic" people.
+    CIRCUITS("'s circuits got fried by"),  //these should be a specific message for "robotic" people.
+    OFF_SWITCH("'s off switch was found by"),
 
-    BACK_STAB(),
-    ATE_COOKIE(),
-    SPOOKED(),
-    SWORDS(),
-    SHOT(),
-    BECAME_A_PLUGIN_DEV(),
+    NO_SCOPED("was no-scoped by"),
+    SCAMMED("was scammed by"),
+
+    BACK_STAB("was back-stabbed by"),
+    ATE_COOKIE("ate a cookie set out by"),
+    SPOOKED("was spooked by"),
+    BANANA_PEEL("slipped on a banana peel dropped by"),
+    BONKED("was bonked by"),
+    BAMBOOZLED("was bamboozled by"),
+    WATCH_DOG("was snitched on by"),
+    BECAME_DEV("became a Java Developer because of");
+
+    private final String message;
+
+    DirectDeathMessage(String message)
+    {
+        this.message = message;
+    }
+
+
+    public String getMessage() {
+        return message;
+    }
+
+
 }

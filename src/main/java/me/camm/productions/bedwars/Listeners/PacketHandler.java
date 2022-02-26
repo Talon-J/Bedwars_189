@@ -10,6 +10,8 @@ import net.minecraft.server.v1_8_R3.PacketPlayOutEntityEquipment;
 import net.minecraft.server.v1_8_R3.PacketPlayOutRemoveEntityEffect;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
 
@@ -65,6 +67,7 @@ public class PacketHandler extends ItemHelper
 
         ChannelDuplexHandler handler = new ChannelDuplexHandler()
         {
+            private long time = System.currentTimeMillis();
             //reading packets sent from player
             @Override
             public void channelRead(ChannelHandlerContext channelHandlerContext, Object o) throws Exception
@@ -83,13 +86,15 @@ public class PacketHandler extends ItemHelper
                         return;
                     }
 
-                    if (getValue(o,"action").toString().equalsIgnoreCase("INTERACT_AT"))
+                    if (getValue(o,"action").toString().equalsIgnoreCase("INTERACT_AT")) {
+                        super.channelRead(channelHandlerContext, o);
                         return;
+                    }
 
                         int id = (int)getValue(o, "a");
                         if (id==-1)
                         {
-                           // super.channelRead(channelHandlerContext, o);
+                           super.channelRead(channelHandlerContext, o);
                             return;
                         }
 
@@ -111,16 +116,41 @@ public class PacketHandler extends ItemHelper
 
                         BattlePlayer openingPlayer = arena.getPlayers().get(player.getUniqueId());
 
-                        if (clicked.getIsTeamKeeper())
-                        {
-                            player.sendMessage("[DEBUG]Open team upgrades");
-                            player.openInventory(openingPlayer.getTeam().getTeamInventory());
+                        if (!openingPlayer.getIsAlive()) {
+                            super.channelRead(channelHandlerContext, o);
+                            return;
                         }
-                        else
-                        {
-                         player.sendMessage("[DEBUG]open quick buy");
-                         player.openInventory(openingPlayer.getShopManager().getQuickBuy());
-                        }
+
+                        InventoryView view = openingPlayer.getRawPlayer().getOpenInventory();
+
+                        //cancelled packet exception occurs when modifying in a different thread,
+                    //we know it' due to double-clicking, so try to prevent that. (Could also be due to reflection, so maybe put checks before that?)
+
+
+
+                            if (view != null && !view.getTopInventory().getType().equals(InventoryType.CRAFTING)) {
+                                super.channelRead(channelHandlerContext, o);
+                                return;
+                            }
+
+                            if (System.currentTimeMillis() - time < 500) {
+                                super.channelRead(channelHandlerContext, o);
+                                return;
+                            }
+
+
+                            if (clicked.getIsTeamKeeper()) {
+                                player.sendMessage("[DEBUG]Open team upgrades");
+                                player.openInventory(openingPlayer.getTeam().getTeamInventory());
+                            } else {
+                                player.sendMessage("[DEBUG]open quick buy");
+                                player.openInventory(openingPlayer.getShopManager().getQuickBuy());
+                            }
+                            time = System.currentTimeMillis();
+
+
+
+
                 }
                 super.channelRead(channelHandlerContext, o);
             }
@@ -216,8 +246,6 @@ public class PacketHandler extends ItemHelper
                 super.write(channelHandlerContext, o, channelPromise);
             }
         };
-
-
 
         line.addBefore("packet_handler",player.getName(),handler);
         channels.put(player.getUniqueId(),channel);

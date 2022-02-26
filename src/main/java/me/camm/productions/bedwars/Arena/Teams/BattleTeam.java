@@ -9,7 +9,7 @@ import me.camm.productions.bedwars.Items.ItemDatabases.BattleEnchantment;
 import me.camm.productions.bedwars.Items.ItemDatabases.TeamItem;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.TeamBuyInventory;
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.TeamInventoryConfig;
-import me.camm.productions.bedwars.Util.ExecutableBoundaryLoader;
+import me.camm.productions.bedwars.Util.Locations.Boundaries.ExecutableBoundaryLoader;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
 import me.camm.productions.bedwars.Util.Locations.Boundaries.GameBoundary;
@@ -174,6 +174,7 @@ public class BattleTeam
 
     public synchronized void addTrap(Trap trap)
     {
+        System.out.println("add trap");
         for (int slot=0;slot<traps.length;slot++)
         {
             if (traps[slot] == null) {
@@ -209,9 +210,9 @@ public class BattleTeam
     //(Player appearance, Plugin plugin, Location loc, World world)
     public void initializeNPCs()
     {
-        ArrayList<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
-      Player appearanceOne = players.get((int)(Math.random()*players.size()));
-      Player appearanceTwo = players.get((int)(Math.random()*players.size()));
+        ArrayList<BattlePlayer> players = new ArrayList<>(arena.getPlayers().values());
+      Player appearanceOne = players.get((int)(Math.random()*players.size())).getRawPlayer();
+      Player appearanceTwo = players.get((int)(Math.random()*players.size())).getRawPlayer();
 
         this.teamQuickBuy = new ShopKeeper(appearanceOne, arena.getPlugin(), quickBuy, arena.getWorld(),false, quickBuy.getYaw());
         this.teamGroupBuy = new ShopKeeper(appearanceTwo,arena.getPlugin(), teamBuy, arena.getWorld(),true, teamBuy.getYaw());
@@ -407,11 +408,13 @@ It is up to the calling method to update the scoreboards of the players.
         }
 
         int haste = upgrades.get(TeamItem.BUFF_HASTE)-1;
-        System.out.println("[DEBUG] haste lvl: "+haste);
+
+        player.sendMessage("[DEBUG] haste lvl: "+haste);
+
         if (haste == 1)
-            player.getRawPlayer().addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING,Integer.MAX_VALUE,0,false));
+            player.getRawPlayer().addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING,Integer.MAX_VALUE,0,true,false));
          else if (haste == 2)
-            player.getRawPlayer().addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING,Integer.MAX_VALUE,1,false));
+            player.getRawPlayer().addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING,Integer.MAX_VALUE,1,true,false));
 
     }
 

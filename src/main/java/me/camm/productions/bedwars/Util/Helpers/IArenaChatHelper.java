@@ -1,5 +1,7 @@
 package me.camm.productions.bedwars.Util.Helpers;
 
+import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
+import me.camm.productions.bedwars.Arena.Players.DeathMessages.DirectDeathMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -19,4 +21,5 @@ public interface IArenaChatHelper
             player.sendMessage(message);
 
     }
+
 }

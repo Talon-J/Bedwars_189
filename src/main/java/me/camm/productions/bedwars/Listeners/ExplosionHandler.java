@@ -109,7 +109,7 @@ public class ExplosionHandler implements Listener
         ArrayList<Block> fireCandidates = new ArrayList<>();
 
         Location explosionCenter = exploded.getLocation();
-        double damageDistance = incendiary ? 6:8;
+        double damageDistance = incendiary ? 4:8;
 
 
         Collection<Entity> entities = explosionCenter.getWorld().getNearbyEntities(explosionCenter,damageDistance,damageDistance,damageDistance);
@@ -134,8 +134,15 @@ public class ExplosionHandler implements Listener
                         TracerVector tracer = new TracerVector(direction.clone().normalize(), origin.clone(), length, world);
                         ArrayList<Material> obstructions = tracer.getObstructionLayers();
 
-                        double damage = rand.nextDouble() + 2;
-                        damage *= -0.1 * (0.3*length + 0.3*obstructions.size()) + 1;  // this is a function
+                        double damage;
+                        if (incendiary)
+                            damage = -0.25*((0.5*length + 0.3*obstructions.size())) +1;
+                        else
+                            damage = -0.125 * (0.5*length + 0.3*obstructions.size()) +1;
+
+                    //    damage *= -0.1 * (0.5*length + 0.3*obstructions.size()) + 1;  // this is a function
+
+
                         if (damage < 0)
                             damage = 0;
 
@@ -178,9 +185,6 @@ public class ExplosionHandler implements Listener
                         component.applyVelocity();
            }
         });
-
-
-
 
         double distance = 0;
 
@@ -264,10 +268,10 @@ public class ExplosionHandler implements Listener
         double zLocation = exploded.getLocation().getZ();
 
         //Creating the vectors based on angles.
-        for (double vertical=90;vertical>=-90;vertical-=11.25)
+        for (double vertical=90;vertical>=-90;vertical-=5.625)
         {
             double yComponent = Math.tan(vertical); //y value
-            for (double horizontal=0;horizontal<=360;horizontal+=11.25)
+            for (double horizontal=0;horizontal<=360;horizontal+=5.625)
             {
                 double xComponent = Math.sin(horizontal);  //x Value of the vector
                 double zComponent = Math.cos(horizontal);  //z Value of the vector

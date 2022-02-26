@@ -5,13 +5,15 @@ import me.camm.productions.bedwars.Arena.GameRunning.Commands.CommandKeyword;
 import me.camm.productions.bedwars.Arena.GameRunning.Commands.SetUp;
 import me.camm.productions.bedwars.Arena.GameRunning.GameRunner;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
+import me.camm.productions.bedwars.Arena.Players.Managers.HotbarManager;
+import me.camm.productions.bedwars.Arena.Players.Managers.PlayerInventoryManager;
 import me.camm.productions.bedwars.Entities.ActiveEntities.GameDragon;
 import me.camm.productions.bedwars.Listeners.PacketHandler;
 import me.camm.productions.bedwars.Files.FileCreators.DirectoryCreator;
 import me.camm.productions.bedwars.Files.FileStreams.GameFileWriter;
 import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.QuickBuySection;
-import me.camm.productions.bedwars.Util.DataSets.ItemSet;
+import me.camm.productions.bedwars.Util.DataSets.ShopItemSet;
 import me.camm.productions.bedwars.Util.Helpers.StringToolBox;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Bukkit;
@@ -32,8 +34,8 @@ import java.util.Map;
 public final class BedWars extends JavaPlugin
 {
     private SetUp initialization;
-    private final String name = "EnderDragon";
-    private final int id = 63;
+    private final String DRAGON_NAME = "EnderDragon";
+    private final int DRAGON_ID = 63;
 
     @Override @SuppressWarnings("unchecked")
     public void onEnable()
@@ -54,22 +56,22 @@ public final class BedWars extends JavaPlugin
                Field c = EntityTypes.class.getDeclaredField("c");
                c.setAccessible(true);
                Map<String, Class<? extends Entity>> cMap = (Map<String, Class<? extends Entity>>) c.get(EntityTypes.class);
-               cMap.remove(name);
+               cMap.remove(DRAGON_NAME);
 
                Field e = EntityTypes.class.getDeclaredField("e");
                e.setAccessible(true);
                Map<Integer, Class<? extends Entity>> eMap = (Map<Integer, Class<? extends Entity>>) e.get(EntityTypes.class);
-               eMap.remove(id);
+               eMap.remove(DRAGON_ID);
 
                Method aMethod = EntityTypes.class.getDeclaredMethod("a",Class.class,String.class,int.class);
                aMethod.setAccessible(true);
-               aMethod.invoke(EntityTypes.class, GameDragon.class,name,id);
+               aMethod.invoke(EntityTypes.class, GameDragon.class, DRAGON_NAME, DRAGON_ID);
 
                initialization = new SetUp(this);
-               getCommand(CommandKeyword.SETUP.getWord()).setExecutor(initialization);
-               getCommand(CommandKeyword.REGISTER.getWord()).setExecutor(initialization);
-               getCommand(CommandKeyword.START.getWord()).setExecutor(initialization);
 
+               for (CommandKeyword word: CommandKeyword.values()) {
+                   getCommand(word.getWord()).setExecutor(initialization);
+               }
            }
            catch (Exception e)
            {
@@ -89,16 +91,16 @@ public final class BedWars extends JavaPlugin
             Field c = EntityTypes.class.getDeclaredField("c");
             c.setAccessible(true);
             Map<String, Class<? extends Entity>> cMap = (Map<String, Class<? extends Entity>>) c.get(EntityTypes.class);
-            cMap.remove(name);
+            cMap.remove(DRAGON_NAME);
 
             Field e = EntityTypes.class.getDeclaredField("e");
             e.setAccessible(true);
             Map<Integer, Class<? extends Entity>> eMap = (Map<Integer, Class<? extends Entity>>) e.get(EntityTypes.class);
-            eMap.remove(id);
+            eMap.remove(DRAGON_ID);
 
             Method aMethod = EntityTypes.class.getDeclaredMethod("a",Class.class,String.class,int.class);
             aMethod.setAccessible(true);
-            aMethod.invoke(EntityTypes.class, EntityEnderDragon.class,name,id);
+            aMethod.invoke(EntityTypes.class, EntityEnderDragon.class, DRAGON_NAME, DRAGON_ID);
 
         }
         catch (Exception e)
@@ -106,6 +108,7 @@ public final class BedWars extends JavaPlugin
             sendMessage(ChatColor.RED+"[BEDWARS]Attempted to unregister custom entities for the EnderDragons. Failed.");
             e.printStackTrace();
         }
+        
 
 
 
@@ -159,27 +162,34 @@ public final class BedWars extends JavaPlugin
 
         //writing to bar file
             registered.forEach(battlePlayer -> {
-               ItemCategory[] barItems = battlePlayer.getBarManager().getLayout();
-                GameFileWriter barWriter = new GameFileWriter(box.getHotBarPath(battlePlayer.getRawPlayer()),this);
-                barWriter.clear();
-                ArrayList<String> valueList = new ArrayList<>();
 
-               Arrays.stream(barItems).forEach(item -> valueList.add(
-                       item == null ? "" :item.toString()));
-               String[] barList = valueList.toArray(new String[valueList.size()]);
-               barWriter.write(barList,false);
+                HotbarManager barManager = battlePlayer.getBarManager();
+                if (barManager != null) {
+                    ItemCategory[] barItems = barManager.getLayout();
+
+                    GameFileWriter barWriter = new GameFileWriter(box.getHotBarPath(battlePlayer.getRawPlayer()), this);
+                    barWriter.clear();
+                    ArrayList<String> valueList = new ArrayList<>();
+
+                    Arrays.stream(barItems).forEach(item -> valueList.add(
+                            item == null ? "" : item.toString()));
+                    String[] barList = valueList.toArray(new String[valueList.size()]);
+                    barWriter.write(barList, false);
+                }
 
 
                //writing to shop file
-                QuickBuySection playerShop = battlePlayer.getShopManager().getQuickBuy();
-               ArrayList<ItemSet> shopSet = playerShop.packageInventory(playerShop);
+                PlayerInventoryManager invManager = battlePlayer.getShopManager();
+                if (invManager!=null) {
+                    QuickBuySection playerShop = invManager.getQuickBuy();
+                    ArrayList<ShopItemSet> shopSet = playerShop.packageInventory(playerShop);
 
-               GameFileWriter shopWriter = new GameFileWriter(box.getInventoryPath(battlePlayer.getRawPlayer()),this);
-               ArrayList<String> shopList = new ArrayList<>();
-               shopSet.forEach(pack -> shopList.add( pack == null ? "" :pack.toString()));
-               String[] shopWriteList = shopList.toArray(new String[shopList.size()]);
-               shopWriter.write(shopWriteList,false);
-
+                    GameFileWriter shopWriter = new GameFileWriter(box.getInventoryPath(battlePlayer.getRawPlayer()), this);
+                    ArrayList<String> shopList = new ArrayList<>();
+                    shopSet.forEach(pack -> shopList.add(pack == null ? "" : pack.toString()));
+                    String[] shopWriteList = shopList.toArray(new String[shopList.size()]);
+                    shopWriter.write(shopWriteList, false);
+                }
             });
 
 
@@ -198,21 +208,21 @@ public final class BedWars extends JavaPlugin
 
     /*
 TODO: (In the very near future)
- - Inventories for quick buy. Create. [DONE]. Do the team inventories now. [Add the functionality later]
- - Bridge egg. [DONE] Please Integrate after enderpearls.
- - One of the events, the bed destroyed one does not play a title for certain players. Fix.
- - Do the research for overriding the EntityEnderDragon class [IN PROGRESS] - remember to register it!
  - Find a better solution to the explosives problem. [IN PROGRESS]
+  + fireballs, accurate (kinda). TNT, not.
  - Do testing while the player is in spectator
- - haste has 2 levels, not 1. Apply that in Battleplayer class
- - also apply modifiers when the player relogs.
+
  - add tracker shop
- - add code to not activate traps if a player is not online
- - add code for dream defender and bedbug targeting and health
+ - do permissions [TEST]
 
-
+ //From playtesting - BUGS
+Dragons hitting players remove spectator mode. [TEST]
+Fireballs, tnt
+Not enough items sound should be replaced.
  NOTE: The check for opposition in the CLASS "Setup" is currently ----   ---- disabled for testing purposes.
 
+
+active debugging changes:
  */
 
 

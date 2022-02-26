@@ -2,14 +2,18 @@ package me.camm.productions.bedwars.Listeners;
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
+import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Entities.ActiveEntities.DreamDefender;
 import me.camm.productions.bedwars.Entities.ActiveEntities.ThrownFireball;
 import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
+import me.camm.productions.bedwars.Util.Helpers.InventoryOperationHelper;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
@@ -17,11 +21,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.inventory.Inventory;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -30,11 +30,13 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.BASE;
+import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.GENERATOR;
 
 
 public class ItemInteractListener implements Listener
@@ -106,7 +108,7 @@ public class ItemInteractListener implements Listener
         }
         else if (stack.getType()==Material.MILK_BUCKET)
         {
-            player.setItemInHand(null);
+            event.setCancelled(true);
             BattlePlayer battlePlayer = arena.getPlayers().get(player.getUniqueId());
             battlePlayer.setLastMilkTime(System.currentTimeMillis());
 
@@ -114,7 +116,7 @@ public class ItemInteractListener implements Listener
                 @Override
                 public void run() {
                     ItemStack item = player.getItemInHand();
-                    if (!ItemHelper.isItemInvalid(item) && item.getType()==Material.BUCKET)
+                    if (!ItemHelper.isItemInvalid(item) && (item.getType()==Material.BUCKET||item.getType()==Material.MILK_BUCKET))
                         player.setItemInHand(null);
                     cancel();
                 }
@@ -134,18 +136,55 @@ public class ItemInteractListener implements Listener
 
 
     @EventHandler
-    public void onItemInteract(PlayerInteractEvent event)
-    {
+    public void onItemInteract(PlayerInteractEvent event) {
 
         ConcurrentHashMap<UUID, BattlePlayer> players = arena.getPlayers();
         Player player = event.getPlayer();
         ItemStack stack = player.getItemInHand();
         Block block = event.getClickedBlock();
 
-        if (!players.containsKey(player.getUniqueId()))
+        if (!players.containsKey(player.getUniqueId())) {
+            event.setCancelled(true);
             return;
+        }
 
         BattlePlayer currentPlayer = players.get(player.getUniqueId());
+
+        if (block != null) {
+
+            if (block.getType()==Material.CHEST) {
+
+                for (BattleTeam team : arena.getTeamList()) {
+                    if (team.getChest().isBlock(arena.getWorld(), block)) {
+
+                        if (currentPlayer.getIsEliminated()) {
+                            event.setCancelled(true);
+                            return;
+                        }
+
+                        if ((currentPlayer.getTeam().equals(team))) {
+                            return;
+                        }
+
+                        if (team.isEliminated())
+                            return;
+                        else {
+                            event.setCancelled(true);
+                            player.sendMessage(team.getTeamColor().getChatColor() + team.getColor().getName() + " is not eliminated yet!");
+                        }
+                        return;
+                    }
+                }
+            }
+
+            if (block.getType() == Material.WORKBENCH)
+                event.setCancelled(true);
+    }
+
+
+
+
+
 
         if (stack == null)
             return;
@@ -184,6 +223,16 @@ public class ItemInteractListener implements Listener
             {
                 if (action == Action.RIGHT_CLICK_BLOCK && block != null && block.getType() != null && block.getType() != Material.AIR)
                 {
+
+                    Location blockLoc = event.getClickedBlock().getLocation();
+                    BlockFace face = event.getBlockFace();
+                    blockLoc.add(face.getModX(),face.getModY(),face.getModZ());
+                    Block waterPlace = blockLoc.getBlock();
+                    if (waterPlace.hasMetadata(GENERATOR.getData())||waterPlace.hasMetadata(BASE.getData())) {
+                       event.setCancelled(true);
+                       return;
+                    }
+
                     if (player.getGameMode() == GameMode.CREATIVE)
                         return;
 
@@ -196,13 +245,10 @@ public class ItemInteractListener implements Listener
                             cancel();
                         }
                     }.runTaskLater(plugin,1);
-
-
-
-
                 }
             }
             break;
+
         }
     }
 
@@ -240,7 +286,7 @@ public class ItemInteractListener implements Listener
         BattlePlayer current = registered.get(player.getUniqueId());
         ShopItem item = ItemHelper.getAssociate(stack);
 
-        if ( (ItemHelper.isAxe(stack) || ItemHelper.isPick(stack)) && (stack.getType().name().toLowerCase().contains("wood")) ) {
+        if ( (ItemHelper.isAxe(stack) || ItemHelper.isPick(stack))) {
             event.setCancelled(true);
             return;
         }
@@ -253,19 +299,8 @@ public class ItemInteractListener implements Listener
             return;
         }
 
-        Inventory inv = player.getInventory();
+        InventoryOperationHelper.operateSwordCount(current);
 
-
-        //getting the number of swords they have.
-        long count = Arrays.stream(inv.getContents()).filter(itemstack -> {
-            if (itemstack != null  && itemstack.getItemMeta() != null)
-                return ItemHelper.isSword(itemstack.getType());
-            else return false;
-        }).count();
-
-        //if they don't have any swords, add a wood sword to their inv.
-        if (count <= 0 && current.getIsAlive() && !current.getIsEliminated())
-            current.getBarManager().set(ItemHelper.toSoldItem(ShopItem.WOODEN_SWORD,current), ShopItem.WOODEN_SWORD,current.getRawPlayer());
     }
 
     public void updateMap(Player player)

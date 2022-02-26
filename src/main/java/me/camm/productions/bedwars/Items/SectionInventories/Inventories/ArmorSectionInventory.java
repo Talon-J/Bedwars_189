@@ -1,7 +1,7 @@
 package me.camm.productions.bedwars.Items.SectionInventories.Inventories;
 
 
-import me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation;
+import me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty;
 import me.camm.productions.bedwars.Items.ItemDatabases.InventoryName;
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.ArmorConfig;
 import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
@@ -13,7 +13,7 @@ public class ArmorSectionInventory extends ShopInventorySetter {
 
     //(InventoryHolder owner, int size, String title)
     public ArmorSectionInventory(boolean isInflated) {
-        super(null,InventoryLocation.SHOP_SIZE.getValue(),InventoryName.ARMOR.getTitle(),isInflated);
+        super(null, InventoryProperty.SHOP_SIZE.getValue(),InventoryName.ARMOR.getTitle(),isInflated);
         setTemplate(isInflated,false);
         setInventoryItems();
 

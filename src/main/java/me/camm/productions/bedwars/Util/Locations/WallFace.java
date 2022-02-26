@@ -7,5 +7,5 @@ public enum WallFace
     NORTH(), //towards neg z
     EAST(),  //towards pos x
     SOUTH(),  //towards pos z
-    WEST();  //towards neg x
+    WEST()  //towards neg x
 }

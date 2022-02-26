@@ -38,10 +38,6 @@ public interface IPlayerUtil
         return title.getMessage();
     }
 
-    default void clearInventory(BattlePlayer player)
-    {
-        clearInventory(player.getRawPlayer());
-    }
     default void clearInventory(Player player) {
         player.getInventory().clear();
         player.getInventory().setArmorContents(new ItemStack[]{null,null,null,null});

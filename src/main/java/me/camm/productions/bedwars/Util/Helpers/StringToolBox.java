@@ -47,7 +47,7 @@ public class StringToolBox
             if (original.charAt(position)==comparator)
                 occurrences++;
         }
-        if (occurrences>1||occurrences==0)
+        if (occurrences!=1)
             return null;
 
         int index = original.indexOf(comparator);

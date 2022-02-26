@@ -10,13 +10,13 @@ public class ScoreSet {
     private volatile String name;
     private final BattlePlayer player;
 
-    private volatile ScoreboardObjective primary;
-    private volatile ScoreboardObjective buffer;
+    private final ScoreboardObjective primary;
+    private final ScoreboardObjective buffer;
 
     private volatile ScoreboardScore primaryScore;
     private volatile ScoreboardScore bufferScore;
 
-    private Scoreboard board;
+    private final Scoreboard board;
 
 
     public ScoreSet(Scoreboard board, int value, String identifier, String name, BattlePlayer player, ScoreboardObjective primary, ScoreboardObjective buffer) {
@@ -31,7 +31,6 @@ public class ScoreSet {
         this.primary = primary;
         this.buffer = buffer;
 
-// this.primaryScore = new ScoreboardScore(board, primary, name);
         this.primaryScore = new ScoreboardScore(board,primary, name);
         this.primaryScore.setScore(value);
 
@@ -71,7 +70,7 @@ public class ScoreSet {
 
 
 
-    private void send(Packet packet)
+    private void send(Packet<?> packet)
     {
         ((CraftPlayer)player.getRawPlayer()).getHandle().playerConnection.sendPacket(packet);
     }

@@ -15,7 +15,23 @@ public class MobSpawnListener implements Listener
     public void onMobSpawn(EntitySpawnEvent event)
     {
        EntityType type = event.getEntityType();
-       if (type==EntityType.CHICKEN)
-           event.setCancelled(true);
+       switch (type) {
+           case CHICKEN:
+           case WITHER:
+           case BAT:
+           case SLIME:
+           case WITCH:
+           case ZOMBIE:
+           case CREEPER:
+           case ENDERMAN:
+           case SPIDER:
+           case SKELETON:
+           case MAGMA_CUBE:
+           case CAVE_SPIDER:
+           case BLAZE:
+           case GHAST:
+           case GUARDIAN:
+               event.setCancelled(true);
+       }
     }
 }

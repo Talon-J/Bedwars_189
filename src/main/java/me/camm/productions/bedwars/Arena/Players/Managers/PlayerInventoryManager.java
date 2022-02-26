@@ -4,7 +4,7 @@ import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.*;
 import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
-import me.camm.productions.bedwars.Util.DataSets.ItemSet;
+import me.camm.productions.bedwars.Util.DataSets.ShopItemSet;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -48,9 +48,10 @@ public class PlayerInventoryManager
         this.owner = player;
     }
 
-    public PlayerInventoryManager(ArrayList<ItemSet> quickBuyConfiguration, boolean isInflated)
+    public PlayerInventoryManager(ArrayList<ShopItemSet> quickBuyConfiguration, boolean isInflated)
     {
 
+        System.out.println("playerinvManager constructor:  inflated: "+isInflated);
         armorSection = new ArmorSectionInventory(isInflated);
         quickBuy = new QuickBuySection(isInflated,quickBuyConfiguration);
         toolsSection = new ToolsSectionInventory(isInflated);

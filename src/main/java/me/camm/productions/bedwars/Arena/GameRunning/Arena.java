@@ -7,6 +7,7 @@ import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
 import me.camm.productions.bedwars.Util.Locations.Boundaries.GameBoundary;
 import me.camm.productions.bedwars.Util.Locations.RegisterType;
+import me.camm.productions.bedwars.Util.PacketSound;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -104,7 +105,7 @@ public class Arena
         if (players.containsKey(uuid))
         {
             BattlePlayer player = players.get(uuid);
-            player.getTeam().removePlayer(player.getRawPlayer()); // infinite recursion???
+            player.getTeam().removePlayer(player.getRawPlayer());
             players.remove(uuid);
         }
     }
@@ -172,6 +173,14 @@ public class Arena
   public void hideEliminated(){
       for (BattlePlayer player: players.values())
           player.hideEliminatedPlayers();
+  }
+
+  public void sendLocalizedSound(PacketSound sound,Location origin, double distance){
+      for (BattlePlayer player: players.values())
+      {
+          if (origin.distance(player.getRawPlayer().getLocation()) < distance)
+          player.playSound(sound);
+      }
   }
 
 

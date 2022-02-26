@@ -6,7 +6,7 @@ public enum BoardEasterEgg
 {
     MARCARONI(ChatColor.YELLOW+"Big Man Marc"),
     PASTA(ChatColor.YELLOW+"Macaroni"),
-    CAMM(ChatColor.GOLD+"CAMM_H87"),
+    CAMM(ChatColor.GOLD+"Coder Chippy"),
     TEAVEE(ChatColor.AQUA+"MrTeavee"),
     PRINTER(ChatColor.GREEN+"Printer screen"),
     FISHY(ChatColor.YELLOW+"TheBest_Fishy"),
@@ -16,6 +16,9 @@ public enum BoardEasterEgg
     LACHI_MOLALA(ChatColor.YELLOW+"Lachi_Molala"),
     KIWI(ChatColor.GREEN+"KiwiGod888"),
     BUSTER(ChatColor.YELLOW+"Buster"),
+    CATS(ChatColor.RED+"Cats!"),
+    TROLLING(ChatColor.WHITE+"Do a little Trolling"),
+    POTATOES(ChatColor.DARK_PURPLE+"Potatoes"),
     LERCERPE(ChatColor.YELLOW+"Lercerpe"),
     DARKNESS(ChatColor.YELLOW+"GR3aterG0ld"),
     WAKIEZ(ChatColor.YELLOW+"XxwakiezxX"),
@@ -27,6 +30,8 @@ public enum BoardEasterEgg
     POTATO_MAN(ChatColor.YELLOW+"potatoman"),
     COOL_KIDS(ChatColor.BLACK+"COOLKIDSONLY"),
     QUACK(ChatColor.YELLOW+"Quack");
+
+
 
     private final String phrase;
 

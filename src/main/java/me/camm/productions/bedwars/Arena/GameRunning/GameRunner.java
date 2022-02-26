@@ -13,12 +13,13 @@ import me.camm.productions.bedwars.Items.ItemDatabases.InventoryName;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.TeamJoinInventory;
 import me.camm.productions.bedwars.Listeners.*;
 import me.camm.productions.bedwars.Arena.GameRunning.Events.EventTime;
-import me.camm.productions.bedwars.Util.ExecutableBoundaryLoader;
+import me.camm.productions.bedwars.Util.Locations.Boundaries.ExecutableBoundaryLoader;
 import me.camm.productions.bedwars.Util.Helpers.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -49,7 +50,7 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
 {
     private final Plugin plugin;
     private final Arena arena;
-    private ArrayList<Generator> generators;
+    private final ArrayList<Generator> generators;
 
     private final int totalGameTime;
     private final int runnableFraction;
@@ -77,7 +78,7 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
     private ItemInteractListener itemListener;
     private ExplosionHandler explosionListener;
     private ItemPickupListener droppedListener;
-    private EntityActionListener.NPCDisplayManager npcManager;
+    private EntityActionListener.LocationManager npcManager;
     private MobSpawnListener mobSpawnListener;
     private EntityActionListener damageListener;
     private LogListener playerLogListener;
@@ -130,13 +131,25 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
 
      isRunning = false;
 
-
-    generators = new ArrayList<>();
      generators = arena.getGenerators();
+
+        playerLogListener = new LogListener(arena,this,keepers);
+        plugin.getServer().getPluginManager().registerEvents(playerLogListener,plugin);
+        addPermissions();
+
+
 
 
 
     }//constructor.
+
+
+    private void addPermissions(){
+
+        for (Player player: Bukkit.getOnlinePlayers()) {
+            playerLogListener.addPerms(player);
+        }
+    }
 
 
 
@@ -162,6 +175,8 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
             keepers.add(team.getTeamGroupBuy());
         }
         this.packetHandler = new PacketHandler(keepers, arena);
+        playerLogListener.initPacketHandler(packetHandler);
+
 
         if (maxPlayers>2)
             isInflated = true;
@@ -172,6 +187,7 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
         }
 
         boundaryLoader = new ExecutableBoundaryLoader(arena);
+        boundaryLoader.start();
 
         for (BattleTeam team: arena.getTeams().values())  //looping through the teams
         {
@@ -194,9 +210,6 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
         mobSpawnListener = new MobSpawnListener();
         plugin.getServer().getPluginManager().registerEvents(mobSpawnListener,plugin);
 
-        playerLogListener = new LogListener(arena,this,keepers);
-        plugin.getServer().getPluginManager().registerEvents(playerLogListener,plugin);
-
         damageListener = new EntityActionListener(arena,plugin,this);
         plugin.getServer().getPluginManager().registerEvents(damageListener,plugin);
 
@@ -212,9 +225,10 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
         projectileListener = new ProjectileListener(plugin, arena, damageListener);
         plugin.getServer().getPluginManager().registerEvents(projectileListener,plugin);
 
-        boundaryLoader.start();
+
 
         Collection<BattlePlayer> players = registeredPlayers.values();
+
         for (BattlePlayer player: players)
         {
             player.instantiateConfig(isInflated);
@@ -224,7 +238,7 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
 
         //(Plugin plugin, Arena arena, ArrayList<ShopKeeper> keepers, PacketHandler handler, GameRunner runner)
         //(Arena arena, Plugin plugin, GameRunner runner)
-        npcManager = new EntityActionListener.NPCDisplayManager(plugin,arena,keepers,packetHandler,this);
+        npcManager = new EntityActionListener.LocationManager(plugin,arena,keepers,packetHandler,this);
         Thread thread = new Thread(npcManager);
         thread.start();
 
@@ -301,10 +315,6 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
     /*
     @Author CAMM
     This method handles the case of a player clicking on one of the inventories present in the game.
-
-    TODO
-    - you need to also make sure that we return if the inventory clicked is a team chest inventory.
-
      */
 
 
@@ -323,13 +333,21 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
         Inventory inv = event.getInventory();
 
         Inventory section = player.getShopManager().isSectionInventory(inv);
+
         if (InventoryOperationHelper.didTryToDragIn(event, section)) {
             event.setCancelled(true);
+            System.out.println("[DEBUG] cancel drag 1");
             return;
         }
 
-        if (InventoryOperationHelper.didTryToDragIn(event, player.getTeam().getTeamInventory()))
+        if (InventoryOperationHelper.didTryToDragIn(event, player.getTeam().getTeamInventory())) {
             event.setCancelled(true);
+            System.out.println("[DEBUG] cancel drag 2");
+            return;
+        }
+
+        System.out.println("[DEBUG] operate drag");
+        InventoryOperationHelper.operateRestrictions(event,arena);
     }
 
 
@@ -343,23 +361,23 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
         String title = event.getClickedInventory().getTitle();
 
 
-   //If the bottom inventory is not a shop inv.
+   //If the clicked inventory is not registered as a known inventory
         if (!titles.containsKey(title))
         {
             HumanEntity player = event.getWhoClicked();
 
+            //operate on restrictions to ensure that they didn't put a restricted item somewhere
+            InventoryOperationHelper.operateRestrictions(event, arena);
 
+            //if the player's inventory is not the clicked inventory, then return.
             if (!player.getInventory().equals(event.getClickedInventory()))
                 return;
 
+            //if the enderchest is the clicked inv, then return.
             if (player.getEnderChest().equals(event.getClickedInventory()))
                 return;
 
             //If the player has clicked their own inv or their enderchest inv.
-            /*
-         TODO
-    - you need to also make sure that we return if the inventory clicked is a team chest inventory.
-             */
 
             ItemStack stack = event.getCurrentItem();
             if (ItemHelper.isItemInvalid(stack))
@@ -374,12 +392,9 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
             {
                 GameMode mode = player.getGameMode();
                 if (mode != GameMode.CREATIVE && mode != GameMode.SPECTATOR) {
-                    event.setCurrentItem(stack);
                     event.setCancelled(true);
                     return;
                 }
-                else
-                    player.sendMessage(ChatColor.YELLOW+"[Notice] You're in creative/spectator. Just a notice that functionality might not work as it should.");
             }
 
             if (!registeredPlayers.containsKey(player.getUniqueId()))
@@ -405,8 +420,6 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
                 event.setCancelled(true);
                 return;
             }
-
-
         }
 
         InventoryName inventoryName = titles.get(title);
@@ -421,6 +434,16 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
 
             case TEAM_BUY:
                 InventoryOperationHelper.doTeamBuy(event, arena);
+                break;
+
+            case EDIT_QUICKBUY:
+                InventoryOperationHelper.operateInventoryEdit(event,arena);
+                break;
+
+            case HOTBAR_MANAGER:
+                break;
+
+            case TRACKER:
                 break;
 
             default:
@@ -550,6 +573,10 @@ as a string.
     Attempts to end the game by seeing if there is a team remaining
      */
     public void attemptEndGame(){
+
+        if (!isRunning)
+            return;
+
                 BattleTeam candidate = RunningTeamHelper.isVictorFound(arena.getTeams().values());
                 if (candidate!=null)
                     this.endGame(candidate);
@@ -564,11 +591,15 @@ as a string.
      */
     public synchronized void endGame(BattleTeam candidate)
     {
-        Collection<BattleTeam> teams = arena.getTeams().values();
 
-        //unregister listeners here.
-       // BlockBreakEvent.getHandlerList().unregister(blockListener);
-        //...
+
+
+        Collection<BattleTeam> teams = arena.getTeams().values();
+        for (Entity entity: arena.getWorld().getEntities()) {
+            if (!(entity instanceof Player)) {
+                entity.remove();
+            }
+        }
 
         setIsRunning(false);
         for (BattleTeam all : teams)
@@ -592,6 +623,12 @@ as a string.
         //Revealing all possible hidden players to other players.
         for (BattlePlayer player: arena.getPlayers().values())
         {
+            player.teleport(arena.getSpecSpawn());
+           Player raw = player.getRawPlayer();
+            raw.setAllowFlight(true);
+           raw.setFlying(true);
+
+
             for (Player possiblyHidden: Bukkit.getOnlinePlayers())
                 player.getRawPlayer().showPlayer(possiblyHidden);
         }
@@ -599,11 +636,14 @@ as a string.
 
         PlayerLoginEvent.getHandlerList().unregister(playerLogListener);
         PlayerQuitEvent.getHandlerList().unregister(playerLogListener);
-
         BlockBreakEvent.getHandlerList().unregister(blockListener);
         BlockPlaceEvent.getHandlerList().unregister(blockListener);
         BlockCanBuildEvent.getHandlerList().unregister(blockListener);
         BlockFromToEvent.getHandlerList().unregister(blockListener);
+
+
+
+
     }
 
     /*
@@ -648,9 +688,8 @@ as a string.
 
         if (registeredPlayers.containsKey(whoClicked.getUniqueId()))  //check if the player is registered
         {
-            //if the player was on a team before
+
             currentPlayer = registeredPlayers.get(whoClicked.getUniqueId());
-            //    BattleTeam oldTeam = currentPlayer.getTeam();
 
             try {
                 boolean isChanged = registeredPlayers.get(whoClicked.getUniqueId()).changeTeam(arena.getTeams().get(name));
@@ -680,6 +719,9 @@ as a string.
                 registeredPlayers.put(currentPlayer.getUUID(), currentPlayer);
                 arena.addPlayer(event.getWhoClicked().getUniqueId(), currentPlayer);
                 sendMessage(ChatColor.GOLD + currentPlayer.getRawPlayer().getName() + " Joined Team " + currentPlayer.getTeam().getColor(),plugin);
+
+
+
                 initializeTimeBoardHead(currentPlayer);
                 RunningTeamHelper.updateTeamBoardStatus(registeredPlayers.values());
             } else
@@ -725,5 +767,13 @@ as a string.
 
     public EntityActionListener getDamageListener(){
         return damageListener;
+    }
+
+    public synchronized void removePlayer(UUID id){
+        BattlePlayer player = registeredPlayers.getOrDefault(id, null);
+        if (player != null)
+            player.getBoard().unregisterRegardless();
+
+        registeredPlayers.remove(id);
     }
 }

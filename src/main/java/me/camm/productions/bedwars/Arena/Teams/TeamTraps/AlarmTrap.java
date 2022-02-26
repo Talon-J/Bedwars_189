@@ -2,6 +2,7 @@ package me.camm.productions.bedwars.Arena.Teams.TeamTraps;
 
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
+import me.camm.productions.bedwars.Arena.Teams.TeamTitle;
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.TeamInventoryConfig;
 import me.camm.productions.bedwars.Util.Locations.Boundaries.GameBoundary;
 import me.camm.productions.bedwars.Util.PacketSound;
@@ -73,6 +74,7 @@ public class AlarmTrap extends GameTrap
                             }
                         }
 
+                        //just an arbitrary amount for the alarm.
                         if (iterations > 120)
                             cancel();
 
@@ -101,6 +103,11 @@ public class AlarmTrap extends GameTrap
     @Override
     public String toString() {
         return "Alarm Trap";
+    }
+
+    @Override
+    public TeamTitle getTrapTitle() {
+        return TeamTitle.ALARM;
     }
 }
 

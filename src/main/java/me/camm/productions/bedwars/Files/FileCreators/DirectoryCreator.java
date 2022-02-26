@@ -79,7 +79,7 @@ public class DirectoryCreator extends StringToolBox
 
 
 
-            boolean doesMainExist = false;
+           // boolean doesMainExist = false;
             if (!mainFile.exists())
             {
                 mainFile.createNewFile();
@@ -89,15 +89,23 @@ public class DirectoryCreator extends StringToolBox
                 server.getConsoleSender().sendMessage(ChatColor.YELLOW+"BW [Detected]:Main Directory Exists.");
 
 
+            GameFileWriter creditWriter = new GameFileWriter(credits.getAbsolutePath(),plugin);
+            GameFileWriter instructWriter = new GameFileWriter(instructionFile.getAbsolutePath(),plugin);
 
-            if (mainFile.exists()&&teamFile.exists()&&worldFile.exists()&&playerFolder.exists()&&credits.exists()&&instructionFile.exists())
+            if (mainFile.exists()&&
+                    teamFile.exists()&&
+                    worldFile.exists()&&
+                    playerFolder.exists()&&
+                    credits.exists()&&
+                    instructionFile.exists())
             {
                 server.getConsoleSender().sendMessage(ChatColor.GREEN+"BW [DETECTED]: All files exist. Please make sure they are configured.");
-                new GameFileWriter(credits.getAbsolutePath(),plugin).clear();
-                new GameFileWriter(credits.getAbsolutePath(),plugin).writeSection(contributors);
 
-                new GameFileWriter(instructionFile.getAbsolutePath(),plugin).clear();
-                new GameFileWriter(instructionFile.getAbsolutePath(),plugin).writeSection(instructions);
+                creditWriter.clear();
+                creditWriter.writeSection(contributors);
+
+                instructWriter.clear();
+                instructWriter.writeSection(instructions);
                 return true;
             }
             else
@@ -111,11 +119,11 @@ public class DirectoryCreator extends StringToolBox
                 createFiles(instructionFile);
 
                 //TODO - have something to refresh the file [clear the entire file and rewrite.]
-                new GameFileWriter(credits.getAbsolutePath(),plugin).clear();
-                new GameFileWriter(credits.getAbsolutePath(),plugin).writeSection(contributors);
+                creditWriter.clear();
+                creditWriter.writeSection(contributors);
 
-                new GameFileWriter(instructionFile.getAbsolutePath(),plugin).clear();
-                new GameFileWriter(instructionFile.getAbsolutePath(),plugin).writeSection(instructions);
+                instructWriter.clear();
+                instructWriter.writeSection(instructions);
 
 
                 return false;
@@ -123,7 +131,7 @@ public class DirectoryCreator extends StringToolBox
         }
         catch (Exception e)
         {
-            server.getConsoleSender().sendMessage(ChatColor.RED+"BW [ERROR]: COULD NOT VERIFY FILE INTEGRITY. [REASON: RAN INTO EXCEPTION]");
+            server.getConsoleSender().sendMessage(ChatColor.RED+"BW [ERROR]: COULD NOT VERIFY FILE INTEGRITY.");
             e.printStackTrace();
             return false;
         }

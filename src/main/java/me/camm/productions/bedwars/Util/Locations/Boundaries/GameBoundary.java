@@ -238,7 +238,7 @@ public class GameBoundary extends Boundary<Integer> implements IArenaChatHelper
     //Checking if the boundary contains a coordinate
     public boolean containsCoordinate(int x, int y, int z)
     {
-        return (x1<=x && x<=x2) && (x1<=y && y<=y2) && (z1<=z && z<=z2);
+        return (x1<=x && x<=x2) && (y1<=y && y<=y2) && (z1<=z && z<=z2);
     }
 
     private void sendRegistry(Plugin plugin, String type)

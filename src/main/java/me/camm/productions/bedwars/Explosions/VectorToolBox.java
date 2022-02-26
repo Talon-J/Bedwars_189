@@ -53,6 +53,8 @@ public class VectorToolBox
             case ARMOR_STAND:
             case ENDER_DRAGON:
             case DROPPED_ITEM:
+            case ITEM_FRAME:
+            case EXPERIENCE_ORB:
                 valid = false;
         }
         return valid;

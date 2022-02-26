@@ -1,5 +1,6 @@
 package me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy;
 
+import me.camm.productions.bedwars.Arena.Players.DeathMessages.Cause;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 
 import java.util.UUID;
@@ -9,6 +10,8 @@ public interface IGameTeamable
     UUID getUUID();
     BattleTeam getTeam();
     String getName();
+    String getType();
+    Cause getCauseType();
 }
 
 

@@ -10,12 +10,12 @@ public enum TeamItem {
     TRAP_MINER_SLOW(Material.IRON_PICKAXE, new String[]{ChatColor.WHITE+"Mining-Fatigue trap"}, new String[]{"Gives mining fatigue to enemies when triggered","Costs 1, 2, or 3 diamonds depending on trap slots active"}, new int[]{1,2,3},Material.DIAMOND,true),
 
     BUFF_HASTE(Material.GOLD_PICKAXE, new String[]{ChatColor.WHITE+"Maniac Miner"}, new String[]{"Gives haste to team members","Haste 1: 2 diamonds","Haste 2: 4 diamonds"}, new int[]{2,4},Material.DIAMOND,false),
-    BUFF_BASE_REGEN(Material.BEACON, new String[]{ChatColor.WHITE+"Heal pool (WIP)"}, new String[]{"Create a regeneration field around the base","Cost 1 diamonds"},  new int[]{1},Material.DIAMOND,false),
-    BUFF_DRAGONS(Material.DRAGON_EGG, new String[]{ChatColor.WHITE+"Dragon Buff (WIP)"}, new String[]{"Have 2 dragons instead of 1 at sudden death.","Cost 5 diamonds"},  new int[]{5},Material.DIAMOND,false),
+    BUFF_BASE_REGEN(Material.BEACON, new String[]{ChatColor.WHITE+"Heal pool"}, new String[]{"Create a regeneration field around the base","Cost 1 diamonds"},  new int[]{1},Material.DIAMOND,false),
+    BUFF_DRAGONS(Material.DRAGON_EGG, new String[]{ChatColor.WHITE+"Dragon Buff"}, new String[]{"Have 2 dragons instead of 1 at sudden death.","Cost 5 diamonds"},  new int[]{5},Material.DIAMOND,false),
 
     UPGRADE_PROTECTION(Material.IRON_CHESTPLATE, new String[]{ChatColor.WHITE+"Reinforced Armor"}, new String[]{"Adds protection to your armor","Prot 1 - 2 diamonds","Prot 2 - 4 diamonds","Prot 3 - 8 diamonds","Prot 4 - 16 diamonds" }, new int[]{2,4,8,16},Material.DIAMOND,false),
 
-    UPGRADE_SWORDS(Material.IRON_SWORD, new String[]{ChatColor.WHITE+"Sharpened Swords (WIP)"}, new String[]{"Adds sharpness to your swords","Cost 4 diamonds"}, new int[]{4},Material.DIAMOND,false),
+    UPGRADE_SWORDS(Material.IRON_SWORD, new String[]{ChatColor.WHITE+"Sharpened Swords"}, new String[]{"Adds sharpness to your swords","Cost 4 diamonds"}, new int[]{4},Material.DIAMOND,false),
 
     UPGRADE_FORGE(Material.FURNACE, new String[]{ChatColor.WHITE+"Forge Upgrade"}, new String[]{"Upgrade resource creation on your island.",
             "T1: +50% resources - 2 diamonds", "T2: +100% resources - 4 diamonds", "T3: Spawn emeralds - 6 diamonds",
@@ -93,6 +93,10 @@ Gold pick
 
     public boolean isRenewable() {
         return renewable;
+    }
+
+    public String format(){
+        return names[0];
     }
 
     @Override

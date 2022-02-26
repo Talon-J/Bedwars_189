@@ -2,6 +2,7 @@ package me.camm.productions.bedwars.Entities.ActiveEntities;
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
+import me.camm.productions.bedwars.Arena.Players.DeathMessages.Cause;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy.ILifeTimed;
 import me.camm.productions.bedwars.Listeners.EntityActionListener;
@@ -53,7 +54,7 @@ public class BedBug implements ILifeTimed
             @Override
             public void run() {
                 bug = world.spawn(loc,Silverfish.class);
-                bug.setCustomName(chatColor+teamName+"'s"+" Bed bug (WIP)");
+                bug.setCustomName(chatColor+teamName+" Bed bug");
                 bug.setCustomNameVisible(true);
                 register();
                 cancel();
@@ -70,6 +71,11 @@ public class BedBug implements ILifeTimed
     {
         if (toTarget instanceof LivingEntity)
         bug.setTarget((LivingEntity)toTarget);
+    }
+
+    @Override
+    public String getType(){
+        return "Bed Bug";
     }
 
     @Override
@@ -151,10 +157,19 @@ public class BedBug implements ILifeTimed
         return bug != null && !bug.isDead();
     }
 
+    @Override
+    public double getHealth() {
+        return bug==null?0:bug.getHealth();
+    }
 
     @Override
     public BattleTeam getTeam() {
         return team;
+    }
+
+    @Override
+    public Cause getCauseType() {
+        return Cause.NORMAL;
     }
 
     @Override

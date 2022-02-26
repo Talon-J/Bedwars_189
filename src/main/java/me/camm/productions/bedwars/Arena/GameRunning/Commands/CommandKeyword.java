@@ -4,6 +4,8 @@ public enum CommandKeyword
 {
     SETUP("setup"),
     REGISTER("register"),
+    SHOUT("shout"),
+    UNREGISTER("unregister"),
     START("start");
 
     private final String word;

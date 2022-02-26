@@ -8,6 +8,9 @@ public enum TeamTitle
     ALL_BEDS_DESTROYED("{\"text\":\""+ChatColor.RED+"ALL BEDS DESTROYED\"}"),
     YOU_DIED("{\"text\":\""+ChatColor.RED+"You Died!\"}"),
 
+    ALARM("{\"text\":\""+ChatColor.RED+"Alarm!\"}"),
+    TRIGGERED("{\"text\":\"Trap Triggered!\",\"color\":\"red\"}"),
+
     //See playerUtil interface for implementation of RESPAWN_AFTER
     RESPAWN_AFTER("{\"text\":\""+ChatColor.RED+"Respawn in "),
     RESPAWNED("{\"text\":\""+ChatColor.GREEN+"Respawned! \"}"),

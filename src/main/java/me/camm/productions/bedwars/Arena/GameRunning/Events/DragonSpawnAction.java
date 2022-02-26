@@ -27,8 +27,6 @@ public class DragonSpawnAction extends GameActionPhysical {
         if (spent)
             return;
         spent = true;
-        runner.sendMessage("[DEBUG] Spawn dragons now!");
-        Plugin plugin = runner.getArena().getPlugin();
 
         EntityActionListener listener = runner.getDamageListener();
         World world = runner.getArena().getWorld();
@@ -40,22 +38,27 @@ public class DragonSpawnAction extends GameActionPhysical {
 
         teams.forEach(battleTeam ->
         {
-           Coordinate current = battleTeam.getBed().getCoordinateAverage();
-           double delta = Math.abs(current.getY() - y);
+            CURRENT_TEAM:
+            {
+                if (battleTeam.isEliminated())
+                    break CURRENT_TEAM;
+                Coordinate current = battleTeam.getBed().getCoordinateAverage();
+                double delta = Math.abs(current.getY() - y);
 
-           int iterations = battleTeam.getDragonSpawnNumber();
-           runner.sendMessage(battleTeam.getColor().getChatColor()+"+ "+iterations+""+battleTeam.getColor().getName()+" dragons");
+                int iterations = battleTeam.getDragonSpawnNumber();
+                runner.sendMessage(battleTeam.getColor().getChatColor() + " +" + iterations + " " + battleTeam.getColor().getName() + " dragon");
 
-           while (iterations > 0) {
-               Location spawn = new Location(world, current.getX(),current.getY() + (delta*iterations), current.getZ());
-               GameDragon dragon = new GameDragon(((CraftWorld)world).getHandle(), new Location(world,centre.getX(),centre.getY(),centre.getZ()),spawn,battleTeam,plugin, listener,runner.getArena());
-               battleTeam.sendTeamMessage("[DEBUG] Dragon spawned at :"+spawn.getX()+" "+spawn.getY()+" "+spawn.getZ());
-               dragon.spawn();
-               dragon.register();
+                while (iterations > 0) {
+                    Location spawn = new Location(world, current.getX(), current.getY() + (delta * iterations), current.getZ());
+                    GameDragon dragon = new GameDragon(((CraftWorld) world).getHandle(), spawn, runner.getArena(), battleTeam, new Location(world, centre.getX(), centre.getY(), centre.getZ()), listener);
+                    battleTeam.sendTeamMessage("[DEBUG] Dragon spawned at :" + spawn.getX() + " " + spawn.getY() + " " + spawn.getZ());
+                    dragon.spawn();
+                    dragon.register();
 
 
-               iterations --;
-           }
+                    iterations--;
+                }
+            }
         });
 
 

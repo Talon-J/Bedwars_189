@@ -19,6 +19,16 @@ commands:
     description: attempts to start the game
     permission: game.do
     permission-message: you do not have permission to start the game
+  shout:
+    usage: /shout <message>
+    description: command for public chat between teams while game is running
+    permission: shout.do
+    permission-message: you do not have permission to shout (you'll have to message instead...)
+  unregister:
+    usage: /unregister
+    description: Unregister from the game
+    permission: unregister.do
+    permission-message: you do not have permission to do this.
 
 
 

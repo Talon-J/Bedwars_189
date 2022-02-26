@@ -1,6 +1,7 @@
 package me.camm.productions.bedwars.Entities.ActiveEntities;
 
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
+import me.camm.productions.bedwars.Arena.Players.DeathMessages.Cause;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy.IGameOwnable;
 import net.minecraft.server.v1_8_R3.EntityFireball;
@@ -97,5 +98,16 @@ public class ThrownFireball implements IGameOwnable
     @Override
     public BattleTeam getTeam() {
         return team;
+    }
+
+
+    @Override
+    public String getType() {
+        return "fireball";
+    }
+
+    @Override
+    public Cause getCauseType() {
+        return Cause.FIREBALL;
     }
 }

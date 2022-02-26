@@ -83,7 +83,7 @@ public class PlayerBoard implements IPlayerUtil
        this.buffer.setDisplayName(TITLE.getPhrase());
 
 
-        //send(player, new PacketPlayOutScoreboardObjective(primary, 0));  //0 means create
+         //0 means create
         send(new PacketPlayOutScoreboardObjective(primary, 0));
 
         send(new PacketPlayOutScoreboardDisplayObjective(1,primary));  //show the primary
@@ -103,7 +103,6 @@ public class PlayerBoard implements IPlayerUtil
 
         //for the amount of teams in the arena
         for (BattleTeam team : teams) {
-            //System.out.println("test - Print - teamboard");
             String currentTeamScore = getTeamStatus(team);
             String identifier;
 
@@ -114,7 +113,7 @@ public class PlayerBoard implements IPlayerUtil
             } else {
                 identifier = team.getColor().getName();
             }
-            //public ScoreSet(Scoreboard board, int value, String identifier, String name, BattlePlayer player, ScoreboardObjective primary, ScoreboardObjective buffer)
+
             ScoreSet current = new ScoreSet(board, selectedScore, identifier, currentTeamScore, player, primary, buffer);
             current.sendPrimary();
             scores.put(current.getIdentifier(), current);
@@ -256,6 +255,7 @@ public class PlayerBoard implements IPlayerUtil
     public void unregisterRegardless()
     {
         try {
+            send(new PacketPlayOutScoreboardObjective(primary,1));
             board.unregisterObjective(primary);
             board.handleObjectiveRemoved(primary);
           //  send(new PacketPlayOutScoreboardObjective(primary,1));
@@ -266,6 +266,7 @@ public class PlayerBoard implements IPlayerUtil
         }
 
         try {
+            send(new PacketPlayOutScoreboardObjective(buffer,1));
             board.unregisterObjective(buffer);
             board.handleObjectiveRemoved(buffer);
           //  send(new PacketPlayOutScoreboardObjective(buffer,1));
@@ -283,7 +284,7 @@ public class PlayerBoard implements IPlayerUtil
 
 
     //Change the old id to the oldIdChange
-    public synchronized void interchangeIdentifiers(String oldSetIdentifier, String oldSetNewIdentifier, String setToTakeOld/*, String newIdentifierChange*/)
+    public synchronized void interchangeIdentifiers(String oldSetIdentifier, String oldSetNewIdentifier, String setToTakeOld)
     {
        if (scores.containsKey(oldSetIdentifier)&&scores.containsKey(setToTakeOld))
        {
@@ -297,7 +298,7 @@ public class PlayerBoard implements IPlayerUtil
 
            //changing the identifiers to different ones.
            oldChange.setIdentifier(oldSetNewIdentifier);
-           newChange.setIdentifier(/*newIdentifierChange*/oldSetIdentifier);
+           newChange.setIdentifier(oldSetIdentifier);
 
            //putting them back into the hashmap.
            scores.put(oldChange.getIdentifier(),oldChange);
@@ -321,8 +322,4 @@ public class PlayerBoard implements IPlayerUtil
         ((CraftPlayer)player.getRawPlayer()).getHandle().playerConnection.sendPacket(packet);
     }
 
-    public synchronized HashMap<String, ScoreSet> getScores()
-    {
-        return scores;
-    }
 }

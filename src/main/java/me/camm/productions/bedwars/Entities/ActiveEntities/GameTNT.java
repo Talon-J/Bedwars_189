@@ -1,6 +1,7 @@
 package me.camm.productions.bedwars.Entities.ActiveEntities;
 
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
+import me.camm.productions.bedwars.Arena.Players.DeathMessages.Cause;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy.IGameOwnable;
 import org.bukkit.Material;
@@ -21,7 +22,6 @@ public class GameTNT implements IGameOwnable
     private final BattleTeam team;
 
     private static final Random random = new Random();
-   // private final EntityActionListener actionListener;
 
 
     public GameTNT(BlockPlaceEvent event, BattlePlayer player)
@@ -68,6 +68,16 @@ public class GameTNT implements IGameOwnable
     @Override
     public BattleTeam getTeam() {
         return team;
+    }
+
+    @Override
+    public String getType() {
+        return "tnt";
+    }
+
+    @Override
+    public Cause getCauseType() {
+        return Cause.TNT;
     }
 
     @Override

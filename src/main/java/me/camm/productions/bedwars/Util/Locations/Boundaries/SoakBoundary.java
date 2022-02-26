@@ -192,39 +192,6 @@ public class SoakBoundary extends Boundary<Double>
         return new PointWall(coords);
     }
 
-    public void collapse(WallFace toCollapseUpon)
-    {
-        if (toCollapseUpon==null)
-            return;
-
-        switch (toCollapseUpon)
-        {
-            case UP:
-                bounds[2] = bounds[3];
-                break;
-
-            case DOWN:
-                bounds[3] = bounds[2];
-                break;
-
-            case NORTH:
-                bounds[5]  = bounds[4];
-                break;
-
-            case EAST:
-                bounds[0] = bounds[1];
-                break;
-
-            case SOUTH:
-                bounds[4] = bounds[5];
-                break;
-
-            case WEST:
-                bounds[1] = bounds[0];
-        }
-        dissectArray();
-    }
-
 
 
     //registers all blocks in the bounds with a metadata of string type

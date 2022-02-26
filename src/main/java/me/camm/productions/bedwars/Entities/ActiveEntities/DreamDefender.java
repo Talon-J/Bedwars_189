@@ -2,6 +2,7 @@ package me.camm.productions.bedwars.Entities.ActiveEntities;
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
+import me.camm.productions.bedwars.Arena.Players.DeathMessages.Cause;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy.ILifeTimed;
 import me.camm.productions.bedwars.Listeners.EntityActionListener;
@@ -41,8 +42,10 @@ public class DreamDefender implements ILifeTimed
         this.listener = listener;
     }
 
-
-
+    @Override
+    public Cause getCauseType() {
+        return Cause.NORMAL;
+    }
 
     @Override
     public void handleLifeTime()
@@ -86,6 +89,8 @@ public class DreamDefender implements ILifeTimed
                             continue;
 
 
+
+                        //sqrt(576) = 24, which is usually the aggro distance
                         if (player.getRawPlayer().getLocation().distanceSquared(golem.getLocation()) <= 576) {
                           golem.setTarget(player.getRawPlayer());
                           target = player;
@@ -111,13 +116,23 @@ public class DreamDefender implements ILifeTimed
     }
 
     @Override
+    public String getType(){
+        return "Dream Defender";
+    }
+
+    @Override
     public void remove() {
       golem.remove();
     }
 
     @Override
     public boolean isAlive() {
-        return false;
+        return golem != null && !golem.isDead();
+    }
+
+    @Override
+    public double getHealth() {
+        return golem==null?0:golem.getHealth();
     }
 
     @Override

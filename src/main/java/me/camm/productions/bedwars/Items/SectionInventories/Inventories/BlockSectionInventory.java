@@ -4,7 +4,7 @@ import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurati
 import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
 
 
-import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.SHOP_SIZE;
+import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.SHOP_SIZE;
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryName.BLOCKS;
 
 

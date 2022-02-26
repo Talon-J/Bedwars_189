@@ -1,47 +1,46 @@
 package me.camm.productions.bedwars.Arena.Players.Managers;
 
-import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
-import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
-import me.camm.productions.bedwars.Items.ItemDatabases.TieredItem;
-import me.camm.productions.bedwars.Util.Helpers.IArenaWorldHelper;
+import me.camm.productions.bedwars.Items.ItemDatabases.*;
+import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.HotBarConfig;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
-
-import java.util.ArrayList;
-
-import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.HOT_BAR_END;
-import static me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory.ARMOR;
+import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.HOT_BAR_END;
+import static me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory.*;
 
 
 /*
 - Add an inventory for when the player modifies their hotbar manager.
 
  */
-public class HotbarManager implements IArenaWorldHelper
+public class HotbarManager
 {
     private final Plugin plugin;
     private final ItemCategory[] layout;
+    private final Inventory editor;
 
     public HotbarManager(Plugin plugin)
     {
-        super();
         this.plugin = plugin;
          this.layout = new ItemCategory[HOT_BAR_END.getValue()];
          layout[0] = ItemCategory.MELEE;
+
+         editor = Bukkit.createInventory(null, InventoryProperty.SHOP_SIZE.getValue(),InventoryName.HOTBAR_MANAGER.getTitle());
+        initInventory();
     }
 
 
 
     public HotbarManager(Plugin plugin,ItemCategory[] layout)
     {
-        super();
+
+        editor = Bukkit.createInventory(null, InventoryProperty.SHOP_SIZE.getValue(),InventoryName.HOTBAR_MANAGER.getTitle());
         this.plugin = plugin;
         if ((layout==null)||(layout.length!= HOT_BAR_END.getValue())) {
             this.layout = new ItemCategory[HOT_BAR_END.getValue()];
@@ -62,23 +61,75 @@ public class HotbarManager implements IArenaWorldHelper
         if (empty)
             addCategory(ItemCategory.MELEE,0);
 
-        for (int slot=0;slot<this.layout.length;slot++)
-            System.out.println("[DEBUG] slot:"+slot+" layout:"+this.layout[slot]);
 
+        initInventory();
     }
 
 
+    private void initInventory(){
+        for (HotBarConfig config: HotBarConfig.values()) {
+            ItemStack item = ItemHelper.toSimpleItem(config.getMat(),config.getName());
+            for (int slot: config.getSlots()) {
+                editor.setItem(slot, item);
+            }
+        }
+    }
+
+    //we are only updating the layout here.
+    public boolean updateLayout(int clickedSlot, ItemStack placed){
+        clickedSlot -= InventoryProperty.LARGE_ROW_FIVE_START.getValue();
+        if (clickedSlot < 0 || clickedSlot > layout.length)
+            return false;
+
+
+        ItemCategory category = ItemHelper.getHotBarAssociate(placed);
+        if (category == null)
+            return false;
+
+        if (category == OPERATOR)
+            return false;
+
+        layout[clickedSlot] = category;
+        return true;
+    }
+
+    public void reset(){
+
+        layout[0] = ItemCategory.MELEE;
+        addCategory(MELEE,0);
+
+        for (int slot=1;slot<layout.length;slot++) {
+            layout[slot] = null;
+            addCategory(null,slot);
+        }
+    }
+
+
+
+
+    //slot category is in terms of the hotbar slots
     public void addCategory(ItemCategory category, int slot)
     {
         if (slot>layout.length||slot<0)
             return;
 
         layout[slot] = category;
+        editor.setItem(slot+ InventoryProperty.LARGE_ROW_FIVE_START.getValue(),ItemHelper.toBarItem(category));
     }
+
+
 
     public ItemCategory[] getLayout()
     {
         return layout;
+    }
+
+    public void display(Player player) {
+        player.openInventory(editor);
+    }
+
+    public boolean equals(Inventory other){
+        return other.equals(editor);
     }
 
 
@@ -158,7 +209,7 @@ public class HotbarManager implements IArenaWorldHelper
 
             if (enumTiered.getIndex() == ItemHelper.getLowestTier(enumTiered).getIndex()) {
 
-                doNormalSet(playerInv, enumItem, item);
+                doNormalSet(playerInv, enumItem, item,player);
                 return;
             }
 
@@ -201,14 +252,30 @@ public class HotbarManager implements IArenaWorldHelper
             //if there is nothing to replace, do a normal set.
 
         }
-        doNormalSet(playerInv,enumItem, item);
+        doNormalSet(playerInv,enumItem, item, player);
 
     }
 
 
     //When we need behaviour similar to that of setting normally
-    private void doNormalSet(Inventory playerInv, ShopItem enumItem, ItemStack item)
+    private void doNormalSet(Inventory playerInv, ShopItem enumItem, ItemStack item, Player player)
     {
+
+        //if there is already a slot in the inv with the stack
+        //merge the stacks together.
+      for (int slot=0;slot<layout.length;slot++) {
+
+          ItemStack stack = playerInv.getItem(slot);
+          if (item.isSimilar(stack) && (stack.getAmount()+item.getAmount() <= item.getMaxStackSize()))
+          {
+              item.setAmount(item.getAmount()+stack.getAmount());
+              playerInv.setItem(slot,item);
+              return;
+          }
+      }
+
+
+
         for (int slot=0;slot<layout.length;slot++)
         {
             ItemCategory reserved = layout[slot];
@@ -218,65 +285,42 @@ public class HotbarManager implements IArenaWorldHelper
             if (reserved == enumItem.category || reserved == null)
             {
 
-                    // if the slot isn't vacant
+             // test if the residing item is valid
              ShopItem residingAssociate = ItemHelper.getAssociate(residing);
 
-
-                if (item.isSimilar(residing) &&
-                        ((item.getAmount() + residing.getAmount() ) <= residing.getMaxStackSize()))
-                {
-                    item.setAmount(item.getAmount() + residing.getAmount());
-                    playerInv.setItem(slot, item);
-                    return;
-                }
-
-
+                /*
+                So if the slot is empty and the slot is reserved, place it in.
+                 */
              if (residingAssociate == null) { //if we cannot resolve the residing item as an enum item
 
 
+                 //if we cannot resolve it since the item is currency:
                  if (ItemHelper.isCurrencyItem(residing))
                  {
                      ItemStack residingPlaceholder = residing.clone();
                      playerInv.setItem(slot, item);
                      playerInv.addItem(residingPlaceholder);
-
                  }
                  else
-                 {
                      playerInv.setItem(slot, item);
-                 }
 
                     return;
                 }
 
 
-
-                if (ItemHelper.isItemInvalid(residing) && !ItemHelper.isCurrencyItem(residing)) {
-                    playerInv.setItem(slot, item);
-                    return;
-                }
-
-
-
-                        //so if they're not the same, and the residing is in a reserved slot:
-             if ((residingAssociate.category != enumItem.category) && (enumItem.category == reserved))
+            //so if the two categories between residing and placing in are not the same, and the reserved slot matches the one to place in,
+             if ((residingAssociate.category != enumItem.category))
                  {
                      //replace the item in the slot.
                      //Add the replaced item back.
                      ItemStack residingPlaceholder = residing.clone();
-                   playerInv.setItem(slot,item);
+                    playerInv.setItem(slot,item);
                    playerInv.addItem(residingPlaceholder);
                    return;
                  }
 
                 //in this case, residing and item are the same category and residing is in the reserved slot, so we
                 //try to place it in.
-
-
-
-             if ((residingAssociate.category == enumItem.category) && (enumItem.category == reserved))
-             {
-
                  if (!item.isSimilar(residing))
                      continue;
 
@@ -286,13 +330,19 @@ public class HotbarManager implements IArenaWorldHelper
                  item.setAmount(item.getAmount() + residing.getAmount());
                  playerInv.setItem(slot, item);
                  return;
-             }
             }
         }
 
         //At this point, all of the reserved spots have been checked and none are valid for taking.
         //Now we look at the other slots. (ones with other categories)
 
+        //first try to place it in their main hand
+        ItemStack hand = player.getInventory().getItemInHand();
+        if (ItemHelper.isItemInvalid(hand)) {
+            player.setItemInHand(item);
+        }
+
+        //otherwise try to place it in other slots
         for (int slot=0;slot<9;slot++)
         {
             ItemStack residing = playerInv.getItem(slot);

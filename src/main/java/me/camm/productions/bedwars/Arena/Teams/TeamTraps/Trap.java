@@ -1,6 +1,7 @@
 package me.camm.productions.bedwars.Arena.Teams.TeamTraps;
 
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
+import me.camm.productions.bedwars.Arena.Teams.TeamTitle;
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.TeamInventoryConfig;
 
 public interface Trap
@@ -12,4 +13,6 @@ public interface Trap
 
     /* get the configuration item for the trap */
     TeamInventoryConfig getTrapConfig();
+
+    TeamTitle getTrapTitle();
 }

@@ -2,7 +2,7 @@ package me.camm.productions.bedwars.Items.SectionInventories.Templates;
 
 import me.camm.productions.bedwars.Items.ItemDatabases.DefaultTemplateNavigation;
 import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
-import me.camm.productions.bedwars.Util.DataSets.ItemSet;
+import me.camm.productions.bedwars.Util.DataSets.ShopItemSet;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftInventoryCustom;
 import org.bukkit.event.inventory.InventoryType;
@@ -13,8 +13,8 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.DefaultTemplateNavigation.EMPTY;
-import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_END;
-import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryLocation.QUICK_INV_BORDER_START;
+import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.QUICK_INV_BORDER_END;
+import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.QUICK_INV_BORDER_START;
 
 //this is a subclass of inventory.
 public abstract class ShopInventorySetter extends CraftInventoryCustom implements ISectionInventory
@@ -62,6 +62,7 @@ public abstract class ShopInventorySetter extends CraftInventoryCustom implement
     @Override
     public void setTemplate(boolean isInflated, boolean includeEmpties)
     {
+        System.out.println("shopInvsetter.setTemplate() inflated: "+isInflated);
 
         for (DefaultTemplateNavigation template: DefaultTemplateNavigation.values())
         {
@@ -92,9 +93,9 @@ public abstract class ShopInventorySetter extends CraftInventoryCustom implement
     }
 
     @Override
-    public ArrayList<ItemSet> packageInventory(Inventory inv)
+    public ArrayList<ShopItemSet> packageInventory(Inventory inv)
     {
-        ArrayList<ItemSet> items = new ArrayList<>();
+        ArrayList<ShopItemSet> items = new ArrayList<>();
         for (int slot=QUICK_INV_BORDER_START.getValue();slot<=QUICK_INV_BORDER_END.getValue();slot++)
         {
             if (ItemHelper.isItemInvalid(inv.getItem(slot)))
@@ -104,7 +105,7 @@ public abstract class ShopInventorySetter extends CraftInventoryCustom implement
             try
             {
                 ShopItem item = ShopItem.valueOf(stack.getItemMeta().getDisplayName());
-                items.add(new ItemSet(item,slot));
+                items.add(new ShopItemSet(item,slot));
             }
             catch (IllegalArgumentException | NullPointerException ignored)
             {

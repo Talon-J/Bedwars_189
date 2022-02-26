@@ -1,4 +1,4 @@
-package me.camm.productions.bedwars.Util;
+package me.camm.productions.bedwars.Util.Locations.Boundaries;
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
@@ -7,6 +7,7 @@ import me.camm.productions.bedwars.Arena.Teams.TeamTraps.Trap;
 import me.camm.productions.bedwars.Util.DataSets.TimeSet;
 import me.camm.productions.bedwars.Util.Locations.BlockRegisterType;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
+import me.camm.productions.bedwars.Util.PacketSound;
 import net.minecraft.server.v1_8_R3.EnumParticle;
 import net.minecraft.server.v1_8_R3.PacketPlayOutWorldParticles;
 import org.bukkit.ChatColor;
@@ -38,6 +39,7 @@ public class ExecutableBoundaryLoader implements Runnable
         this.arena = arena;
         this.lock = new Object();
         thread = new Thread(this);
+
         this.running = true;
         waiting = false;
         players = arena.getPlayers().values();
@@ -53,6 +55,7 @@ public class ExecutableBoundaryLoader implements Runnable
     }
 
     public void resume(){
+        waiting = false;
         synchronized (lock) {
             lock.notify();
         }
@@ -67,18 +70,17 @@ public class ExecutableBoundaryLoader implements Runnable
             while (running)
             {
 
+
                 synchronized (lock) {
 
                     if (primedTraps.size() == 0 && coolingTeams.size() == 0 && healAuras.size() == 0) {
+
                         waiting = true;
                            lock.wait();
-                        continue;
                     }
                 }
 
                     Thread.sleep(1000);
-
-                   // System.out.println("[DEBUG] Ping");
                     nextSecond();
 
                     players.forEach(player -> {
@@ -90,8 +92,17 @@ public class ExecutableBoundaryLoader implements Runnable
                             if (primedTraps.isEmpty())
                                 break TRAPS;
 
+                            if (!player.getRawPlayer().isOnline())
+                                break TRAPS;
+
+                            if (!player.getIsAlive() || player.getIsEliminated())
+                                break TRAPS;
+
                             if (block.hasMetadata(BlockRegisterType.TRAP.getData()))
                             {
+
+
+
                                 BattleTeam current = null;
 
                                 for (BattleTeam team: primedTraps)
@@ -123,12 +134,14 @@ public class ExecutableBoundaryLoader implements Runnable
                                if (activated != null)
                                {
                                    current.sendTeamMessage(ChatColor.RED+"[TRAP] Your "+activated+" was activated by "+player.getTeam().getColor().getName()+" team!");
-                                   current.sendTeamTitle("{\"text\":\"Trap Triggered!\",\"color\":\"red\"}","",5,40,5);
+                                   current.sendTeamTitle(activated.getTrapTitle().getMessage(),"",5,40,5);
                                    current.sendTeamSoundPacket(PacketSound.ENDERMAN);
+
+                                   primedTraps.remove(current);
+                                   coolingTeams.add(new TimeSet(current, System.currentTimeMillis()));
                                }
 
-                                primedTraps.remove(current);
-                                coolingTeams.add(new TimeSet(current, System.currentTimeMillis()));
+
 
                             }
                         }
@@ -186,6 +199,7 @@ public class ExecutableBoundaryLoader implements Runnable
     public synchronized void load(BattleTeam team, boolean trap){
         resume();
 
+
         if (trap) {
             if (!primedTraps.contains(team) && team.doesBedExist()) {
 
@@ -215,7 +229,7 @@ public class ExecutableBoundaryLoader implements Runnable
 
         long millis = System.currentTimeMillis();
 
-        TimeSet next = coolingTeams.get(0);
+        TimeSet next = coolingTeams.get(0);//1
 
         //traps have 20 sec cooldown
         while ( (millis - next.getMillis() > 20000) && (!coolingTeams.isEmpty() ))

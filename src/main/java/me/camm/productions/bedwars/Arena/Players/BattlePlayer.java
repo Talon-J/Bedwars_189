@@ -6,6 +6,7 @@ import me.camm.productions.bedwars.Arena.Players.Managers.PlayerInventoryManager
 import me.camm.productions.bedwars.Arena.Players.Scoreboards.PlayerBoard;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Arena.Teams.TeamTitle;
+import me.camm.productions.bedwars.Items.SectionInventories.Inventories.QuickBuyEditor;
 import me.camm.productions.bedwars.Listeners.PacketHandler;
 import me.camm.productions.bedwars.Entities.ShopKeeper;
 import me.camm.productions.bedwars.Files.FileCreators.PlayerFileCreator;
@@ -98,9 +99,14 @@ public class BattlePlayer implements IPlayerUtil
     private TieredItem armor;
 
 
+    //editor
+    private QuickBuyEditor quickEditor;
+
+
+
     private static final int eliminationTime;
     static {
-        eliminationTime = 5;
+        eliminationTime = 5;  //5
     }
 
     public BattlePlayer(Player player, BattleTeam team, Arena arena, int number)
@@ -134,6 +140,8 @@ public class BattlePlayer implements IPlayerUtil
         PlayerFileCreator creator = new PlayerFileCreator(this,arena);
         creator.createDirectory(); creator.createHotBarFile(); creator.createInventoryFile();
 
+
+
         this.lastMilk = 0;
 
     }
@@ -164,6 +172,11 @@ public class BattlePlayer implements IPlayerUtil
         {
 
         }
+    }
+
+    public void removeInvisibilityEffect() {
+        player.removePotionEffect(PotionEffectType.INVISIBILITY);
+      //  System.out.println("[DEBUG] Remove invis effect");
     }
 
 
@@ -197,6 +210,7 @@ public class BattlePlayer implements IPlayerUtil
         this.barManager = reader.readBarFile();
         this.shopManager = reader.readInvFile();
 
+         quickEditor = new QuickBuyEditor(this);
         shopManager.setOwner(this);
     }
 
@@ -348,7 +362,7 @@ public class BattlePlayer implements IPlayerUtil
            board.setScoreName(newTeam.getColor().getName(), getTeamStatus(newTeam) + CURRENT_TEAM.getPhrase());
            //Sets the default score to one with the "you"
 
-           board.interchangeIdentifiers(CURRENT_TEAM.getPhrase(), this.team.getColor().getName(), newTeam.getColor().getName()/*,CURRENT_TEAM.getPhrase()*/);
+           board.interchangeIdentifiers(CURRENT_TEAM.getPhrase(), this.team.getColor().getName(), newTeam.getColor().getName());
             //Interchanging identifiers. This makes it so that the scores keep the same positions.
 
            //removing the player from their previous team.
@@ -434,6 +448,8 @@ public class BattlePlayer implements IPlayerUtil
         if (isSpectator)
         {
 
+
+
             for (BattlePlayer current: arena.getPlayers().values())
             {
                if (current.equals(this))
@@ -486,7 +502,7 @@ public class BattlePlayer implements IPlayerUtil
 
     public void handlePlayerIntoSpectator(PacketHandler handler, boolean isFinal, Player killer)
     {
-        dropInventory(player.getLocation().clone());
+        dropInventory(player.getLocation().clone(),killer);
         teleport(arena.getSpecSpawn());
 
 
@@ -655,7 +671,7 @@ public class BattlePlayer implements IPlayerUtil
     Empties and clears the player's inventory.
     Currency items (gold, iron, etc) are dropped
      */
-    public void dropInventory(final Location loc)
+    public void dropInventory(final Location deathLocation, final Player killer)
     {
         Inventory inv = player.getInventory();
         new BukkitRunnable()
@@ -664,7 +680,18 @@ public class BattlePlayer implements IPlayerUtil
             public void run()
             {
                 World w = player.getWorld();
-                Arrays.stream(inv.getContents()).filter(item -> Objects.nonNull(item)&&ItemHelper.isCurrencyItem(item)).forEach(item -> w.dropItem(loc,item));
+                if (killer == null)
+                Arrays.stream(inv.getContents()).filter(item -> Objects.nonNull(item)&&ItemHelper.isCurrencyItem(item)).forEach(item -> {
+                    org.bukkit.entity.Item drop = w.dropItem(deathLocation,item);
+                    drop.setPickupDelay(0);
+
+                });
+               else
+                    Arrays.stream(inv.getContents()).filter(item -> Objects.nonNull(item)&&ItemHelper.isCurrencyItem(item)).forEach(item -> {
+                                org.bukkit.entity.Item drop = w.dropItem(killer.getLocation(), item);
+                                drop.setPickupDelay(0);
+                            });
+
                 clearInventory(player);
                 cancel();
             }
@@ -1018,10 +1045,9 @@ public class BattlePlayer implements IPlayerUtil
         return this.isEliminated;
     }
 
-
-
-
-
+    public QuickBuyEditor getQuickEditor() {
+        return quickEditor;
+    }
 
 
 }
