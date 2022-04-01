@@ -1,7 +1,7 @@
 package me.camm.productions.bedwars.Files.FileStreams;
 
 import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
-import me.camm.productions.bedwars.Util.Helpers.StringToolBox;
+import me.camm.productions.bedwars.Util.Helpers.StringHelper;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class InventoryFileReader extends StringToolBox
+public class InventoryFileReader extends StringHelper
 {
     private final Player player;
     private final Plugin plugin;

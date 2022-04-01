@@ -39,7 +39,21 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+
+                            <filters>
+                                <filter>
+                                    <artifact>org.jetbrains:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.MF</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+
+
+
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+
+
                         </configuration>
                     </execution>
                 </executions>
@@ -71,5 +85,13 @@
         <version>1.8.8-R0.1-SNAPSHOT</version>
         <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>16.0.2</version>
+        </dependency>
+
+
     </dependencies>
 </project>

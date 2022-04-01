@@ -39,9 +39,12 @@ public enum InventoryProperty
     //Slots of the items in the inv. (Ones you can buy.)
     //start of the wall of items (includes start, not the slot before which is air)
     QUICK_INV_BORDER_START(19),
+    QUICK_INV_ROW1_END(25),
     QUICK_INV_BORDER_ROW2_START(28),
+    QUICK_INV_BORDER_ROW2_END(34),
 
     //end of the wall of items (up to end, not including slot after which is air)
+    QUICK_INV_ROW3_START(37),
     QUICK_INV_BORDER_END(43),
 
     SMALL_SHOP_SIZE(27),

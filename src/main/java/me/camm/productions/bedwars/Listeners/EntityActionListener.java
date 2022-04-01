@@ -22,6 +22,7 @@ import org.bukkit.event.player.PlayerAchievementAwardedEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -180,7 +181,7 @@ public class EntityActionListener implements Listener
         runner.attemptEndGame();
     }
 
-    private static void handleKillerStats(BattlePlayer killer, boolean isFinal) {
+    private static void handleKillerStats(@NotNull BattlePlayer killer, boolean isFinal) {
         killer.playSound(PacketSound.DING);
         if (isFinal)
             killer.setFinals(killer.getFinals()+1);
@@ -188,7 +189,7 @@ public class EntityActionListener implements Listener
             killer.setKills(killer.getKills()+1);
     }
 
-    private void updateHistoryDamage(BattlePlayer hurt, EntityDamageByEntityEvent event){
+    private void updateHistoryDamage(@NotNull BattlePlayer hurt, EntityDamageByEntityEvent event){
         if (damageHistory.containsKey(hurt.getUUID()))
             damageHistory.replace(hurt.getUUID(),new DamageSet(event, System.currentTimeMillis()));
         else
@@ -267,7 +268,7 @@ public class EntityActionListener implements Listener
 
         BattlePlayer sending = arenaPlayers.get(player.getUniqueId());
         BattleTeam team = sending.getTeam();
-        TeamColors color = team.getColor();
+        TeamColors color = team.getTeamColor();
 
         team.sendTeamMessage(ChatColor.RESET+"<"+color.getChatColor()+player.getName()+ChatColor.RESET+">"+event.getMessage());
 

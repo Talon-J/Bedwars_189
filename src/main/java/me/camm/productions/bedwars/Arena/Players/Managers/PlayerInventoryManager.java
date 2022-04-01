@@ -51,7 +51,6 @@ public class PlayerInventoryManager
     public PlayerInventoryManager(ArrayList<ShopItemSet> quickBuyConfiguration, boolean isInflated)
     {
 
-        System.out.println("playerinvManager constructor:  inflated: "+isInflated);
         armorSection = new ArmorSectionInventory(isInflated);
         quickBuy = new QuickBuySection(isInflated,quickBuyConfiguration);
         toolsSection = new ToolsSectionInventory(isInflated);

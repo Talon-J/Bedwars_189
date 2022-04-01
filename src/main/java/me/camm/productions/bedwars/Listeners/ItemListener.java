@@ -2,10 +2,10 @@ package me.camm.productions.bedwars.Listeners;
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
-import me.camm.productions.bedwars.Files.FileKeywords.TeamFileKeywords;
 import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Items.ItemDatabases.TieredItem;
 
+import me.camm.productions.bedwars.Util.Helpers.InventoryOperationHelper;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 import org.bukkit.Location;
 
@@ -17,11 +17,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.ItemMergeEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 
 import org.bukkit.inventory.ItemStack;
 
-import org.bukkit.plugin.Plugin;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -30,14 +30,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import static me.camm.productions.bedwars.Files.FileKeywords.TeamFileKeywords.FORGE_SPAWN;
 import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.ARENA;
 
-public class ItemPickupListener implements Listener
+public class ItemListener implements Listener
 {
-    private final Plugin plugin;
     private final Arena arena;
 
-    public ItemPickupListener(Plugin plugin, Arena arena)
+    public ItemListener(Arena arena)
     {
-        this.plugin = plugin;
         this.arena = arena;
     }
 
@@ -122,6 +120,51 @@ public class ItemPickupListener implements Listener
                         currentReceiver.getRawPlayer().getInventory().addItem(picked);
                 }
             }
+
+    }
+
+
+
+    @EventHandler
+    public void onItemDrop(PlayerDropItemEvent event)
+    {
+        Player player = event.getPlayer();
+        ConcurrentHashMap<UUID, BattlePlayer> registered = arena.getPlayers();
+        if (!registered.containsKey(player.getUniqueId()))
+            return;
+
+        Item dropped = event.getItemDrop();
+
+        ItemStack stack = dropped.getItemStack();
+        if (stack==null || stack.getItemMeta() == null)
+            return;
+
+        BattlePlayer current = registered.get(player.getUniqueId());
+        ShopItem item = ItemHelper.getAssociate(stack);
+
+        if ( (ItemHelper.isAxe(stack) || ItemHelper.isPick(stack))) {
+            event.setCancelled(true);
+            return;
+        }
+
+        /*
+        Navigators should not be dropped, but they also should not end up in the
+        player inv.
+         */
+        if (ItemHelper.getNavigator(stack) != null) {
+            event.getItemDrop().remove();
+            return;
+        }
+
+        if (!ItemHelper.isSword(item))
+            return;
+
+        if (ItemHelper.isInventoryPlaceRestrict(stack)) {
+            event.setCancelled(true);
+            return;
+        }
+
+        InventoryOperationHelper.operateSwordCount(current);
 
     }
 }

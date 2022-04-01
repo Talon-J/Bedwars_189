@@ -359,10 +359,10 @@ public class BattlePlayer implements IPlayerUtil
            board.setScoreName(CURRENT_TEAM.getPhrase(), getTeamStatus(this.team));
            //sets the score with the "you" to the default score name regarding a team.
 
-           board.setScoreName(newTeam.getColor().getName(), getTeamStatus(newTeam) + CURRENT_TEAM.getPhrase());
+           board.setScoreName(newTeam.getTeamColor().getName(), getTeamStatus(newTeam) + CURRENT_TEAM.getPhrase());
            //Sets the default score to one with the "you"
 
-           board.interchangeIdentifiers(CURRENT_TEAM.getPhrase(), this.team.getColor().getName(), newTeam.getColor().getName());
+           board.interchangeIdentifiers(CURRENT_TEAM.getPhrase(), this.team.getTeamColor().getName(), newTeam.getTeamColor().getName());
             //Interchanging identifiers. This makes it so that the scores keep the same positions.
 
            //removing the player from their previous team.
@@ -583,16 +583,17 @@ public class BattlePlayer implements IPlayerUtil
         if (getShears() != null)
         barManager.set(ItemHelper.toSoldItem(getShears(),this),getShears(),player);
 
+        TieredItem degraded;
+
         if (getPick() != null) {
-            TieredItem worsePick = handlePersistentItemDegradation(getPick());
-            setPickDownwards(worsePick);
+            degraded = handlePersistentItemDegradation(getPick());
+            setPickDownwards(degraded);
 
             barManager.set(ItemHelper.toSoldItem(pick.getItem(), this), getPick().getItem(), player);
         }
         if (getAxe() != null) {
-            TieredItem worseAxe = handlePersistentItemDegradation(getAxe());
-            setAxeDownwards(worseAxe);
-
+            degraded = handlePersistentItemDegradation(getAxe());
+            setAxeDownwards(degraded);
             barManager.set(ItemHelper.toSoldItem(axe.getItem(), this), getAxe().getItem(), player);
         }
         barManager.set(ItemHelper.toSoldItem(ShopItem.WOODEN_SWORD,this), ShopItem.WOODEN_SWORD,player);
@@ -680,17 +681,13 @@ public class BattlePlayer implements IPlayerUtil
             public void run()
             {
                 World w = player.getWorld();
-                if (killer == null)
+                final Location dropLocation = (killer == null ? deathLocation : killer.getLocation()).clone();
+
                 Arrays.stream(inv.getContents()).filter(item -> Objects.nonNull(item)&&ItemHelper.isCurrencyItem(item)).forEach(item -> {
-                    org.bukkit.entity.Item drop = w.dropItem(deathLocation,item);
+                    org.bukkit.entity.Item drop = w.dropItem(dropLocation,item);
                     drop.setPickupDelay(0);
 
                 });
-               else
-                    Arrays.stream(inv.getContents()).filter(item -> Objects.nonNull(item)&&ItemHelper.isCurrencyItem(item)).forEach(item -> {
-                                org.bukkit.entity.Item drop = w.dropItem(killer.getLocation(), item);
-                                drop.setPickupDelay(0);
-                            });
 
                 clearInventory(player);
                 cancel();

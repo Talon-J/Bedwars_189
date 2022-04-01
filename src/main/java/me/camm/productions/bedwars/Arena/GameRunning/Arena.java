@@ -17,6 +17,7 @@ import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -88,17 +89,6 @@ public class Arena
 
   }
 
-    private HashMap<String, ShopItem> setShopItems()
-    {
-        HashMap<String, ShopItem> shopItems = new HashMap<>();
-
-        for (ShopItem item: ShopItem.values())
-        {
-            if (!shopItems.containsKey(item.name))
-                shopItems.put(item.name, item);
-        }
-        return shopItems;
-    }
 
     public synchronized void removePlayer(UUID uuid)
     {
@@ -115,12 +105,12 @@ public class Arena
         players.put(uuid, player);
     }
 
-  public void addTeams(ArrayList<BattleTeam> list)
+  public void addTeams(@NotNull ArrayList<BattleTeam> list)
   {
       for (BattleTeam team: list)
       {
           if (team!=null)
-              this.teams.put(team.getColor().getName(),team);
+              this.teams.put(team.getTeamColor().getName(),team);
       }
   }
 
@@ -160,7 +150,7 @@ public class Arena
       ArrayList<Integer> values = new ArrayList<>();
 
       teams.forEach((String, team) ->  //getting colors from each team
-              values.add(team.getColor().getValue())
+              values.add(team.getTeamColor().getValue())
   );
       int[] arrayValues = new int[values.size()];  //transferring to int array
 
@@ -251,62 +241,3 @@ public class Arena
       return bounds;
     }
 }
-
-
-
-
-
-
-
-/*
-public void print()
-    {
-        System.out.println("Void level: "+voidLevel);
-        System.out.print("Bounds:");
-        printArray(bounds);
-        System.out.print("\n");
-        System.out.print("HubSpawn: ");
-        printArray(hubSpawn);
-        System.out.print("\n");
-        System.out.print("SpectatorSpawn: ");
-        printArray(spectatorSpawn);
-        System.out.println("\n\n");
-        printGenerators();
-    }
-//testing
-    private void printArray(int [] array)
-    {
-        for (int slot=0;slot<array.length;slot++)
-        {
-            System.out.print(array[slot]+" ");
-        }
-    }
-   //testing
-    private void printArray(double [] array)
-    {
-        for (int slot=0;slot<array.length;slot++)
-        {
-            System.out.print(array[slot]+" ");
-        }
-    }
-
-    //testing
-    private void printGenerators()
-    {
-        for (int slot=0;slot<generators.size();slot++)
-        {
-            System.out.println("\n\nGenerator #"+slot+"||"+generators.get(slot).getX()+"||"+generators.get(slot).getY()+"||"+generators.get(slot).getZ());
-            System.out.println("Generator #"+slot+"|| type: "+generators.get(slot).getType());
-
-            int[] blocks = generators.get(slot).getBox().getBounds();
-            // System.out.println("Size: "+blocks.length);
-
-            System.out.print("Generator #"+slot+" Box: ");
-            for (int size=0;size<blocks.length;size++)
-            {
-                System.out.print(blocks[size]+" || ");
-            }
-
-        }
-    }
- */

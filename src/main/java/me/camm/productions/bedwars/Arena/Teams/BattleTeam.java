@@ -512,6 +512,7 @@ It is up to the calling method to update the scoreboards of the players.
         int remaining = 0;
 
         Collection<BattlePlayer> players = this.players.values();
+
         for (BattlePlayer player: players)
         {
             if (!player.getIsEliminated()&&player.getRawPlayer().isOnline())
@@ -561,10 +562,13 @@ It is up to the calling method to update the scoreboards of the players.
         return this.activeArmorEnchant;
     }
 
+    /*
     public TeamColors getColor()
     {
         return this.teamColor;
     }
+
+     */
 
     public synchronized boolean isEliminated()
     {

@@ -2,19 +2,20 @@ package me.camm.productions.bedwars;
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.GameRunning.Commands.CommandKeyword;
-import me.camm.productions.bedwars.Arena.GameRunning.Commands.SetUp;
+import me.camm.productions.bedwars.Arena.GameRunning.Commands.GameIntializer;
 import me.camm.productions.bedwars.Arena.GameRunning.GameRunner;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Players.Managers.HotbarManager;
 import me.camm.productions.bedwars.Arena.Players.Managers.PlayerInventoryManager;
 import me.camm.productions.bedwars.Entities.ActiveEntities.GameDragon;
+import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Listeners.PacketHandler;
 import me.camm.productions.bedwars.Files.FileCreators.DirectoryCreator;
 import me.camm.productions.bedwars.Files.FileStreams.GameFileWriter;
 import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.QuickBuySection;
 import me.camm.productions.bedwars.Util.DataSets.ShopItemSet;
-import me.camm.productions.bedwars.Util.Helpers.StringToolBox;
+import me.camm.productions.bedwars.Util.Helpers.StringHelper;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -33,7 +34,7 @@ import java.util.Map;
 
 public final class BedWars extends JavaPlugin
 {
-    private SetUp initialization;
+    private GameIntializer initialization;
     private final String DRAGON_NAME = "EnderDragon";
     private final int DRAGON_ID = 63;
 
@@ -67,7 +68,7 @@ public final class BedWars extends JavaPlugin
                aMethod.setAccessible(true);
                aMethod.invoke(EntityTypes.class, GameDragon.class, DRAGON_NAME, DRAGON_ID);
 
-               initialization = new SetUp(this);
+               initialization = new GameIntializer(this);
 
                for (CommandKeyword word: CommandKeyword.values()) {
                    getCommand(word.getWord()).setExecutor(initialization);
@@ -157,7 +158,7 @@ public final class BedWars extends JavaPlugin
             return;
 
 
-            StringToolBox box = new StringToolBox(this);
+            StringHelper box = new StringHelper(this);
             Collection<BattlePlayer> registered = arena.getPlayers().values();
 
         //writing to bar file
@@ -172,7 +173,7 @@ public final class BedWars extends JavaPlugin
                     ArrayList<String> valueList = new ArrayList<>();
 
                     Arrays.stream(barItems).forEach(item -> valueList.add(
-                            item == null ? "" : item.toString()));
+                            item == null ? null : item.toString()));
                     String[] barList = valueList.toArray(new String[valueList.size()]);
                     barWriter.write(barList, false);
                 }
@@ -182,11 +183,12 @@ public final class BedWars extends JavaPlugin
                 PlayerInventoryManager invManager = battlePlayer.getShopManager();
                 if (invManager!=null) {
                     QuickBuySection playerShop = invManager.getQuickBuy();
-                    ArrayList<ShopItemSet> shopSet = playerShop.packageInventory(playerShop);
+                    ArrayList<ShopItemSet> shopSet = playerShop.packageInventory();
 
                     GameFileWriter shopWriter = new GameFileWriter(box.getInventoryPath(battlePlayer.getRawPlayer()), this);
+                   shopWriter.clear();
                     ArrayList<String> shopList = new ArrayList<>();
-                    shopSet.forEach(pack -> shopList.add(pack == null ? "" : pack.toString()));
+                    shopSet.forEach(pack -> shopList.add(pack == null ? ShopItem.EMPTY_SLOT.name() : pack.toString()));
                     String[] shopWriteList = shopList.toArray(new String[shopList.size()]);
                     shopWriter.write(shopWriteList, false);
                 }
@@ -209,16 +211,15 @@ public final class BedWars extends JavaPlugin
     /*
 TODO: (In the very near future)
  - Find a better solution to the explosives problem. [IN PROGRESS]
-  + fireballs, accurate (kinda). TNT, not.
- - Do testing while the player is in spectator
+  + fireballs, accurate in terms of block damage.
+   + fireball explosions (where they explode) are shifted. Bad.
+  + tnt is not accurate
+ - add tracker shop & quick comms
+ - HB manager: If you use the number keys to buy items, then it goes to that number slot, not the set slot
+ - Fire still spreads! <-- bad (Doesn't fade or burn out though)
+  + Also, might wanna make sure that you don't have fire floating around on air
 
- - add tracker shop
- - do permissions [TEST]
 
- //From playtesting - BUGS
-Dragons hitting players remove spectator mode. [TEST]
-Fireballs, tnt
-Not enough items sound should be replaced.
  NOTE: The check for opposition in the CLASS "Setup" is currently ----   ---- disabled for testing purposes.
 
 

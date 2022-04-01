@@ -112,7 +112,7 @@ public class ExecutableBoundaryLoader implements Runnable
                                         continue;
                                     }
 
-                                    if (block.hasMetadata(team.getColor().getName()))
+                                    if (block.hasMetadata(team.getTeamColor().getName()))
                                     {
                                         current = team;
                                         break;
@@ -133,7 +133,7 @@ public class ExecutableBoundaryLoader implements Runnable
                                Trap activated = current.activateNextTrap();
                                if (activated != null)
                                {
-                                   current.sendTeamMessage(ChatColor.RED+"[TRAP] Your "+activated+" was activated by "+player.getTeam().getColor().getName()+" team!");
+                                   current.sendTeamMessage(ChatColor.RED+"[TRAP] Your "+activated+" was activated by "+player.getTeam().getTeamColor().getName()+" team!");
                                    current.sendTeamTitle(activated.getTrapTitle().getMessage(),"",5,40,5);
                                    current.sendTeamSoundPacket(PacketSound.ENDERMAN);
 

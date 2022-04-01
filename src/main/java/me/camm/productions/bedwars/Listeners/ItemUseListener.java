@@ -39,7 +39,7 @@ import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.BASE;
 import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.GENERATOR;
 
 
-public class ItemInteractListener implements Listener
+public class ItemUseListener implements Listener
 {
     private final Plugin plugin;
     private final PacketHandler handler;
@@ -61,7 +61,7 @@ public class ItemInteractListener implements Listener
     }
 
 
-    public ItemInteractListener(Plugin plugin, Arena arena, PacketHandler handler, EntityActionListener entityListener)
+    public ItemUseListener(Plugin plugin, Arena arena, PacketHandler handler, EntityActionListener entityListener)
     {
         this.plugin = plugin;
         this.coolDown = new HashMap<>();
@@ -170,7 +170,7 @@ public class ItemInteractListener implements Listener
                             return;
                         else {
                             event.setCancelled(true);
-                            player.sendMessage(team.getTeamColor().getChatColor() + team.getColor().getName() + " is not eliminated yet!");
+                            player.sendMessage(team.getTeamColor().getChatColor() + team.getTeamColor().getName() + " is not eliminated yet!");
                         }
                         return;
                     }
@@ -269,39 +269,7 @@ public class ItemInteractListener implements Listener
         //also put in above method.
     }
 
-    @EventHandler
-    public void onItemDrop(PlayerDropItemEvent event)
-    {
-        Player player = event.getPlayer();
-        ConcurrentHashMap<UUID, BattlePlayer> registered = arena.getPlayers();
-        if (!registered.containsKey(player.getUniqueId()))
-            return;
 
-        Item dropped = event.getItemDrop();
-
-        ItemStack stack = dropped.getItemStack();
-        if (stack==null || stack.getItemMeta() == null)
-            return;
-
-        BattlePlayer current = registered.get(player.getUniqueId());
-        ShopItem item = ItemHelper.getAssociate(stack);
-
-        if ( (ItemHelper.isAxe(stack) || ItemHelper.isPick(stack))) {
-            event.setCancelled(true);
-            return;
-        }
-
-        if (!ItemHelper.isSword(item))
-            return;
-
-        if (item == ShopItem.WOODEN_SWORD || (stack.getType() == Material.WOOD_SWORD)) {
-            event.setCancelled(true);
-            return;
-        }
-
-        InventoryOperationHelper.operateSwordCount(current);
-
-    }
 
     public void updateMap(Player player)
     {

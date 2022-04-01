@@ -37,10 +37,10 @@ public class TeamJoinInventory   //class to make inv for players to join teams
        for (int slot=0;slot<teams.size();slot++)
        {
            BattleTeam currentTeam = teams.get(slot);
-           ItemStack wool = new ItemStack(Material.WOOL,1,(short)0,(byte)(currentTeam.getColor().getValue()));
+           ItemStack wool = new ItemStack(Material.WOOL,1,(short)0,(byte)(currentTeam.getTeamColor().getValue()));
            ItemMeta woolMeta = wool.getItemMeta();
 
-           woolMeta.setDisplayName(currentTeam.getColor().getName());
+           woolMeta.setDisplayName(currentTeam.getTeamColor().getName());
            wool.setItemMeta(woolMeta);
            inventory.setItem(slot,wool);
        }

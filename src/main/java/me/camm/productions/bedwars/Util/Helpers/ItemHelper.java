@@ -7,6 +7,7 @@ import me.camm.productions.bedwars.Items.ItemDatabases.*;
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.HotBarConfig;
 import me.camm.productions.bedwars.Util.DataSets.ShopItemSet;
 import me.camm.productions.bedwars.Util.PacketSound;
+import net.minecraft.server.v1_8_R3.ItemCloth;
 import net.minecraft.server.v1_8_R3.NBTTagCompound;
 import net.minecraft.server.v1_8_R3.PacketPlayOutNamedSoundEffect;
 import org.bukkit.*;
@@ -27,11 +28,10 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.BattleEnchantment.*;
 import static me.camm.productions.bedwars.Items.ItemDatabases.ShopItem.SHEARS;
@@ -49,11 +49,13 @@ public class ItemHelper implements IPlayerUtil
   private static final ArrayList<ShopItem> restrictedFileItems;
   private static final ArrayList<TieredItem> tieredItemList;
   private static final ArrayList<TieredItem> lowestTiers;
+  private static final HashSet<ShopItem> navigators;
 
 
  static {
          TieredItem[] tieredItems = TieredItem.values();
          ShopItem[] inventory = ShopItem.values();
+         navigators = new HashSet<>();
 
          restrictedFileItems = new ArrayList<>();
 
@@ -68,9 +70,11 @@ public class ItemHelper implements IPlayerUtil
          }
 
          for (ShopItem item : inventory) {
-             if (item.category != NAV)
-                 continue;
-             restrictedFileItems.add(item);
+
+             if (isNavigator(item)) {
+                 navigators.add(item);
+                 restrictedFileItems.add(item);
+             }
          }
 
          for (TieredItem item : tieredItems) {
@@ -105,7 +109,7 @@ public class ItemHelper implements IPlayerUtil
 
 
     // sells an item. accounts for team enchants and inflation. also accounts for if the item is a placeholder.
-    //unfinished. requires code for dream defender. ***CODE ADDED. PLEASE TEST.
+    //also accounts for dream defenders.
     public static void sellItem(ShopItem item, BattlePlayer player, boolean isInflated)
     {
 
@@ -224,18 +228,18 @@ public class ItemHelper implements IPlayerUtil
 
                     switch (toolCategory) {
                         case PICK:
-                            player.sendMessage("[DEBUG]: SET PICK");
+                          //  player.sendMessage("[DEBUG]: SET PICK");
                             player.setPickUpwards(possible);
                             break;
 
                         case AXE:
-                            player.sendMessage("[DEBUG]: SET AXE");
+                          //  player.sendMessage("[DEBUG]: SET AXE");
                             player.setAxeUpwards(possible);
                     }
                 }
 
                 if (item==SHEARS) {
-                    player.sendMessage("[DEBUG]: SET SHEARS");
+                   // player.sendMessage("[DEBUG]: SET SHEARS");
                     player.setShears();
                 }
 
@@ -377,16 +381,13 @@ public class ItemHelper implements IPlayerUtil
                 return false;
             }
 
+            if (getNavigator(stack) != null)
+                return true;
 
-            System.out.println("pick?"+isPick(stack));
-            System.out.println("axe?"+isAxe(stack));
-            System.out.println("sword?"+isSword(stack.getType()));
-            System.out.println("wood?"+isWooden(stack.getType()));
-
-            return isPick(stack) || isAxe(stack) || (isSword(stack.getType()) && isWooden(stack.getType()));
+            return isPick(stack) || isAxe(stack) || (isSword(stack.getType()) && isWoodenSimple(stack.getType()));
         }
 
-        public static boolean isWooden(Material mat){
+        public static boolean isWoodenSimple(Material mat){
             return mat.name().toLowerCase().contains("wood");
 
         }
@@ -434,7 +435,7 @@ public class ItemHelper implements IPlayerUtil
                 break;
 
             case BLOCK:
-                byte color = (byte)player.getTeam().getColor().getValue();
+                byte color = (byte)player.getTeam().getTeamColor().getValue();
                 stack = addBlockColor(color,item);
                 break;
 
@@ -509,7 +510,7 @@ public class ItemHelper implements IPlayerUtil
     @SuppressWarnings("deprecation")
     public static ItemStack toDisplayItem(ShopItem item, boolean isInflated)
     {
-        System.out.println("to display item: "+item.name+": inflated: "+isInflated);
+       // System.out.println("to display item: "+item.name+": inflated: "+isInflated);
         ItemCategory category = item.category;
 
         ItemStack stack;
@@ -612,19 +613,19 @@ public class ItemHelper implements IPlayerUtil
     }
 
     @SuppressWarnings("deprecation")
-    public static ItemStack createColoredGlass(Material mat, DyeColor color){
+    public static @Nullable ItemStack createColoredGlass(Material mat, DyeColor color){
             if (mat == STAINED_GLASS || mat == STAINED_GLASS_PANE)
                 return new ItemStack(mat, 1, color.getData());
             return null;
     }
 
     //returns colored armor along with any enchantments a battle team has. does not set armor for the player
-    public static ItemStack[] inventoryItemToArmor(ShopItem item, BattlePlayer player)
+    public static ItemStack @Nullable [] inventoryItemToArmor(@NotNull ShopItem item, BattlePlayer player)
     {
         if (item.category!=ARMOR)
             return null;
 
-        Color color = player.getTeam().getColor().getColor();
+        Color color = player.getTeam().getTeamColor().getColor();
 
         ItemStack head;
         ItemStack chest;
@@ -762,9 +763,10 @@ public class ItemHelper implements IPlayerUtil
      */
     public static ArrayList<ShopItemSet> filter(ArrayList<ShopItemSet> original)
     {
-        original.removeIf(item -> restrictedFileItems.contains(item.getItem()));
-        original.removeIf(item -> !isInQuickBuyRange(item.getSlot()));
         original.removeIf(Objects::isNull);
+        original.removeIf(item -> restrictedFileItems.contains(item.getItem()));
+        original.removeIf(item -> !InventoryOperationHelper.isInQuickBuyPanel(item.getSlot()));
+
         return original;
     }
 
@@ -809,7 +811,7 @@ public class ItemHelper implements IPlayerUtil
 
 
 
-
+     @Deprecated
     public static boolean isInQuickBuyRange(int slot)
     {
         return slot>=QUICK_INV_BORDER_START.getValue()&&slot<= QUICK_INV_BORDER_END.getValue();
@@ -833,6 +835,11 @@ public class ItemHelper implements IPlayerUtil
     {
         return category==NONE||category==NAV||category==SEPARATOR||category==TRACKER;
     }
+
+    public static boolean isNavigator(ShopItem item){
+        return item != null && (item.category == NAV || item.name().toLowerCase().contains("nav"));
+    }
+
 
     public static boolean isItemInvalid(ItemStack item)
     {
@@ -867,9 +874,15 @@ public class ItemHelper implements IPlayerUtil
      */
     public static boolean isFileRestricted(ShopItem item)
     {
+        if (item == null)
+            return true;
+
        TieredItem tier = isTieredItem(item);
-       if (tier==null)
-           return false;
+       if (tier==null) {
+
+           ItemCategory category = item.category;
+           return category == NAV || category == SEPARATOR || category == OPERATOR;
+       }
       return !tier.getIsFileValid();
     }
 
@@ -923,7 +936,7 @@ public class ItemHelper implements IPlayerUtil
                 break;
 
             default:
-                name = ChatColor.MAGIC+"Umm... Something...Ducks?";
+                name = ChatColor.MAGIC+"If you're reading this, you're awesome. :D";
         }
         return name;
     }
@@ -1148,6 +1161,48 @@ public class ItemHelper implements IPlayerUtil
             return null;
 
     }
+
+    /*
+     Get the associated item for packaging the inventory for writing to files
+     */
+    public static ShopItem getPackingAssociate(ItemStack stack){
+        if (isItemInvalid(stack))
+            return ShopItem.EMPTY_SLOT;
+
+        String name = stack.getItemMeta().getDisplayName();
+        if (name==null)
+            return ShopItem.EMPTY_SLOT;
+
+        for (ShopItem item: ShopItem.values()) {
+            if (item.name.equalsIgnoreCase(name))
+                return item;
+        }
+        return ShopItem.EMPTY_SLOT;
+    }
+
+    public static @Nullable ShopItem getNavigator(ItemStack stack){
+
+        if (isItemInvalid(stack))
+            return null;
+
+        for (ShopItem item: navigators) {
+            if (item.sellMaterial != stack.getType())
+                continue;
+
+            String name = stack.getItemMeta().getDisplayName();
+
+            if (name==null)
+                continue;
+
+            if (name.equalsIgnoreCase(item.name))
+                return item;
+
+        }
+        return null;
+    }
+
+
+
 
     public static ItemStack toBarItem(ItemCategory category){
         if (category == null)

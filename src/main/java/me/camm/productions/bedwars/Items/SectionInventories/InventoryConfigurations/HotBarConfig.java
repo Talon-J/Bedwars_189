@@ -8,17 +8,16 @@ import org.bukkit.Material;
 
 public enum HotBarConfig
 {
-    RETURN(Material.ARROW, "Return to Quick Buy", ItemCategory.OPERATOR, new int[]{3}),
-    RESET(Material.BARRIER, "Reset Configuration", ItemCategory.OPERATOR, new int[]{5}),
+    RETURN(Material.ARROW, ChatColor.AQUA+"Return to Quick Buy", ItemCategory.OPERATOR, new int[]{3}),
+    RESET(Material.BARRIER, ChatColor.GOLD+"Reset Configuration", ItemCategory.OPERATOR, new int[]{5}),
     SEPARATOR(ShopItem.SEPARATOR.sellMaterial, ChatColor.DARK_GRAY+"\u21e7 Categories "+ChatColor.GRAY+"\u21e9 Configuration",null, new int[]{27,28,29,30,31,32,33,34,35}),
-    BLOCK(ShopItem.BLOCKS_NAV.sellMaterial,ChatColor.GOLD+"Blocks",ItemCategory.BLOCK, new int[]{InventoryProperty.LARGE_ROW_THREE_START.getValue()+1}),
-    MELEE(ShopItem.MELEE_NAV.sellMaterial, ChatColor.GOLD+"Melee", ItemCategory.MELEE, new int[]{InventoryProperty.LARGE_ROW_THREE_START.getValue()+2}),
-    ARMOR(ShopItem.ARMOR_NAV.sellMaterial,ChatColor.GOLD+"Armor",ItemCategory.ARMOR, new int[]{InventoryProperty.LARGE_ROW_THREE_START.getValue()+3}),
-    TOOLS(ShopItem.TOOLS_NAV.sellMaterial,ChatColor.GOLD+"Tools",ItemCategory.TOOLS, new int[]{InventoryProperty.LARGE_ROW_THREE_START.getValue()+4}),
-    RANGED(ShopItem.RANGED_NAV.sellMaterial,ChatColor.GOLD+"Ranged",ItemCategory.RANGED, new int[]{InventoryProperty.LARGE_ROW_THREE_START.getValue()+5}),
-    POTION(ShopItem.POTIONS_NAV.sellMaterial,ChatColor.GOLD+"Potion",ItemCategory.POTION, new int[]{InventoryProperty.LARGE_ROW_THREE_START.getValue()+6}),
-    UTILITY(ShopItem.UTILITY_NAV.sellMaterial,ChatColor.GOLD+"Utility",ItemCategory.UTILITY, new int[]{InventoryProperty.LARGE_ROW_THREE_START.getValue()+7}),
-    TRACKER(ShopItem.TRACKER_NAV.sellMaterial,ChatColor.GOLD+"Tracker",ItemCategory.TRACKER,new int[]{InventoryProperty.LARGE_ROW_THREE_START.getValue()+8});
+    BLOCK(ShopItem.BLOCKS_NAV.sellMaterial,ShopItem.BLOCKS_NAV.name,ItemCategory.BLOCK, new int[]{InventoryProperty.LARGE_ROW_THREE_START.getValue()+1}),
+    MELEE(ShopItem.MELEE_NAV.sellMaterial, ShopItem.MELEE_NAV.name, ItemCategory.MELEE, new int[]{InventoryProperty.LARGE_ROW_THREE_START.getValue()+2}),
+    TOOLS(ShopItem.TOOLS_NAV.sellMaterial,ShopItem.TOOLS_NAV.name, ItemCategory.TOOLS, new int[]{InventoryProperty.LARGE_ROW_THREE_START.getValue()+3}),
+    RANGED(ShopItem.RANGED_NAV.sellMaterial,ShopItem.RANGED_NAV.name, ItemCategory.RANGED, new int[]{InventoryProperty.LARGE_ROW_THREE_START.getValue()+4}),
+    POTION(ShopItem.POTIONS_NAV.sellMaterial,ShopItem.POTIONS_NAV.name, ItemCategory.POTION, new int[]{InventoryProperty.LARGE_ROW_THREE_START.getValue()+5}),
+    UTILITY(ShopItem.UTILITY_NAV.sellMaterial,ShopItem.UTILITY_NAV.name, ItemCategory.UTILITY, new int[]{InventoryProperty.LARGE_ROW_THREE_START.getValue()+6}),
+    TRACKER(ShopItem.TRACKER_NAV.sellMaterial,ShopItem.TRACKER_NAV.name, ItemCategory.TRACKER,new int[]{InventoryProperty.LARGE_ROW_THREE_START.getValue()+7});
 
     private final Material mat;
     private final String name;

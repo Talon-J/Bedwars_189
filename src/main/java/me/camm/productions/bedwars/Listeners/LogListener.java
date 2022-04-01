@@ -1,6 +1,7 @@
 package me.camm.productions.bedwars.Listeners;
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
+import me.camm.productions.bedwars.Arena.GameRunning.Commands.CommandKeyword;
 import me.camm.productions.bedwars.Arena.GameRunning.GameRunner;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Players.IPlayerUtil;
@@ -46,7 +47,7 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
 
     public void initPacketHandler(PacketHandler handler){
         if (handler == null)
-            throw new IllegalArgumentException("handler is null");
+            throw new IllegalArgumentException("packet handler is null");
         this.packetHandler = handler;
     }
 
@@ -81,7 +82,7 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
             return;
 
 
-        event.setQuitMessage(current.getTeam().getColor().getChatColor()+current.getRawPlayer().getName()+ ChatColor.YELLOW+" has Quit!");
+        event.setQuitMessage(current.getTeam().getTeamColor().getChatColor()+current.getRawPlayer().getName()+ ChatColor.YELLOW+" has Quit!");
         current.dropInventory(current.getRawPlayer().getLocation().clone(),null);
 
         if (!runner.isRunning()) {
@@ -90,23 +91,28 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
         }
         BattleTeam team = current.getTeam();
 
+
+
+
         //if is on last life
         if (!team.doesBedExist())
         {
             //eliminate them
-            sendMessage(current.getTeam().getColor().getChatColor()+current.getRawPlayer().getName()+ChatColor.YELLOW+" was on their last life! They have been eliminated!",plugin);
+            sendMessage(current.getTeam().getTeamColor().getChatColor()+current.getRawPlayer().getName()+ChatColor.YELLOW+" was on their last life! They have been eliminated!",plugin);
             current.setEliminated(true);
             RunningTeamHelper.updateTeamBoardStatus(registeredPlayers.values());
             //check for the team stuff to see if there's a win here.
         }
 
-        if (team.getRemainingPlayers()==0)
+        int remaining = team.getRemainingPlayers();
+
+        //since the method considers the player logging
+        //out to still be online, then we -1.
+        if (remaining -1 <= 0)
         {
             team.eliminate();
             RunningTeamHelper.updateTeamBoardStatus(registeredPlayers.values());
-            BattleTeam candidate = RunningTeamHelper.isVictorFound(arena.getTeams().values());
-            if (candidate!=null)
-                runner.endGame(candidate);
+            runner.attemptEndGame();
         }
     }
 
@@ -121,22 +127,14 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
         if (!runner.isRunning()) {
 
             if (!perms.containsKey(player.getUniqueId())) {
-                PermissionAttachment[] attachments = new PermissionAttachment[5];
-                attachments[0] = player.addAttachment(plugin);
-                attachments[1] = player.addAttachment(plugin);
-                attachments[2] = player.addAttachment(plugin);
-                attachments[3] = player.addAttachment(plugin);
-                attachments[4] = player.addAttachment(plugin);
+                CommandKeyword[] words = CommandKeyword.values();
+                PermissionAttachment[] attachments = new PermissionAttachment[words.length];
 
-                perms.put(player.getUniqueId(), attachments);
-
-                perms.get(player.getUniqueId())[0].setPermission("setup.do", true);
-                perms.get(player.getUniqueId())[1].setPermission("register.do", true);
-                perms.get(player.getUniqueId())[2].setPermission("game.do", true);
-                perms.get(player.getUniqueId())[3].setPermission("shout.do", true);
-                perms.get(player.getUniqueId())[4].setPermission("unregister.do",true);
-
-
+                for (int slot=0;slot< attachments.length;slot++) {
+                    attachments[slot] = player.addAttachment(plugin);
+                    attachments[slot].setPermission(words[slot].getPerm(),true);
+                }
+                perms.put(player.getUniqueId(),attachments);
                 player.recalculatePermissions();
 
             }

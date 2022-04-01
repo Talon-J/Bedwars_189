@@ -2,14 +2,14 @@ package me.camm.productions.bedwars.Files.FileCreators;
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
-import me.camm.productions.bedwars.Util.Helpers.StringToolBox;
+import me.camm.productions.bedwars.Util.Helpers.StringHelper;
 import org.bukkit.ChatColor;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 
-public class PlayerFileCreator extends StringToolBox //for reading inv files and creating a hotbar mngr
+public class PlayerFileCreator extends StringHelper //for reading inv files and creating a hotbar mngr
 {
     private BattlePlayer player;
     private Arena arena;

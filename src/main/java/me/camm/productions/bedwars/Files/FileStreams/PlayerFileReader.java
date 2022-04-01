@@ -5,7 +5,7 @@ import me.camm.productions.bedwars.Arena.Players.Managers.PlayerInventoryManager
 import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
 import me.camm.productions.bedwars.Util.DataSets.ShopItemSet;
-import me.camm.productions.bedwars.Util.Helpers.StringToolBox;
+import me.camm.productions.bedwars.Util.Helpers.StringHelper;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
@@ -14,10 +14,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.StringTokenizer;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.HOT_BAR_END;
 
-public class PlayerFileReader extends StringToolBox
+public class PlayerFileReader extends StringHelper
 {
     private final Plugin plugin;
     private final boolean isInflated;
@@ -39,9 +40,9 @@ public class PlayerFileReader extends StringToolBox
     public HotbarManager readBarFile()
     {
         HotbarManager manager;
-        try
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(barFile)))
         {
-            BufferedReader reader = new BufferedReader(new FileReader(barFile));
             ArrayList<String> lines = new ArrayList<>();
             String current = reader.readLine();
 
@@ -58,14 +59,15 @@ public class PlayerFileReader extends StringToolBox
             int currentSlot = 0;
             for (String string: lines)
             {
-               string = getKey(string);
-               if (string==null)
-                   continue;
 
                try {
+                   string = string.trim();
                    ItemCategory currentCategory = ItemCategory.valueOf(string);
-                   if (currentCategory==ItemCategory.NONE||currentCategory==ItemCategory.NAV)
+                   if (currentCategory==ItemCategory.NONE||currentCategory==ItemCategory.NAV) {
+                       set[currentSlot] = null;
+                       currentSlot++;
                        continue;
+                   }
 
                    set[currentSlot] = currentCategory;
                    currentSlot++;
@@ -73,31 +75,31 @@ public class PlayerFileReader extends StringToolBox
                    if (currentSlot==set.length-1)
                        break;
                }
-               catch (IllegalArgumentException | NullPointerException ignored)
+               catch (RuntimeException e)
                {
-
+                   set[currentSlot] = null;
+                   currentSlot++;
                }
             }
-            manager = new HotbarManager(plugin,set);
+            manager = new HotbarManager(set);
             return manager;
         }
         catch (IOException e)
         {
-            manager = new HotbarManager(plugin);
+            manager = new HotbarManager();
             return manager;
         }
     }
 
     public PlayerInventoryManager readInvFile()
     {
-        System.out.println("playerInvMngr readInvFile(): inflated: "+isInflated);
-        try
+        try (BufferedReader reader = new BufferedReader(new FileReader(inventoryFile)))
         {
-            BufferedReader reader = new BufferedReader(new FileReader(inventoryFile));
 
             //deal with the possibility of restricted items in the manager.
             ArrayList<ShopItemSet> items = new ArrayList<>();
             String current = reader.readLine();
+
 
             while (current!=null)
             {
@@ -105,22 +107,39 @@ public class PlayerFileReader extends StringToolBox
                 current = checkForComments(current);
 
                 //if the entire line is a comment
-                if (current==null)
+                if (current==null) {
+                   current = reader.readLine();
                     continue;
+                }
 
-               String key = getKey(current);
-               Double slotNumber = getNumber(current);
+                StringTokenizer tk = new StringTokenizer(current);
+                String key;
+                String slotNumber;
 
+                //skip the key
+                if (tk.hasMoreTokens())
+                   key = tk.nextToken();
+                else
+                {
+                    current = reader.readLine();
+                    continue;
+                }
 
-               if (key==null||slotNumber==null)
-                   continue;
+                if (tk.hasMoreTokens())
+                   slotNumber = tk.nextToken();
+                else
+                {
+                    current = reader.readLine();
+                    continue;
+                }
+
                try
                {
-                   //get the inventoryitems representation, and put into an itemset
+                   int slot = Integer.parseInt(slotNumber);
                    ShopItem item = ShopItem.valueOf(key);
-                   items.add(new ShopItemSet(item,slotNumber.intValue()));
+                   items.add(new ShopItemSet(item,slot));
                }
-               catch (IllegalArgumentException | NullPointerException ignored)
+               catch (RuntimeException ignored)
                {
 
                }
@@ -134,6 +153,7 @@ public class PlayerFileReader extends StringToolBox
         {
             return new PlayerInventoryManager(isInflated);
         }
+
     }
 
 }

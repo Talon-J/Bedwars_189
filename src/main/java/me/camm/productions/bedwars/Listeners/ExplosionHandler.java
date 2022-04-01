@@ -53,7 +53,7 @@ public class ExplosionHandler implements Listener
 
     static {
         rand = new Random();
-        BLOCK_BREAK_RANGE = 8;
+        BLOCK_BREAK_RANGE = 12;
     }
 
 
@@ -109,7 +109,7 @@ public class ExplosionHandler implements Listener
         ArrayList<Block> fireCandidates = new ArrayList<>();
 
         Location explosionCenter = exploded.getLocation();
-        double damageDistance = incendiary ? 4:8;
+        double damageDistance = incendiary ? 6:8;
 
 
         Collection<Entity> entities = explosionCenter.getWorld().getNearbyEntities(explosionCenter,damageDistance,damageDistance,damageDistance);
@@ -134,11 +134,7 @@ public class ExplosionHandler implements Listener
                         TracerVector tracer = new TracerVector(direction.clone().normalize(), origin.clone(), length, world);
                         ArrayList<Material> obstructions = tracer.getObstructionLayers();
 
-                        double damage;
-                        if (incendiary)
-                            damage = -0.25*((0.5*length + 0.3*obstructions.size())) +1;
-                        else
-                            damage = -0.125 * (0.5*length + 0.3*obstructions.size()) +1;
+                            double damage = -0.25*((0.5*length)) +1;
 
                     //    damage *= -0.1 * (0.5*length + 0.3*obstructions.size()) + 1;  // this is a function
 
@@ -190,17 +186,17 @@ public class ExplosionHandler implements Listener
 
         while  (distance<BLOCK_BREAK_RANGE)  //8 is arbitrarily the max distance tnt can break blocks.
         {
-            //it doesn't really matter if we iterate forward or backwards...I just wanted backwards
-            // (remember, the project is for educational purposes :D)
 
             for (int rays=directions.size()-1;rays>0;rays--)
             {
                 Block block = directions.get(rays).blockAtDistance(distance);
                 boolean broken = directions.get(rays).conflict(block); //determine if the block should be broken.
 
-
-                if (!broken)
-                continue;
+                if (!broken) {
+                    if (!directions.get(rays).validate())  //If the vector has lost power, then remove it to save resources.
+                        directions.remove(rays);
+                    continue;
+                }
 
                 VectorToolBox.breakAtPosition(directions.get(rays).blockAtDistance(distance)); //breaking the block
 

@@ -11,8 +11,7 @@ public interface ISectionInventory
     void setTemplate(boolean isInflated, boolean includeEmpties);
     void setInventoryItems();
     void setItem(int index, ShopItem item, boolean isInflated);
-    void setItem(int slot, ShopItem item);
-    ArrayList<ShopItemSet> packageInventory(Inventory inv);
+   // ArrayList<ShopItemSet> packageInventory(Inventory inv);
 
 
 

@@ -4,6 +4,7 @@ import me.camm.productions.bedwars.Arena.GameRunning.Events.ActionEvent;
 import me.camm.productions.bedwars.Arena.GameRunning.Events.GameEndAction;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Players.IPlayerUtil;
+import me.camm.productions.bedwars.Arena.Players.Managers.PlayerInventoryManager;
 import me.camm.productions.bedwars.Arena.Players.Scoreboards.PlayerBoard;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Listeners.PacketHandler;
@@ -75,9 +76,9 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
 
 
     private BlockInteractListener blockListener;
-    private ItemInteractListener itemListener;
+    private ItemUseListener itemListener;
     private ExplosionHandler explosionListener;
-    private ItemPickupListener droppedListener;
+    private ItemListener droppedListener;
     private EntityActionListener.LocationManager npcManager;
     private MobSpawnListener mobSpawnListener;
     private EntityActionListener damageListener;
@@ -136,10 +137,6 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
         playerLogListener = new LogListener(arena,this,keepers);
         plugin.getServer().getPluginManager().registerEvents(playerLogListener,plugin);
         addPermissions();
-
-
-
-
 
     }//constructor.
 
@@ -204,7 +201,7 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
 
 
         //Initiating the listeners
-        droppedListener = new ItemPickupListener(plugin, arena);
+        droppedListener = new ItemListener(arena);
         plugin.getServer().getPluginManager().registerEvents(droppedListener,plugin);
 
         mobSpawnListener = new MobSpawnListener();
@@ -219,7 +216,7 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
         explosionListener = new ExplosionHandler(plugin, arena,damageListener);
         plugin.getServer().getPluginManager().registerEvents(explosionListener,plugin);
 
-        itemListener = new ItemInteractListener(plugin,arena,packetHandler,damageListener);
+        itemListener = new ItemUseListener(plugin,arena,packetHandler,damageListener);
         plugin.getServer().getPluginManager().registerEvents(itemListener,plugin);
 
         projectileListener = new ProjectileListener(plugin, arena, damageListener);
@@ -309,9 +306,6 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
     ///////////////////////////////////////////
 
 
-
-
-
     /*
     @Author CAMM
     This method handles the case of a player clicking on one of the inventories present in the game.
@@ -336,18 +330,24 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
 
         if (InventoryOperationHelper.didTryToDragIn(event, section)) {
             event.setCancelled(true);
-            System.out.println("[DEBUG] cancel drag 1");
             return;
         }
 
         if (InventoryOperationHelper.didTryToDragIn(event, player.getTeam().getTeamInventory())) {
             event.setCancelled(true);
-            System.out.println("[DEBUG] cancel drag 2");
             return;
         }
 
-        System.out.println("[DEBUG] operate drag");
+        if (InventoryOperationHelper.didTryToDragIn(event, player.getQuickEditor().getEditor())) {
+            event.setCancelled(true);
+            return;
+        }
+
         InventoryOperationHelper.operateRestrictions(event,arena);
+
+        if (player.getBarManager().invEquals(event.getView().getTopInventory()))
+            InventoryOperationHelper.operateHotBarDrag(event, arena);
+
     }
 
 
@@ -355,16 +355,26 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
     public void onInventoryClick(InventoryClickEvent event)  //for joining teams / other things
     {
 
-        if (event.getClickedInventory()==null||event.getClickedInventory().getTitle()==null)
+        if (event.getClickedInventory()==null||event.getClickedInventory().getTitle()==null) {
+            System.out.println("[DEBUG] title or inv is null");
             return;
+        }
 
         String title = event.getClickedInventory().getTitle();
+        System.out.println("[DEBUG] title:"+title);
 
 
    //If the clicked inventory is not registered as a known inventory
         if (!titles.containsKey(title))
         {
+            System.out.println("[DEBUG] titles does not contain");
+
             HumanEntity player = event.getWhoClicked();
+            if (!registeredPlayers.containsKey(player.getUniqueId()))
+                return;
+
+            BattlePlayer battlePlayer = registeredPlayers.get(player.getUniqueId());
+
 
             //operate on restrictions to ensure that they didn't put a restricted item somewhere
             InventoryOperationHelper.operateRestrictions(event, arena);
@@ -397,10 +407,6 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
                 }
             }
 
-            if (!registeredPlayers.containsKey(player.getUniqueId()))
-                return;
-
-            BattlePlayer battlePlayer = registeredPlayers.get(player.getUniqueId());
 
             //if it is a top inv
             Inventory topInventory = event.getInventory();
@@ -412,7 +418,12 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
             }
 
 
-            Inventory sectionInv = battlePlayer.getShopManager().isSectionInventory(topInventory);
+            PlayerInventoryManager sectionManager = battlePlayer.getShopManager();
+            if (sectionManager == null)
+                return;
+
+            Inventory sectionInv = sectionManager.isSectionInventory(topInventory);
+
             if (sectionInv == null && !valid)
                 return;
 
@@ -420,6 +431,8 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
                 event.setCancelled(true);
                 return;
             }
+
+
         }
 
         InventoryName inventoryName = titles.get(title);
@@ -441,6 +454,7 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
                 break;
 
             case HOTBAR_MANAGER:
+                InventoryOperationHelper.operateHotBarClick(event,arena);
                 break;
 
             case TRACKER:
@@ -448,6 +462,7 @@ public class GameRunner implements Listener, IArenaChatHelper, IArenaWorldHelper
 
             default:
                 InventoryOperationHelper.doQuickBuy(event,arena,isInflated);
+             //   System.out.println("[DEBUG] default quick buy action");
                 //do the rest of the invs here.
         }
 
@@ -538,6 +553,7 @@ as a string.
         {
             ActionEvent ending = new ActionEvent(0, new GameEndAction(this));
             ending.activateEvent();
+            return;
         }
 
             ActionEvent nextEvent = eventList.get(0);
@@ -609,14 +625,14 @@ as a string.
 
         if (candidate!=null) {
             sendMessage(ChatColor.GOLD + "All other teams have been eliminated!",plugin);
-            sendMessage(candidate.getColor().getChatColor() + candidate.getCapitalizedColor() + " team has won the game!",plugin);
+            sendMessage(candidate.getTeamColor().getChatColor() + candidate.getCapitalizedColor() + " team has won the game!",plugin);
         }
         else
         {
             sendMessage(ChatColor.YELLOW+"Tie detected between the following teams:",plugin);
             for (BattleTeam team : teams) {
                 if (!team.isEliminated())
-                    sendMessage(team.getColor().getChatColor()+"- "+team.getCapitalizedColor(),plugin);
+                    sendMessage(team.getTeamColor().getChatColor()+"- "+team.getCapitalizedColor(),plugin);
             }
         }
 
@@ -676,7 +692,9 @@ as a string.
         String name = stack.getItemMeta().getDisplayName();
         event.setCancelled(true);
 
-        if (arena.getTeams().get(name)==null||(!arena.getTeams().containsKey(name)))
+        HashMap<String,BattleTeam> arenaRegistered = arena.getTeams();
+        BattleTeam picked = arenaRegistered.getOrDefault(name, null);
+        if (picked == null)
         {
             player.sendMessage(ChatColor.RED+"Could not find team. There might be a problem with configuration...");
             return;
@@ -692,40 +710,43 @@ as a string.
             currentPlayer = registeredPlayers.get(whoClicked.getUniqueId());
 
             try {
+                //this may throw an exception
                 boolean isChanged = registeredPlayers.get(whoClicked.getUniqueId()).changeTeam(arena.getTeams().get(name));
+
+
                 if (isChanged)
                 {
-                    sendMessage(ChatColor.AQUA + currentPlayer.getRawPlayer().getName() + " changed their Team to " + currentPlayer.getTeam().getColor() + "!",plugin);
+                    sendMessage(ChatColor.AQUA + currentPlayer.getRawPlayer().getName() + " changed their Team to " + currentPlayer.getTeam().getTeamColor() + "!",plugin);
                     initializeTimeBoardHead(currentPlayer);
                     RunningTeamHelper.updateTeamBoardStatus(registeredPlayers.values());
                 }
             }
-            catch (Exception e)
+            catch (RuntimeException e)
             {
-                player.sendMessage(ChatColor.RED+"Could not change teams.");
+                player.sendMessage(ChatColor.RED+"[ERROR] Could not change teams.");
             }
 
         }
         else  // If they were not in the team before.
         {
-
-            currentPlayer = new BattlePlayer((Player) event.getWhoClicked(), arena.getTeams().get(name), arena, arena.assignPlayerNumber());
+            BattleTeam team = arena.getTeams().get(name);
+            currentPlayer = new BattlePlayer((Player) event.getWhoClicked(), team, arena, arena.assignPlayerNumber());
             //Since the player board is initialized before the player joins, we get the incorrect amount of players on the team initially.
 
-            boolean isAdded = (arena.getTeams().get(name).addPlayer(currentPlayer));
+            boolean isAdded = team.addPlayer(currentPlayer);
 
             if (isAdded)
             {
                 registeredPlayers.put(currentPlayer.getUUID(), currentPlayer);
-                arena.addPlayer(event.getWhoClicked().getUniqueId(), currentPlayer);
-                sendMessage(ChatColor.GOLD + currentPlayer.getRawPlayer().getName() + " Joined Team " + currentPlayer.getTeam().getColor(),plugin);
+                arena.addPlayer(whoClicked.getUniqueId(), currentPlayer);
+                sendMessage(ChatColor.GOLD + whoClicked.getName() + " Joined Team " + team.getTeamColor(),plugin);
 
 
 
                 initializeTimeBoardHead(currentPlayer);
                 RunningTeamHelper.updateTeamBoardStatus(registeredPlayers.values());
             } else
-                event.getWhoClicked().sendMessage(ChatColor.RED + "Could not join the team!");
+                whoClicked.sendMessage(ChatColor.RED + "Could not join the team!");
         }
 
     }
@@ -770,10 +791,6 @@ as a string.
     }
 
     public synchronized void removePlayer(UUID id){
-        BattlePlayer player = registeredPlayers.getOrDefault(id, null);
-        if (player != null)
-            player.getBoard().unregisterRegardless();
-
         registeredPlayers.remove(id);
     }
 }

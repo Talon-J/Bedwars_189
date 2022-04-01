@@ -28,7 +28,12 @@ commands:
     usage: /unregister
     description: Unregister from the game
     permission: unregister.do
-    permission-message: you do not have permission to do this.
+    permission-message: you do not have permission to do this
+  endgame:
+    usage: /endgame
+    description: Ends a running game
+    permission: endgame.do
+    permission-message: You do not have permission to do this
 
 
 

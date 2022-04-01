@@ -47,14 +47,14 @@ public class BedBug implements ILifeTimed
     public void spawn()
     {
         World world = arena.getWorld();
-        ChatColor chatColor = team.getColor().getChatColor();
-        String teamName = team.getColor().getName();
+        ChatColor chatColor = team.getTeamColor().getChatColor();
+        String teamName = team.getTeamColor().getName();
         new BukkitRunnable()
         {
             @Override
             public void run() {
                 bug = world.spawn(loc,Silverfish.class);
-                bug.setCustomName(chatColor+teamName+" Bed bug");
+                bug.setCustomName(chatColor+teamName+getType());
                 bug.setCustomNameVisible(true);
                 register();
                 cancel();

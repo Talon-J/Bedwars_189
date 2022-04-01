@@ -19,7 +19,7 @@ public enum DefaultQuickItemConfig
     SHEARS(ShopItem.SHEARS,new int[] {31}),
     BOW(ShopItem.BOW,new int[] {32}),
     INVIS_POT(ShopItem.INVIS_POT,new int[] {33}),
-    TRACKER(ShopItem.TRACKER_NAV,new int[]{45}),
+    //TRACKER(ShopItem.TRACKER_NAV,new int[]{45}),
     WATER(ShopItem.WATER,new int[] {34});
 
 

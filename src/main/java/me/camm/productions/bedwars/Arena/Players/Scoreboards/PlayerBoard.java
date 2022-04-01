@@ -106,12 +106,12 @@ public class PlayerBoard implements IPlayerUtil
             String currentTeamScore = getTeamStatus(team);
             String identifier;
 
-            if (player.getTeam().getColor().getName().equalsIgnoreCase(team.getColor().getName()))  //if the player is on the same team
+            if (player.getTeam().getTeamColor().getName().equalsIgnoreCase(team.getTeamColor().getName()))  //if the player is on the same team
             {
                 identifier = CURRENT_TEAM.getPhrase();
                 currentTeamScore += CURRENT_TEAM.getPhrase();
             } else {
-                identifier = team.getColor().getName();
+                identifier = team.getTeamColor().getName();
             }
 
             ScoreSet current = new ScoreSet(board, selectedScore, identifier, currentTeamScore, player, primary, buffer);
@@ -142,6 +142,7 @@ public class PlayerBoard implements IPlayerUtil
         scores.get(B_THREE.getPhrase()).sendPrimary();
         selectedScore--;
 
+        //easter egg
         scores.put(SPACE_CREDIT.getPhrase(), new ScoreSet(board,selectedScore,SPACE_CREDIT.getPhrase(),easterEgg,player,primary,buffer));
         scores.get(SPACE_CREDIT.getPhrase()).sendPrimary();
 
@@ -159,7 +160,7 @@ public class PlayerBoard implements IPlayerUtil
           if (team.equals(player.getTeam()))
               setScoreName(CURRENT_TEAM.getPhrase(),getTeamStatus(team)+CURRENT_TEAM.getPhrase());
           else
-              setScoreName(team.getColor().getName(),getTeamStatus(team));
+              setScoreName(team.getTeamColor().getName(),getTeamStatus(team));
       });
     }
 
@@ -191,7 +192,6 @@ public class PlayerBoard implements IPlayerUtil
             {
               ScoreSet.recalculate();
                 ScoreSet.sendBuffer();
-
             }
         );
             board.unregisterObjective(primary);
@@ -217,14 +217,14 @@ public class PlayerBoard implements IPlayerUtil
             board.unregisterObjective(buffer);
             board.handleObjectiveRemoved(buffer);
 
-            send(new PacketPlayOutScoreboardObjective(primary,0));
+            send(new PacketPlayOutScoreboardObjective(primary,0)); //create
             send(new PacketPlayOutScoreboardDisplayObjective(1,primary));
 
             scores.forEach((String, ScoreSet) ->
-                    {
+                      {
                         ScoreSet.recalculate();
                         ScoreSet.sendPrimary();
-                    }
+                      }
                     );
 
               buffer = board.registerObjective(OBJECTIVE_TWO.getPhrase() + player.getNumber(), new ScoreboardBaseCriteria(DUMMY.getPhrase()));
@@ -239,25 +239,38 @@ public class PlayerBoard implements IPlayerUtil
 
     public void unregister()
     {
-        if (isShowingPrimary)
-        {
-            send(new PacketPlayOutScoreboardObjective(primary,1));
+
+        if (isShowingPrimary) {
+            System.out.println("[DEBUG] prim");
+            try {
+                board.unregisterObjective(primary);
+                board.handleObjectiveRemoved(primary);
+                send(new PacketPlayOutScoreboardObjective(primary, 1));
+            } catch (IllegalArgumentException | IllegalStateException ignored) {
+
+            }
         }
-        else
-            send(new PacketPlayOutScoreboardObjective(buffer,1));
+        else {
 
-        board.unregisterObjective(primary);
-        board.unregisterObjective(buffer);
+            try {
+                board.unregisterObjective(buffer);
+                board.handleObjectiveRemoved(buffer);
+                send(new PacketPlayOutScoreboardObjective(buffer, 1));
+                //  send(new PacketPlayOutScoreboardObjective(buffer,1));
+            } catch (IllegalArgumentException | IllegalStateException ignored) {
+
+            }
+        }
     }
-
 
     //Unregisters everything regardless of if they exist or not.
     public void unregisterRegardless()
     {
         try {
-            send(new PacketPlayOutScoreboardObjective(primary,1));
             board.unregisterObjective(primary);
             board.handleObjectiveRemoved(primary);
+            send(new PacketPlayOutScoreboardObjective(primary,1));
+
           //  send(new PacketPlayOutScoreboardObjective(primary,1));
         }
         catch (IllegalArgumentException | IllegalStateException ignored)
@@ -266,9 +279,9 @@ public class PlayerBoard implements IPlayerUtil
         }
 
         try {
-            send(new PacketPlayOutScoreboardObjective(buffer,1));
             board.unregisterObjective(buffer);
             board.handleObjectiveRemoved(buffer);
+            send(new PacketPlayOutScoreboardObjective(buffer,1));
           //  send(new PacketPlayOutScoreboardObjective(buffer,1));
         }
         catch (IllegalArgumentException | IllegalStateException ignored)

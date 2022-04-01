@@ -7,6 +7,7 @@ import me.camm.productions.bedwars.Util.DataSets.ItemStackSet;
 import me.camm.productions.bedwars.Util.DataSets.ShopItemSet;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 
+
 import java.util.ArrayList;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.*;
@@ -53,7 +54,7 @@ public class QuickBuySection extends ShopInventorySetter {
     {
         for (int slot=QUICK_INV_BORDER_START.getValue();slot<=QUICK_INV_BORDER_END.getValue();slot++)
             if (getItem(slot)==null && !(slot%9 == 0 || (slot+1)%9 == 0))
-                setItem(slot, ShopItem.EMPTY_SLOT);
+                setItem(slot, ShopItem.EMPTY_SLOT,false);
     }
 
     public ArrayList<ItemStackSet> getItems(){
@@ -62,5 +63,14 @@ public class QuickBuySection extends ShopInventorySetter {
            items.add(new ItemStackSet(getItem(start),start));
         }
         return items;
+    }
+
+    public ArrayList<ShopItemSet> packageInventory(){
+        ArrayList<ItemStackSet> items = getItems();
+        ArrayList<ShopItemSet> set = new ArrayList<>();
+        for (ItemStackSet current: items)
+            set.add(new ShopItemSet(ItemHelper.getPackingAssociate(current.getStack()),current.getSlot()));
+
+        return set;
     }
 }

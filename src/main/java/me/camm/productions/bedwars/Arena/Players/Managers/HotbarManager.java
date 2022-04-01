@@ -6,10 +6,10 @@ import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.HOT_BAR_END;
 import static me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory.*;
@@ -21,48 +21,48 @@ import static me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory.*;
  */
 public class HotbarManager
 {
-    private final Plugin plugin;
     private final ItemCategory[] layout;
     private final Inventory editor;
 
-    public HotbarManager(Plugin plugin)
+    public HotbarManager()
     {
-        this.plugin = plugin;
-         this.layout = new ItemCategory[HOT_BAR_END.getValue()];
-         layout[0] = ItemCategory.MELEE;
-
+        this.layout = new ItemCategory[HOT_BAR_END.getValue()];
          editor = Bukkit.createInventory(null, InventoryProperty.SHOP_SIZE.getValue(),InventoryName.HOTBAR_MANAGER.getTitle());
+
         initInventory();
+        addCategory(ItemCategory.MELEE,0);
+        updateDisplay();
     }
 
 
 
-    public HotbarManager(Plugin plugin,ItemCategory[] layout)
+    public HotbarManager(ItemCategory[] layout)
     {
 
         editor = Bukkit.createInventory(null, InventoryProperty.SHOP_SIZE.getValue(),InventoryName.HOTBAR_MANAGER.getTitle());
-        this.plugin = plugin;
         if ((layout==null)||(layout.length!= HOT_BAR_END.getValue())) {
             this.layout = new ItemCategory[HOT_BAR_END.getValue()];
+            addCategory(ItemCategory.MELEE,0);
         }
-        else
+        else {
             this.layout = layout;
 
-        boolean empty = true;
-
-        for (ItemCategory category: this.layout)
-        {
-            if (category != null) {
-                empty = false;
-                break;
+            boolean empty = true;
+            for (ItemCategory category: layout) {
+                if (category!=null)
+                {
+                    empty = false;
+                    break;
+                }
             }
-        }
 
-        if (empty)
-            addCategory(ItemCategory.MELEE,0);
+            if (empty)
+                addCategory(MELEE,0);
+        }
 
 
         initInventory();
+        updateDisplay();
     }
 
 
@@ -81,6 +81,10 @@ public class HotbarManager
         if (clickedSlot < 0 || clickedSlot > layout.length)
             return false;
 
+        if (placed==null) {
+            layout[clickedSlot] = null;
+            return true;
+        }
 
         ItemCategory category = ItemHelper.getHotBarAssociate(placed);
         if (category == null)
@@ -92,6 +96,15 @@ public class HotbarManager
         layout[clickedSlot] = category;
         return true;
     }
+
+
+    public void updateDisplay(){
+        for (int slot=0;slot<layout.length;slot++) {
+            ItemStack stack = ItemHelper.toBarItem(layout[slot]);
+            editor.setItem(slot+InventoryProperty.LARGE_ROW_FIVE_START.getValue(),stack);
+        }
+    }
+
 
     public void reset(){
 
@@ -105,8 +118,6 @@ public class HotbarManager
     }
 
 
-
-
     //slot category is in terms of the hotbar slots
     public void addCategory(ItemCategory category, int slot)
     {
@@ -116,6 +127,18 @@ public class HotbarManager
         layout[slot] = category;
         editor.setItem(slot+ InventoryProperty.LARGE_ROW_FIVE_START.getValue(),ItemHelper.toBarItem(category));
     }
+
+    //shouldn't matter if raw or not since top inv is 0
+    public static boolean slotInRangeTake(int slot){
+        return slot >= InventoryProperty.LARGE_ROW_THREE_START.getValue() &&
+                slot <= InventoryProperty.LARGE_ROW_THREE_END.getValue();
+    }
+
+    public static boolean slotInRangePlace(int slot) {
+        return slot >= InventoryProperty.LARGE_ROW_FIVE_START.getValue() &&
+                slot <= InventoryProperty.LARGE_ROW_FIVE_END.getValue();
+    }
+
 
 
 
@@ -128,7 +151,7 @@ public class HotbarManager
         player.openInventory(editor);
     }
 
-    public boolean equals(Inventory other){
+    public boolean invEquals(Inventory other){
         return other.equals(editor);
     }
 
@@ -282,8 +305,9 @@ public class HotbarManager
             ItemStack residing = playerInv.getItem(slot);
 
             // if the reserved slot is in the same category
-            if (reserved == enumItem.category || reserved == null)
-            {
+            if (reserved != enumItem.category)
+                continue;
+
 
              // test if the residing item is valid
              ShopItem residingAssociate = ItemHelper.getAssociate(residing);
@@ -291,10 +315,10 @@ public class HotbarManager
                 /*
                 So if the slot is empty and the slot is reserved, place it in.
                  */
-             if (residingAssociate == null) { //if we cannot resolve the residing item as an enum item
+             if (residingAssociate == null) {
+                //if we cannot resolve the residing item as an enum item
 
-
-                 //if we cannot resolve it since the item is currency:
+                 //check if it's currency
                  if (ItemHelper.isCurrencyItem(residing))
                  {
                      ItemStack residingPlaceholder = residing.clone();
@@ -303,12 +327,13 @@ public class HotbarManager
                  }
                  else
                      playerInv.setItem(slot, item);
-
                     return;
                 }
 
 
-            //so if the two categories between residing and placing in are not the same, and the reserved slot matches the one to place in,
+                //so if the two categories between residing and placing in are not the same,
+                // and the reserved slot matches the one to place in,
+                //then replace the item.
              if ((residingAssociate.category != enumItem.category))
                  {
                      //replace the item in the slot.
@@ -330,27 +355,40 @@ public class HotbarManager
                  item.setAmount(item.getAmount() + residing.getAmount());
                  playerInv.setItem(slot, item);
                  return;
-            }
+
         }
 
-        //At this point, all of the reserved spots have been checked and none are valid for taking.
+
         //Now we look at the other slots. (ones with other categories)
 
-        //first try to place it in their main hand
+
+        for (int slot=0;slot<layout.length;slot++)
+        {
+            ItemStack residing = playerInv.getItem(slot);
+
+            //If the category is not specified there...
+               if (layout[slot] == null)
+               {
+                   //if the item is undefined or it is currency, place it in.
+                   if (residing == null || residing.getType() == Material.AIR) {
+                       playerInv.setItem(slot,item);
+                       return;
+                   }
+                   else if (ItemHelper.isCurrencyItem(residing))
+                   {
+                       ItemStack cloned = residing.clone();
+                       playerInv.setItem(slot, item);
+                       playerInv.addItem(cloned);
+                       return;
+                   }
+               }
+        }
+
+        //try to place it in their main hand
         ItemStack hand = player.getInventory().getItemInHand();
         if (ItemHelper.isItemInvalid(hand)) {
             player.setItemInHand(item);
-        }
-
-        //otherwise try to place it in other slots
-        for (int slot=0;slot<9;slot++)
-        {
-            ItemStack residing = playerInv.getItem(slot);
-            if (ItemHelper.isItemInvalid(residing))
-            {
-                playerInv.setItem(slot,item);
-                return;
-            }
+            return;
         }
 
         //If the entire hotbar is unavailable, then just add the item to the inv.

@@ -4,4 +4,5 @@ public interface ILifeTimed extends IGameOwnable,IGameAutonomous
 {
   void handleLifeTime();
   double getHealth();
+
 }

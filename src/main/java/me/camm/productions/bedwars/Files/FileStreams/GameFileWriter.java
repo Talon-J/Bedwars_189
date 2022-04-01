@@ -18,18 +18,18 @@ public class GameFileWriter {
         this.plugin = plugin;
     }
 
-    public boolean clear()
+    public void clear()
     {
         try
         {
             writer = new BufferedWriter(new FileWriter(file,false));
             writer.write("");
             writer.close();
-            return true;
+
         }
-        catch (IOException e)
+        catch (IOException ignored)
         {
-            return false;
+
         }
     }
 

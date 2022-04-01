@@ -27,9 +27,9 @@ public class ExplosionVector extends GameVector
         this.colors = colors;
 
         if (this.incendiary) //fireballs have explosionpower 3
-            strength = (0.7+(Math.random()*0.6))*3;  //is a fireball
+            strength = (0.7+(Math.random()*0.6))*5;  //is a fireball
         else
-            strength = (0.7+(Math.random()*0.6))*4; //is not
+            strength = (0.7+(Math.random()*0.6))*5; //is not
     }
 
 
@@ -43,7 +43,7 @@ public class ExplosionVector extends GameVector
     {
         Vector position = getPosition(distance);
         Location loc = position.toLocation(world);
-        this.strength -= 0.375;
+        this.strength -= 0.3;  //0.375
         return loc.getBlock();
     }
 
@@ -97,16 +97,9 @@ public class ExplosionVector extends GameVector
         }//switch
 
       blockResistance = isAir? 0: calculateResistance(blockStrength);
+        this.strength -= blockResistance;
+        return this.strength >= blockResistance;
 
-        if (this.strength>=blockResistance)
-        {
-            this.strength = this.strength - blockResistance;  //block is broken
-            return true;
-        }
-        else {
-            this.strength = this.strength - blockResistance;  //updating the strength to invalidate
-            return false;  //Block not broken
-        }
 
     }
 

@@ -10,7 +10,6 @@ import me.camm.productions.bedwars.Structures.SoakerSponge;
 import me.camm.productions.bedwars.Structures.Tower;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
 import me.camm.productions.bedwars.Util.PacketSound;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -20,6 +19,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.HashSet;
 import java.util.Random;
 import java.util.UUID;
@@ -30,7 +31,11 @@ import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.*;
 
 
 
-public class BlockInteractListener implements Listener   //unfinished
+/*
+This class listens for and handles interactions which involve blocks
+@author CAMM
+ */
+public class BlockInteractListener implements Listener
 {
     private final Plugin plugin;
     private final Arena arena;
@@ -38,31 +43,34 @@ public class BlockInteractListener implements Listener   //unfinished
     private final static BedMessage[] messages;
     private final static Random rand;
 
-
+    //Messages for when the bed is broken
+    //random for picking a random message
     static {
         messages = BedMessage.values();
         rand = new Random();
     }
 
-    public BlockInteractListener(Plugin plugin, Arena arena)  //construct
+    public BlockInteractListener(Plugin plugin, Arena arena)  //constructor
     {
         this.plugin = plugin;
         this.arena = arena;
         this.activeSponges = new HashSet<>();
 
 
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "gamerule doFireTick false");
+       // Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "gamerule doFireTick false");
     }
 
 
     @EventHandler (priority = EventPriority.HIGHEST)   //determines the state of the block
-    public void onBlockPlace(BlockPlaceEvent event)
+    public void onBlockPlace(@NotNull BlockPlaceEvent event)
     {
 
+        //get the hashmap of the players and the event info
         ConcurrentHashMap<UUID, BattlePlayer> players = arena.getPlayers();
         Block block = event.getBlockPlaced();
         Player placer = event.getPlayer();
 
+        //if the player isn't registered, return and cancel.
         if (!players.containsKey(placer.getUniqueId())) {
             event.setCancelled(true);
             placer.sendMessage(ChatColor.RED+"You're not registered!");
@@ -84,6 +92,9 @@ public class BlockInteractListener implements Listener   //unfinished
         }
         else if (block.hasMetadata(MAP.getData()))  //if it's a map block and it is air [broken]
         {
+            //if it has map metadata, then allow the place and remove the metadata.
+            //this metadata was only applied on the initial register, so if you can make a block change,
+            //then the block has been broken prior.
             block.removeMetadata(MAP.getData(),plugin);
         }
 
@@ -93,49 +104,36 @@ public class BlockInteractListener implements Listener   //unfinished
             switch (type)       //test if tnt, sponge, chest
             {
                 case TNT:
-                {
-                  //  event.getPlayer().sendMessage("[test:] placed tnt");
-                    if (players.containsKey(event.getPlayer().getUniqueId()))
                     summonTNT(event,player);
-                    else
-                        event.setCancelled(true);
+
                     //summon tnt
-                }
+
                 break;
 
                 case SPONGE:
-                {
-                    if (players.containsKey(event.getPlayer().getUniqueId()))
                    new SoakerSponge(plugin,block,this).soak();
-                    else
-                        event.setCancelled(true);
+
                     //make a sponge water soaker-upper
-                }
+
                 break;
 
                 case CHEST:
-                {
-
-                    if (players.containsKey(event.getPlayer().getUniqueId()))
-                        new Tower(event, plugin, (byte)players.get(event.getPlayer().getUniqueId()).getTeam().getColor().getValue());
+                        new Tower(event, plugin, (byte)players.get(event.getPlayer().getUniqueId()).getTeam().getTeamColor().getValue());
                     //get the player team and create a popup tower
-                    else
-                        event.setCancelled(true);
 
-                }
                 break;
             }
         }
     }
 
     @EventHandler
-    public void onBlockCanPlaceEvent(BlockCanBuildEvent event)
+    public void onBlockCanPlaceEvent(@NotNull BlockCanBuildEvent event)
     {
         event.setBuildable(true);
     }
 
     @EventHandler
-    public void onBlockBreak(BlockBreakEvent event)
+    public void onBlockBreak(@NotNull BlockBreakEvent event)
     {
         Block block = event.getBlock();
 
@@ -158,14 +156,13 @@ public class BlockInteractListener implements Listener   //unfinished
                 block.hasMetadata(MAP.getData())||block.hasMetadata(BASE.getData()))
         {
             event.setCancelled(true);
-            event.getPlayer().sendMessage(ChatColor.RED+"You can't break blocks here!");
-            // event.getPlayer().sendMessage("[DEBUG:] Has generator or chest or map or base");
+            whoBroke.sendMessage(ChatColor.RED+"You can't break blocks here!");
+
             return;
         }
         else if (block.hasMetadata(BED.getData()))
         {
             //A bed has been broken. Get the team and send message and modify the variables.
-         //   event.getPlayer().sendMessage("[DEBUG:] Broken bed");
             int x = block.getX();
             int y = block.getY();
             int z = block.getZ();
@@ -236,16 +233,11 @@ public class BlockInteractListener implements Listener   //unfinished
                 player.getBoard().updateTeamStatuses();
 
             String lead = messages[rand.nextInt(messages.length)].getMessage();
-            arena.sendMessage(ChatColor.WHITE+""+ChatColor.BOLD+"BED DESTRUCTION >"+broken.getColor().getName()+ChatColor.RESET+" was "+lead+" by "+
+            arena.sendMessage(ChatColor.WHITE+""+ChatColor.BOLD+"BED DESTRUCTION >"+broken.getTeamColor().getName()+ChatColor.RESET+" was "+lead+" by "+
                     broke.getTeam().getTeamColor().getChatColor()+broke.getRawPlayer().getName()+"!");
 
 
 
-            return;
-        }
-
-        if (block.getType() == Material.BED) {
-            event.setCancelled(true);
             return;
         }
 
@@ -276,13 +268,13 @@ public class BlockInteractListener implements Listener   //unfinished
 
         if (!broke.getTeam().equals(comparison)) {
             event.setCancelled(true);
-            broke.sendMessage(ChatColor.RED+"You cannot open that chest while " + comparison.getColor().getName() + "is not eliminated!");
+            broke.sendMessage(ChatColor.RED+"You cannot open that chest while " + comparison.getTeamColor().getName() + "is not eliminated!");
 
         }
     }
 
     @EventHandler
-    public void onWaterFlow(BlockFromToEvent event)
+    public void onWaterFlow(@NotNull BlockFromToEvent event)
     {
         //If a block has any metadata about the sponge, then we cancel the event and return.
         Block to = event.getToBlock();
@@ -302,25 +294,37 @@ public class BlockInteractListener implements Listener   //unfinished
     }
 
     @EventHandler
-    public void onFireExtinguish(BlockFadeEvent event){
+    public void onFireExtinguishNatural(BlockFadeEvent event){
         if (event.getBlock()==null)
             return;
 
-        if (event.getBlock().getType()==Material.FIRE)
+        Block block = event.getBlock();
+        Block below = block.getLocation().add(0,-1,0).getBlock();
+
+        if (below != null && below.getType()==Material.AIR)
+            return;
+
+        if (block.getType()==Material.FIRE)
             event.setCancelled(true);
     }
 
     @EventHandler
-    public void onBlockBurn(BlockBurnEvent event) {
+    public void onBlockBurn(@NotNull BlockBurnEvent event) {
         event.setCancelled(true);
     }
 
     @EventHandler
-    public void onFireSpread(BlockSpreadEvent event){
+    public void onFireSpread(@NotNull BlockSpreadEvent event){
+
         if (event.getBlock()==null)
             return;
 
-        if (event.getBlock().getType()==Material.FIRE)
+        Block source = event.getSource();
+
+        if (source==null)
+            return;
+
+        if (source.getType()==Material.FIRE)
             event.setCancelled(true);
     }
 
@@ -331,12 +335,12 @@ public class BlockInteractListener implements Listener   //unfinished
       new GameTNT(event,player);
     }
 
-    public synchronized void addActiveSponge(UUID id)
+    public synchronized void addActiveSponge(@NotNull UUID id)
     {
         activeSponges.add(id.toString());
     }
 
-    public synchronized void removeActiveSponge(UUID id)
+    public synchronized void removeActiveSponge(@NotNull UUID id)
     {
         activeSponges.remove(id.toString());
     }

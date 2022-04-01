@@ -14,6 +14,7 @@ import me.camm.productions.bedwars.Items.ItemDatabases.TeamItem;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.QuickBuyEditor;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.QuickBuySection;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.TeamBuyInventory;
+import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.HotBarConfig;
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.TeamInventoryConfig;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -35,15 +36,22 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class InventoryOperationHelper
 {
+    private enum Values{
+        SLOT, HOTBAR, MOVE, SWAP, PLACE, COLLECT
+    }
+
+
 
     private final static ShopItem[] gameItems;
     private final static TeamInventoryConfig[] config;
-
+    private final static ItemStack EMPTY;
 
 
     static {
         gameItems = ShopItem.values();
         config = TeamInventoryConfig.values();
+        EMPTY = ItemHelper.toDisplayItem(ShopItem.EMPTY_SLOT,false);
+
     }
 
     /*
@@ -77,32 +85,31 @@ public class InventoryOperationHelper
 
 
 
-        if (event.isShiftClick() && (topInventory.equals(restrictedInventory)||playerInventory.equals(restrictedInventory))) {
-
+        if (event.isShiftClick() &&
+                (topInventory.equals(restrictedInventory)|| playerInventory.equals(restrictedInventory))) {
             return true;
         }
         /*
         if the clicked inventory equals the player's inventory and the
         top inventory is not the shop inventory
          */
-
-
-
         if (!(clickedInventory.equals(restrictedInventory)) && !(topInventory.equals(restrictedInventory))) {
 
             return false;
         }
 
         if (!clickedInventory.equals(restrictedInventory) &&
-                !(name.contains("MOVE") || name.contains("SWAP") || name.contains("COLLECT"))) {
+                !(name.contains(Values.MOVE.name()) || name.contains(Values.SWAP.name()) || name.contains(Values.COLLECT.name()))) {
 
             return false;
         }
 
         //Could still attempt to place out
-        return name.contains("HOTBAR") || name.contains("PLACE") || name.contains("MOVE") ||
-                name.contains("COLLECT") || name.contains("SWAP");
+        return name.contains(Values.HOTBAR.name()) || name.contains(Values.PLACE.name()) || name.contains(Values.MOVE.name()) ||
+                name.contains(Values.COLLECT.name()) || name.contains(Values.SWAP.name());
     }
+
+
 
     public static boolean didTryToDragIn(InventoryDragEvent event, Inventory restrictedInventory)
     {
@@ -145,23 +152,29 @@ public class InventoryOperationHelper
         //we now know they clicked on a chest inv (top inv is chest inv) or their own inv
 
         CLICKED_IN_CHEST: {
-            //if they clicked in the chest
+            //if they didn't click in chest, get out
             if (!topInv.equals(clickedInv))
             {
                 break CLICKED_IN_CHEST;
             }
                 //if they tried to put something into chest
 
-            //if they didn't try to place in the chest, then break
+            //if they didn't try to place in the chest, then break (2nd check)
             if (!didTryToPlaceIn(event, clickedInv))
                 break CLICKED_IN_CHEST;
 
 
 
+            /*
+            Swapping with the hotbar and an inventory
+             */
             SWAP:
             {
 
-                if (!event.getAction().name().contains("HOTBAR")) {
+                /*
+                If it doesn't contain an action to do with the HB, get out
+                 */
+                if (!event.getAction().name().contains(Values.HOTBAR.name())) {
                     break SWAP;
                 }
 
@@ -170,6 +183,9 @@ public class InventoryOperationHelper
                     int raw = event.getRawSlot();
                      ItemStack swapped = null;
 
+                     /*
+                     if it is valid, get the item.
+                      */
                      if (hotBarButton != -1) {
                          swapped = playerInv.getItem(hotBarButton);
                      }
@@ -177,23 +193,25 @@ public class InventoryOperationHelper
                      if (swapped == null)
                          break SWAP;
 
-                     boolean restrict = (!ItemHelper.isItemInvalid(swapped)) && ItemHelper.isInventoryPlaceRestrict(swapped);
-                     if (!restrict) {
 
+                     boolean restrict = (!ItemHelper.isItemInvalid(swapped)) && ItemHelper.isInventoryPlaceRestrict(swapped);
+
+                     //if it's not restricted, get out
+                     if (!restrict) {
                          break SWAP;
                      }
-
-             //   System.out.println("restricted");
 
 
                 if (topInv instanceof CraftInventoryCrafting) {
                     if (raw < InventoryProperty.SMALL_CRAFTING_GRID.getValue()) {
-                    //    System.out.println("raw less than 4");
                         event.setCancelled(true);
                         break SWAP;
                     }
                 }
 
+                /*
+                If it's a shop, and the slot is in the shop, cancel.
+                 */
                 if (topInv instanceof CraftInventoryDoubleChest) {
                     if (raw < InventoryProperty.SHOP_SIZE.getValue()) {
                         event.setCancelled(true);
@@ -201,11 +219,15 @@ public class InventoryOperationHelper
                     }
                 }
 
+                /*
+                If the slot is from 0-26 then cancel
+                 */
                 if (raw < InventoryProperty.SMALL_SHOP_SIZE.getValue()) {
                     event.setCancelled(true);
                 }
-
             }
+
+
 
                     //if it's restricted, then cancel the event. (Note that may be air)
                     if (ItemHelper.isInventoryPlaceRestrict(cursorItem) || ItemHelper.isInventoryPlaceRestrict(clickedItem))
@@ -228,6 +250,12 @@ public class InventoryOperationHelper
         //if they clicked something in their own inv
         if (clickedInv.equals(playerInv))
         {
+            if (ItemHelper.getNavigator(cursorItem) != null) {
+                event.setCancelled(true);
+                return;
+            }
+
+
             if (ItemHelper.isSword(cursorItem))
                 return;
 
@@ -268,7 +296,8 @@ public class InventoryOperationHelper
 
 
 
-    public static void operateRestrictions(InventoryDragEvent event, Arena arena){
+    public static void operateRestrictions(InventoryDragEvent event, Arena arena)
+    {
 
         BattlePlayer clicked = arena.getPlayers().getOrDefault(event.getWhoClicked().getUniqueId(),null);
 
@@ -334,12 +363,10 @@ public class InventoryOperationHelper
 
     public static void doTeamBuy(InventoryClickEvent event, Arena arena) {
 
-        ConcurrentHashMap<UUID, BattlePlayer> registeredPlayers = arena.getPlayers();
-        UUID id = event.getWhoClicked().getUniqueId();
-        if (!registeredPlayers.containsKey(id))
+        BattlePlayer clicked = arena.getPlayers().getOrDefault(event.getWhoClicked().getUniqueId(),null);
+        if (clicked == null)
             return;
 
-        BattlePlayer clicked = registeredPlayers.get(id);
         BattleTeam team = clicked.getTeam();
         TeamBuyInventory teamInventory = team.getTeamInventory();
 
@@ -367,7 +394,7 @@ public class InventoryOperationHelper
         event.setCancelled(true);
 
         TeamItem teamItem = configItem.getItems();
-        if (teamItem.name().contains("SLOT"))
+        if (teamItem.name().contains(Values.SLOT.name()))
             return;
 
         int cost;
@@ -388,7 +415,7 @@ public class InventoryOperationHelper
               clicked.sendMessage(ChatColor.RED+"You have the max upgrades for this category!");
               return;
             }
-            cost = index == -1 ? teamItem.getCost()[0] : teamItem.getCost()[index-1];
+            cost = (index == -1) ? teamItem.getCost()[0] : teamItem.getCost()[index-1];
         }
 
               //check for current traps and upgrade limits here.
@@ -423,8 +450,10 @@ public class InventoryOperationHelper
                         break;
                 }
 
-               if (trap == null)
-                   throw new IllegalArgumentException("Trap should not be null! Given team item: "+teamItem);
+               if (trap == null) {
+                   team.sendTeamMessage(ChatColor.RED + "[ERROR]Trap result was null! (This should not be!) Given team item: " + teamItem);
+                   return;
+               }
 
                team.addTrap(trap);
                team.updateTrapDisplay();
@@ -438,7 +467,7 @@ public class InventoryOperationHelper
 
            if (!upgraded)
            {
-               clicked.sendMessage(ChatColor.RED+"[ERROR] Could not upgrade team modifier. (This should not be)");
+               clicked.sendMessage(ChatColor.RED+"[ERROR] Could not upgrade team modifier. (This should not be!)");
                return;
            }
 
@@ -470,91 +499,121 @@ public class InventoryOperationHelper
     }
 
 
+    //Operations for the hb manager
     public static void operateHotBarClick(InventoryClickEvent event, Arena arena)
     {
+
+        /*
+        This is an exception to the cancelling above. All other cases should be cancelled, yes, but this one, no
+        in some cases.
+         */
+
+
         BattlePlayer clicked = arena.getPlayers().getOrDefault(event.getWhoClicked().getUniqueId(),null);
-        if (clicked == null)
-            return;
+         if (clicked == null)
+             return;
+
 
         HotbarManager manager = clicked.getBarManager();
         Inventory clickedInv = event.getClickedInventory();
 
         int slot = event.getSlot();
 
-        if (!manager.equals(clickedInv)) {
+        if (!manager.invEquals(clickedInv)) {
             event.setCancelled(true);
             return;
         }
 
-        ItemStack residing = clickedInv.getItem(slot);
+       // ItemStack residing = clickedInv.getItem(slot);
         ItemStack cursor = event.getCursor();
 
+         if (cursor == null || cursor.getType()==Material.AIR)
+         {
+             if (HotbarManager.slotInRangeTake(slot))
+             {
+                 operateBarItemTake(clickedInv, slot, arena.getPlugin());
+             }
+             else if (HotbarManager.slotInRangePlace(slot))
+             {
+                 clickedInv.setItem(slot, null);
+                boolean result = manager.updateLayout(slot,null);
+
+                 if (!result)
+                     clicked.sendMessage(ChatColor.RED+"[ERROR] Unable to update your layout!");
+             }
+             else {
+                 checkReturnReset(clicked, slot);
+                 event.setCancelled(true);
+             }
+
+         }
+         else
+         {
 
 
-        //if it was placed into the area
-            boolean placeResult = operateBarItemPlace(clickedInv, slot);
-            if (placeResult) {
-                manager.updateLayout(slot, cursor);
-                return;
-            }
+                 if (HotbarManager.slotInRangePlace(slot))
+                 {
+
+                     if (ItemHelper.getNavigator(cursor) == null) {
+                         event.setCancelled(true);
+                         return;
+                     }
+
+
+                    boolean result = manager.updateLayout(slot, cursor);
+
+                    if (!result)
+                        clicked.sendMessage(ChatColor.RED+"[ERROR] Unable to update your layout!");
+
+                 }
+                 else {
+                     checkReturnReset(clicked, slot);
+                     event.setCancelled(true);
+                 }
+
+
+         }
+
+            /*
+            If the cursor is null, then check if pickup slots valid. If not, check if place slots valid.
+            If place valid, then remove item from layout.
+
+            If cursor not null, then check if place valid. If place invalid, cancel. Else, apply layout.
+             */
+
 
         //if the residing item is not invalid (the clicked item)
         //if the item is valid for editing, put it onto the cursor and set the item back in there.
         //if it is a nav item, then do the actions instead then.
-        if (!ItemHelper.isItemInvalid(residing)) {
-
-            boolean result = operateBarItemTake(clickedInv,slot, arena.getPlugin());
-          if (!result)
-            {
-                event.setCancelled(true);
-                BattlePlayer player = arena.getPlayers().getOrDefault(event.getWhoClicked().getUniqueId(),null);
-                if (player == null)
-                    return;
-
-                //this is for the reset and return functions
-                //better way to do this???
-                switch (slot) {
-
-                    //return
-                    case 3:
-                        player.getRawPlayer().openInventory(player.getShopManager().getQuickBuy());
-                        break;
 
 
-                        //reset
-                    case 5:
-                        player.getBarManager().reset();
-                        break;
-                }
-            }
 
+    }
+
+    private static void checkReturnReset(BattlePlayer player, int slot){
+        if (slot == HotBarConfig.RETURN.getSlots()[0]) {
+            player.getRawPlayer().openInventory(player.getShopManager().getQuickBuy());
         }
 
+        if (slot == HotBarConfig.RESET.getSlots()[0]) {
+            player.getBarManager().reset();
+        }
     }
 
-    /*
-    clicked: the inv clicked
-    placed: the item placed into the inv
-    return: if the action is valid
-     */
-    private static boolean operateBarItemPlace(Inventory clicked, int slot){
-       if (slot >= InventoryProperty.LARGE_ROW_FIVE_START.getValue() &&
-               slot <= InventoryProperty.LARGE_ROW_FIVE_END.getValue()){
+    //for the hb manager
+    private static void operateBarItemTake(Inventory clicked, int slot, Plugin plugin){
 
-           //make way for the cursor
-           clicked.setItem(slot, null);
-           return true;
-       }
-       return false;
-    }
-
-    private static boolean operateBarItemTake(Inventory clicked, int slot, Plugin plugin){
-        if (slot >= InventoryProperty.LARGE_ROW_THREE_START.getValue() &&
-                slot <= InventoryProperty.LARGE_ROW_THREE_END.getValue()) {
 
             //not sure if this will work. Needs to be invoked after the event, so maybe use bukkitrunnable instead?
 
-            final ItemStack replace = clicked.getItem(slot).clone();
+        if (clicked == null)
+            return;
+
+        ItemStack residing = clicked.getItem(slot);
+        if (residing == null)
+            return;
+
+            final ItemStack replace = residing.clone();
 
             new BukkitRunnable() {
                 @Override
@@ -563,10 +622,8 @@ public class InventoryOperationHelper
                     cancel();
                 }
             }.runTaskLater(plugin, 1);
-            return true;
 
-        }
-        return false;
+
     }
 
 
@@ -574,7 +631,40 @@ public class InventoryOperationHelper
 
     public static void operateHotBarDrag(InventoryDragEvent event, Arena arena)
     {
+        BattlePlayer dragged = arena.getPlayers().getOrDefault(event.getWhoClicked().getUniqueId(),null);
+        if (dragged == null)
+            return;
 
+        Inventory top = event.getView().getTopInventory();
+        if (!dragged.getBarManager().invEquals(top))
+            return;
+
+        Set<Integer> slots = event.getRawSlots();
+        ItemStack cursor = event.getOldCursor();
+        if (cursor == null || cursor.getType()==Material.AIR)
+        {
+            event.setCancelled(true);
+            return;
+        }
+
+        if (ItemHelper.getNavigator(cursor) == null)
+        {
+            event.setCancelled(true);
+            return;
+        }
+
+        for (int slot: slots)
+        {
+            checkReturnReset(dragged, slot);
+
+
+            if (!HotbarManager.slotInRangeTake(slot) && !HotbarManager.slotInRangePlace(slot)) {
+                event.setCancelled(true);
+
+                System.out.println("[DEBUG] not in range for drag");
+                break;
+            }
+        }
     }
 
 
@@ -586,10 +676,8 @@ public class InventoryOperationHelper
     public static void operateInventoryEdit(InventoryClickEvent event, Arena arena){
 
         BattlePlayer player = arena.getPlayers().getOrDefault(event.getWhoClicked().getUniqueId(),null);
-        if (player == null) {
-            event.setCancelled(true);
+        if (player == null)
             return;
-        }
 
         QuickBuyEditor editor = player.getQuickEditor();
         Inventory clicked = event.getClickedInventory();
@@ -597,11 +685,7 @@ public class InventoryOperationHelper
 
         Inventory display = editor.getEditor();
 
-        //if it does not equal the display
-        if (!clicked.equals(display)) {
-            event.setCancelled(true);
-            return;
-        }
+
 
         //also need to account for dragging
         if (didTryToPlaceIn(event, display)) {
@@ -609,12 +693,36 @@ public class InventoryOperationHelper
         }
 
         int slot = event.getSlot();
-        if (slot >= InventoryProperty.HOT_BAR_START.getValue() && slot <= InventoryProperty.HOT_BAR_END.getValue()) {
+
+        if (isInQuickBuyPanel(slot)) {
+
+            if (!clicked.equals(display))
+                return;
+
+            event.setCancelled(true);
             editor.applyConfigChange(slot);
-            player.getShopManager().getQuickBuy().setItem(slot, editor.getCurrentAdding());
-            player.getRawPlayer().openInventory(player.getShopManager().getQuickBuy());
+            QuickBuySection section = player.getShopManager().getQuickBuy();
+            player.getRawPlayer().openInventory(section);
+
         }
+        else
+            event.setCancelled(true);
     }
+
+
+    public static boolean isInQuickBuyPanel(int slot){
+
+        return ( slot >= InventoryProperty.QUICK_INV_BORDER_START.getValue() &&
+                slot <= InventoryProperty.QUICK_INV_ROW1_END.getValue() ) ||
+
+                ( slot >= InventoryProperty.QUICK_INV_BORDER_ROW2_START.getValue() &&
+                        slot <= InventoryProperty.QUICK_INV_BORDER_ROW2_END.getValue() ) ||
+
+                ( slot >= InventoryProperty.QUICK_INV_ROW3_START.getValue() &&
+                        slot <= InventoryProperty.QUICK_INV_BORDER_END.getValue() );
+
+    }
+
 
 
 
@@ -674,9 +782,9 @@ public class InventoryOperationHelper
                 }
             }
 
-            if (clickedItem==null) {
+            if (clickedItem==null)
                 return;
-            }
+
 
             ItemCategory category = clickedItem.category;
 
@@ -693,15 +801,19 @@ public class InventoryOperationHelper
             //(We remove it from quick buy in this case)
             QuickBuySection quickBuy = manager.getQuickBuy();
 
-            if (quickBuy.getInventory().equals(clickedInv))
+            if (quickBuy.equals(clickedInv))
             {
                 //if it is the quickbuy inventory, we have the option of replacing items.
-                if (event.isShiftClick())
-                    quickBuy.setItem(event.getRawSlot(), ShopItem.EMPTY_SLOT);
+                if (event.isShiftClick()) {
+                    int slot = event.getRawSlot();
+                    quickBuy.setItem(slot, EMPTY);
+                    currentPlayer.getQuickEditor().setItem(slot, EMPTY);
+                }
                 else
                     ItemHelper.sellItem(clickedItem, currentPlayer, isInflated);
             }
-            else if (event.isShiftClick()) {
+            else if (event.isShiftClick())
+            {
                 currentPlayer.getQuickEditor().setCurrentAdding(item);
                 currentPlayer.getQuickEditor().display();
             }
@@ -717,6 +829,8 @@ public class InventoryOperationHelper
         }
 
     }
+
+
 
 
 

@@ -24,7 +24,7 @@ public class DeathFormatter
     }
 
     public static String format(BattlePlayer victim, Cause cause) {
-        return victim.getTeam().getColor().getChatColor()+
+        return victim.getTeam().getTeamColor().getChatColor()+
                 victim.getRawPlayer().getName()+ChatColor.RESET+" "+cause.format()+".";
     }
 
@@ -43,7 +43,7 @@ public class DeathFormatter
     public static String format(BattlePlayer victim, BattlePlayer killer, Cause cause){
         return victim.getTeam().getTeamColor().getChatColor()+
                 victim.getRawPlayer().getName()+ChatColor.RESET+" "+cause.format()+" by "+
-                killer.getTeam().getColor().getChatColor()+killer.getRawPlayer().getName()+
+                killer.getTeam().getTeamColor().getChatColor()+killer.getRawPlayer().getName()+
                 ChatColor.RESET+".";
     }
 

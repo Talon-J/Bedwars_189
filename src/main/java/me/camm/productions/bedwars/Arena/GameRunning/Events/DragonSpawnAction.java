@@ -46,7 +46,7 @@ public class DragonSpawnAction extends GameActionPhysical {
                 double delta = Math.abs(current.getY() - y);
 
                 int iterations = battleTeam.getDragonSpawnNumber();
-                runner.sendMessage(battleTeam.getColor().getChatColor() + " +" + iterations + " " + battleTeam.getColor().getName() + " dragon");
+                runner.sendMessage(battleTeam.getTeamColor().getChatColor() + " +" + iterations + " " + battleTeam.getTeamColor().getName() + " dragon");
 
                 while (iterations > 0) {
                     Location spawn = new Location(world, current.getX(), current.getY() + (delta * iterations), current.getZ());

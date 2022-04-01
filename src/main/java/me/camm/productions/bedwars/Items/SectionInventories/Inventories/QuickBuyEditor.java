@@ -29,11 +29,6 @@ public class QuickBuyEditor
          setCurrentAdding(currentAdding);
     }
 
-    public void updateConfiguration(int slot) {
-      QuickBuySection section = owner.getShopManager().getQuickBuy();
-      ItemStack stack = section.getItem(slot);
-      editor.setItem(slot, stack);
-    }
 
     public void setCurrentAdding(ItemStack stack){
         currentAdding = stack;
@@ -49,15 +44,19 @@ public class QuickBuyEditor
 
     public void applyConfigChange(int slot){
         QuickBuySection section = owner.getShopManager().getQuickBuy();
-        ItemStack change = editor.getItem(slot);
-        section.setItem(slot, change);
+
+        section.setItem(slot, new ItemStack(Material.AIR));
+        section.setItem(slot, currentAdding);
+
+        editor.setItem(slot, new ItemStack(Material.AIR));
+        editor.setItem(slot, currentAdding);
+    }
+
+    public void setItem(int slot, ItemStack stack) {
+        editor.setItem(slot, stack);
     }
 
     public Inventory getEditor(){
         return editor;
-    }
-
-    public ItemStack getCurrentAdding(){
-        return currentAdding;
     }
 }

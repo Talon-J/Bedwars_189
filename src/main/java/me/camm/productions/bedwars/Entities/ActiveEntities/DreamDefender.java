@@ -26,10 +26,15 @@ public class DreamDefender implements ILifeTimed
     private final EntityActionListener listener;
 
     private static final int MAX_TIME;
+    private static final int AGGRO_DISTANCE_SQUARED;
+
     private int timeLeft;
     private final Location toSpawn;
 
     static {
+
+        AGGRO_DISTANCE_SQUARED = 576;
+
         MAX_TIME = 120;
     }
 
@@ -76,7 +81,7 @@ public class DreamDefender implements ILifeTimed
                         break TARGET;
                     }
                     target = null;
-                            golem.setTarget(null);
+                    golem.setTarget(null);
 
 
 
@@ -91,7 +96,7 @@ public class DreamDefender implements ILifeTimed
 
 
                         //sqrt(576) = 24, which is usually the aggro distance
-                        if (player.getRawPlayer().getLocation().distanceSquared(golem.getLocation()) <= 576) {
+                        if (player.getRawPlayer().getLocation().distanceSquared(golem.getLocation()) <= AGGRO_DISTANCE_SQUARED) {
                           golem.setTarget(player.getRawPlayer());
                           target = player;
                           break;
@@ -101,7 +106,7 @@ public class DreamDefender implements ILifeTimed
 
 
 
-                golem.setCustomName(team.getColor().getChatColor()+""+team.getTeamColor().getName()+" Dream Defender ["+timeLeft+"]");
+                golem.setCustomName(team.getTeamColor().getChatColor()+""+team.getTeamColor().getName()+getType()+" ["+timeLeft+"]");
                 timeLeft --;
             }
         }.runTaskTimer(arena.getPlugin(),0,20);
@@ -158,8 +163,8 @@ public class DreamDefender implements ILifeTimed
 
                     golem = arena.getWorld().spawn(spawning,IronGolem.class);
                     golem.setPlayerCreated(false);
-                    golem.setCustomName(team.getColor().getChatColor()+""+team.getTeamColor().getName()+" Dream Defender (WIP)");
-                    golem.setHealth(16);
+                    golem.setCustomName(team.getTeamColor().getChatColor()+""+team.getTeamColor().getName()+getType());
+                    golem.setHealth(20);
                     register();
                     cancel();
                 }

@@ -7,12 +7,13 @@ import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Arena.Teams.TeamColors;
 import me.camm.productions.bedwars.Files.FileStreams.TeamFileReader;
 import me.camm.productions.bedwars.Files.FileStreams.WorldFileReader;
-import me.camm.productions.bedwars.Util.Helpers.IArenaChatHelper;
+
+import me.camm.productions.bedwars.Validation.BedWarsException;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.Plugin;
@@ -23,7 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-public class SetUp implements CommandExecutor, IArenaChatHelper
+public class GameIntializer implements CommandExecutor
 {
     private boolean isSetUp;
     private final Plugin plugin;
@@ -32,7 +33,7 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
     private Inventory joinInventory;
     private boolean isGameRunning;
 
-    public SetUp(Plugin plugin)
+    public GameIntializer(Plugin plugin)
     {
        this.plugin = plugin;
        this.isSetUp = false;
@@ -76,14 +77,27 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
 
             ArrayList<BattleTeam> teams;
             WorldFileReader fileReader = new WorldFileReader(plugin);
-            arena = fileReader.read();
+
+            try {
+                arena = fileReader.read();
+            }
+            catch (BedWarsException e) {
+                broadcastMessage(e.getMessage());
+                return true;
+            }
 
             if (arena!=null)
             {
 
-                teams = new TeamFileReader(plugin, arena).read();
-
                 broadcastMessage(ChatColor.AQUA+"[BEDWARS] Registering the map. Expect some lag.");
+
+                try {
+                    teams = new TeamFileReader(plugin, arena).read();
+                }
+                catch (BedWarsException e) {
+                    plugin.getServer().broadcastMessage(e.getMessage());
+                     return true;
+                }
 
                 arena.registerMap();
                 if (teams!=null&&teams.size()!=0)
@@ -99,13 +113,8 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
 
                 }
                 else
-                {
                     broadcastMessage(ChatColor.RED+"[BEDWARS] Could not initialize teams. Make sure the teams are configured correctly. [TEAMS DNE]");
-                    if (teams==null)
-                        sendStackTrace(true);
-                    else
-                        sendStackTrace(teams.size(),false);
-                }
+
             }
             else
                 broadcastMessage(ChatColor.RED+"[BEDWARS] Could not Initialize the Arena. Please make sure that the configuration is initialized. [ARENA DNE]");
@@ -114,7 +123,7 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
 
             case SHOUT:
 
-                if (!sender.hasPermission("shout.do")) {
+                if (!sender.hasPermission(CommandKeyword.SHOUT.getPerm())) {
                     return true;
                 }
 
@@ -139,13 +148,13 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
                }
 
                TeamColors color = current.getTeam().getTeamColor();
-               broadcastMessage(ChatColor.YELLOW+"[SHOUT] "+color.getChatColor()+" ["+color.getName()+"] "+
-                color.getChatColor()+current.getRawPlayer().getName()+ChatColor.RESET+":"+message);
+               broadcastMessage(ChatColor.YELLOW+"[SHOUT]"+color.getChatColor()+"["+color.getName()+"]"+
+                color.getChatColor()+"<"+current.getRawPlayer().getName()+">"+ChatColor.GRAY+message);
 
                 break;
 
             case START:
-                if (!sender.hasPermission("start.do"))
+                if (!sender.hasPermission(CommandKeyword.START.getPerm()))
                     return true;
 
 
@@ -170,7 +179,6 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
                     //   {
                     isGameRunning = true;
                     runner.prepareAndStart();
-                    //PrepareInst() sets running = true and also starts the game
 
                     //     }
                     //    else {
@@ -187,7 +195,7 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
                 break;
 
             case REGISTER:
-                if (!sender.hasPermission("register.do"))
+                if (!sender.hasPermission(CommandKeyword.REGISTER.getPerm()))
                     return true;
 
                 if (runner!=null&&joinInventory!=null)
@@ -200,11 +208,10 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
                 break;
 
             case UNREGISTER:
-                System.out.println("unregister");
-                if (!sender.hasPermission("unregister.do"))
+                if (!sender.hasPermission(CommandKeyword.UNREGISTER.getPerm()))
                     return true;
 
-                System.out.println("has perms");
+
 
                 if (isGameRunning){
                     sender.sendMessage(ChatColor.RED+"Sorry bud, game's already running.");
@@ -215,7 +222,7 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
                     arena.getTeamList().forEach((team) -> team.removePlayer(((Player) sender)));
 
                     BattlePlayer unregistered = arena.getPlayers().get(((Player)sender).getUniqueId());
-                    unregistered.getBoard().unregisterRegardless();
+                    unregistered.getBoard().unregister();
                     arena.removePlayer(((Player) sender).getUniqueId());
                 }
 
@@ -225,35 +232,17 @@ public class SetUp implements CommandExecutor, IArenaChatHelper
                 broadcastMessage(ChatColor.YELLOW+sender.getName()+" has unregistered!");
 
                 break;
+
+
+            case END:
+                break;
         }
         return true;
     }
 
-
-
-
     public Arena getArena()
     {
         return arena;
-    }
-
-    public void sendStackTrace( boolean isNull)
-    {
-        ConsoleCommandSender sender = plugin.getServer().getConsoleSender();
-        sender.sendMessage(ChatColor.RED+"[BEDWARS] [STACK] ---  REPORT ---");
-        sender.sendMessage(ChatColor.RED+"[BEDWARS] [STACK] - Nature: "+ isNull);
-        sender.sendMessage(ChatColor.RED+"[BEDWARS] [STACK] ---  REPORT ---\n");
-
-    }
-
-    public void sendStackTrace(int size, boolean isNull)
-    {
-        ConsoleCommandSender sender = plugin.getServer().getConsoleSender();
-        sender.sendMessage(ChatColor.RED+"[BEDWARS] [STACKTRACE] ---  REPORT ---");
-        sender.sendMessage(ChatColor.RED+"[BEDWARS] [STACKTRACE] - Nullable: "+ isNull);
-        sender.sendMessage(ChatColor.RED+"[BEDWARS] [STACKTRACE] - Size: "+ size);
-        sender.sendMessage(ChatColor.RED+"[BEDWARS] [STACKTRACE] ---  REPORT ---\n");
-
     }
 
     public void broadcastMessage(String message) {

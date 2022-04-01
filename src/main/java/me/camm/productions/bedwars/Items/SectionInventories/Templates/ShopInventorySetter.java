@@ -37,8 +37,8 @@ public abstract class ShopInventorySetter extends CraftInventoryCustom implement
     }
 
     @Override
-    public void setItem(int slot, ShopItem item) {
-        this.setItem(slot, item, false);
+    public void setItem(int index, ItemStack item) {
+        super.setItem(index, item);
     }
 
     @Override
@@ -53,16 +53,20 @@ public abstract class ShopInventorySetter extends CraftInventoryCustom implement
         }
     }
 
+    @Override
+    public void setInventoryItems() {
+
+    }
+
     /*
-    Setting the items at the top of an inv for navigation
-    @param inv
-    @param isInflated
-    @param includeEmpties
-     */
+        Setting the items at the top of an inv for navigation
+        @param inv
+        @param isInflated
+        @param includeEmpties
+         */
     @Override
     public void setTemplate(boolean isInflated, boolean includeEmpties)
     {
-        System.out.println("shopInvsetter.setTemplate() inflated: "+isInflated);
 
         for (DefaultTemplateNavigation template: DefaultTemplateNavigation.values())
         {
@@ -90,27 +94,5 @@ public abstract class ShopInventorySetter extends CraftInventoryCustom implement
         }
 
 
-    }
-
-    @Override
-    public ArrayList<ShopItemSet> packageInventory(Inventory inv)
-    {
-        ArrayList<ShopItemSet> items = new ArrayList<>();
-        for (int slot=QUICK_INV_BORDER_START.getValue();slot<=QUICK_INV_BORDER_END.getValue();slot++)
-        {
-            if (ItemHelper.isItemInvalid(inv.getItem(slot)))
-                continue;
-
-            ItemStack stack = inv.getItem(slot);
-            try
-            {
-                ShopItem item = ShopItem.valueOf(stack.getItemMeta().getDisplayName());
-                items.add(new ShopItemSet(item,slot));
-            }
-            catch (IllegalArgumentException | NullPointerException ignored)
-            {
-            }
-        }
-        return items;
     }
 }

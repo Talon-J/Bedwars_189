@@ -3,7 +3,7 @@ package me.camm.productions.bedwars.Files.FileCreators;
 import me.camm.productions.bedwars.Files.FileKeywords.ContributorList;
 import me.camm.productions.bedwars.Files.FileKeywords.Instructions;
 import me.camm.productions.bedwars.Files.FileStreams.GameFileWriter;
-import me.camm.productions.bedwars.Util.Helpers.StringToolBox;
+import me.camm.productions.bedwars.Util.Helpers.StringHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
-public class DirectoryCreator extends StringToolBox
+public class DirectoryCreator extends StringHelper
 {
     private Server server;
     private Plugin plugin;

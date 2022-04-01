@@ -58,7 +58,7 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
         this.b = centre.getY();
         this.c = centre.getZ();
 
-        this.setCustomName(team.getColor().getChatColor()+team.getTeamColor().getName()+" Dragon ("+number+")");
+        this.setCustomName(team.getTeamColor().getChatColor()+team.getTeamColor().getName()+getType()+" ("+number+")");
         this.getAttributeInstance(GenericAttributes.maxHealth).setValue(75);
         this.setHealth(75);
         number ++;
@@ -482,9 +482,9 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
     }
 
 
-    public boolean damageEntity(EntityComplexPart entitycomplexpart, DamageSource damagesource, float f)
+    public void damageEntity(EntityComplexPart entitycomplexpart, DamageSource damagesource, float f)
     {
-        return a(entitycomplexpart, damagesource,f);
+       a(entitycomplexpart, damagesource,f);
     }
 
     public void dealRawDamage(DamageSource source, float damage) {
@@ -519,6 +519,7 @@ public class GameDragon extends EntityEnderDragon implements IGameAutonomous
             return;
 
         int iterations = 0;
+
         BattlePlayer[] players = arena.getPlayers().values().toArray(new BattlePlayer[arena.getPlayers().values().size()]);
 
 

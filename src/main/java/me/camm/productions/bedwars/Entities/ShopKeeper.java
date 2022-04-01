@@ -96,9 +96,8 @@ public class ShopKeeper
                properties = getSkinInfo(uuid);
 
             if (properties!=null)
-            {
                 profile.getProperties().put("textures", new Property("textures", properties[0], properties[1]));
-            }
+
     }
 
     public int getId()
@@ -126,11 +125,8 @@ public class ShopKeeper
                 int signatureIndex = combined.indexOf("\"signature\" :");
 
                 String value = combined.substring(valueIndex+11,combined.indexOf("\"",valueIndex+11));
-                System.out.println("Debug: Value taken: ||"+value+"||");
-
-
                 String signature = combined.substring(signatureIndex+15,combined.indexOf("\"",signatureIndex+15));
-                System.out.println("Debug; Signature taken: ||"+signature+"||");
+
 
                 String[] data = new String[] {value,signature};
                 skinValues.putIfAbsent(uuid,data);

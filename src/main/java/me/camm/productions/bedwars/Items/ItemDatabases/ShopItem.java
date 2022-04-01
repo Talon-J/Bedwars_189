@@ -51,7 +51,7 @@ public enum ShopItem
     PUNCH_BOW(6, 1, Material.BOW, Material.EMERALD, ChatColor.GRAY + "Punch I Power 1 Bow", RANGED, false, false, 6),
 
     LEATHER_ARMOR(0, 1, Material.LEATHER_BOOTS, Material.AIR, ChatColor.GRAY + "Leather armor", ARMOR, false, true, 0),
-    CHAIN_MAIL(30, 1, Material.CHAINMAIL_BOOTS, Material.IRON_INGOT, ChatColor.GOLD + "Permanent Chainmail Armor", ARMOR, false, true, 30),
+    CHAIN_MAIL(30, 1, Material.CHAINMAIL_BOOTS, Material.IRON_INGOT, ChatColor.GOLD + "Permanent Chain mail Armor", ARMOR, false, true, 30),
     IRON_ARMOR(12, 1, Material.IRON_BOOTS, Material.GOLD_INGOT, ChatColor.GRAY + "Permanent Iron Armor", ARMOR, false, true, 12),
     DIAMOND_ARMOR(4, 1, Material.DIAMOND_BOOTS, Material.EMERALD, ChatColor.GRAY + "Permanent Diamond Armor", ARMOR, true, true, 4),
 
