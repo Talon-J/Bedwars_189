@@ -1,5 +1,9 @@
 package me.camm.productions.bedwars.Files.FileKeywords;
 
+/**
+ * @author CAMM
+ * Enum for instructions in the game (Maybe put this into a resources file instead?)
+ */
 public enum Instructions
 {
     HEADER(new String[] {"This is the format the config should follow. \n" +

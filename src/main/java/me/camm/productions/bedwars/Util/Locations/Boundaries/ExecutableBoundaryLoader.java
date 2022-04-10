@@ -3,7 +3,7 @@ package me.camm.productions.bedwars.Util.Locations.Boundaries;
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
-import me.camm.productions.bedwars.Arena.Teams.TeamTraps.Trap;
+import me.camm.productions.bedwars.Arena.Teams.TeamTraps.ITrap;
 import me.camm.productions.bedwars.Util.DataSets.TimeSet;
 import me.camm.productions.bedwars.Util.Locations.BlockRegisterType;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
@@ -132,7 +132,7 @@ public class ExecutableBoundaryLoader implements Runnable
 
 
 
-                               Trap activated = current.activateNextTrap();
+                               ITrap activated = current.activateNextTrap();
                                if (activated != null)
                                {
                                    current.sendTeamMessage(ChatColor.RED+"[TRAP] Your "+activated.name()+" was activated by "+player.getTeam().getTeamColor().getName()+" team!");

@@ -1,5 +1,9 @@
 package me.camm.productions.bedwars.Files.FileKeywords;
 
+/**
+ * @author CAMM
+ * This enum holds the paths to the files required for the game
+ */
 public enum FilePaths
 {
     PLAYER("Players"),

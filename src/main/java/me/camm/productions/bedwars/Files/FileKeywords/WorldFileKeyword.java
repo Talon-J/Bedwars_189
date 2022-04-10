@@ -1,7 +1,10 @@
 package me.camm.productions.bedwars.Files.FileKeywords;
 
 
-//Enum for world file reading
+/**
+ * @author CAMM
+Enum for keywords associated with reading world files
+ */
 public enum WorldFileKeyword
 {
     WORLD("World",0),

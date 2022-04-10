@@ -4,7 +4,7 @@ import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.GameRunning.GameRunner;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
-import me.camm.productions.bedwars.Arena.Teams.TeamColors;
+import me.camm.productions.bedwars.Arena.Teams.TeamColor;
 import me.camm.productions.bedwars.Files.FileStreams.TeamFileReader;
 import me.camm.productions.bedwars.Files.FileStreams.WorldFileReader;
 import me.camm.productions.bedwars.Util.Helpers.ChatSender;
@@ -16,8 +16,8 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static me.camm.productions.bedwars.Arena.GameRunning.Commands.CommandKeyword.*;
 
@@ -59,7 +59,12 @@ public class CommandProcessor {
 
         ArrayList<BattleTeam> teams;
         WorldFileReader fileReader = new WorldFileReader(plugin);
-        arena = fileReader.read();
+
+
+            arena = fileReader.read();
+
+
+
 
 
         if (arena==null)
@@ -79,7 +84,7 @@ public class CommandProcessor {
                 runner = new GameRunner(plugin, arena);
                 arena.registerTeamZones();
 
-                plugin.getServer().getPluginManager().registerEvents(runner, plugin);
+              //  plugin.getServer().getPluginManager().registerEvents(runner, plugin);
 
                 this.runner = runner;
                 return runner;
@@ -105,7 +110,7 @@ public class CommandProcessor {
 
 
         //check if the player is registered.
-        ConcurrentHashMap<UUID, BattlePlayer> players = runner.getArena().getPlayers();
+        Map<UUID, BattlePlayer> players = runner.getArena().getPlayers();
         BattlePlayer current = players.getOrDefault(((Player) sender).getUniqueId(),null);
         if (current == null)
             return;
@@ -118,7 +123,7 @@ public class CommandProcessor {
         }
 
         //send the message
-        TeamColors color = current.getTeam().getTeamColor();
+        TeamColor color = current.getTeam().getTeamColor();
        this.messager.sendPlayerMessage(ChatColor.YELLOW+"[SHOUT]"+color.getChatColor()+"["+color.getName()+"]"+
                 color.getChatColor()+"<"+current.getRawPlayer().getName()+">"+ChatColor.GRAY+message,null);
 
@@ -238,8 +243,7 @@ public class CommandProcessor {
 
             BattlePlayer unregistered = arena.getPlayers().getOrDefault(p.getUniqueId(),null);
             if (unregistered != null) {
-                unregistered.getBoard().unregister();
-                arena.removePlayer(p.getUniqueId());
+                arena.unregisterPlayer(p.getUniqueId());
             }
         }
 

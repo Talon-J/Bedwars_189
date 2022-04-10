@@ -19,15 +19,16 @@ import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.
 import static me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory.*;
 
 
-/*
-- Add an inventory for when the player modifies their hotbar manager.
-
+/**
+ * @author CAMM
+ * The hotbar manager manages the placement of bought items into the player's inventory, EXCLUDING armor.
  */
 public class HotbarManager
 {
     private final ItemCategory[] layout;
     private final Inventory editor;
 
+    //creating a manager with no layout from a saved file
     public HotbarManager()
     {
         this.layout = new ItemCategory[HOT_BAR_END.getValue()];
@@ -40,6 +41,7 @@ public class HotbarManager
 
 
 
+    //creating a manager with a layout from a saved file
     public HotbarManager(ItemCategory[] layout)
     {
 
@@ -102,6 +104,7 @@ public class HotbarManager
     }
 
 
+    //updates the display for the inventory
     public void updateDisplay(){
         for (int slot=0;slot<layout.length;slot++) {
             ItemStack stack = ItemHelper.toBarItem(layout[slot]);
@@ -110,6 +113,7 @@ public class HotbarManager
     }
 
 
+    //resets the configuration. Does not update the inventory
     public void reset(){
 
         layout[0] = ItemCategory.MELEE;
@@ -407,6 +411,8 @@ public class HotbarManager
 
 
 
+    //if the player uses a hotbar button for buying, it overrides the hotbar manager.
+    //the event should be checked beforehand such that the button is valid.
     private boolean setWithEvent(Inventory playerInv, ItemStack newStack, @NotNull InventoryClickEvent event){
 
         int button = event.getHotbarButton();

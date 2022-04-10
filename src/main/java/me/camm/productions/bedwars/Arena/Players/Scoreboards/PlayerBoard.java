@@ -10,22 +10,28 @@ import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 
-import java.util.ArrayList;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Random;
 
 import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeader.*;
 
-
-public class PlayerBoard// implements IPlayerUtil
+/**
+ * @author CAMM
+ * Class for the scoreboard of the players
+ */
+public class PlayerBoard
 {
     private final BattlePlayer player;
     private final Arena arena;
     private final HashMap<String, ScoreSet> scores;
     private Scoreboard board;
+
+    //we use 2 objectives: a primary and a buffer to make the update transitions smoothly without flickering.
     private ScoreboardObjective primary;
     private ScoreboardObjective buffer;
+
     private boolean isShowingPrimary;
     private boolean isInitialized;
     private final String easterEgg;
@@ -60,9 +66,9 @@ public class PlayerBoard// implements IPlayerUtil
                        initial.unregisterObjective(objective);
                        initial.handleObjectiveRemoved(objective);
                    }
-                   catch (IllegalArgumentException | IllegalStateException e)
+                   catch (IllegalArgumentException | IllegalStateException ignored)
                    {
-                       e.printStackTrace();
+
                    }
                }
        }
@@ -119,6 +125,7 @@ public class PlayerBoard// implements IPlayerUtil
             selectedScore--;
         }
 
+        //blank score for formatting
         scores.put(B_TWO.getPhrase(), new ScoreSet(board, selectedScore, B_TWO.getPhrase(), B_TWO.getPhrase(),player,primary,buffer));  //blank space
         scores.get(B_TWO.getPhrase()).sendPrimary();
         selectedScore--;
@@ -148,7 +155,7 @@ public class PlayerBoard// implements IPlayerUtil
     }
 
     /*
-    @Author CAMM
+    @author CAMM
     This method updates the board of the player in respect to the situations of
     both their team and the other teams.
      */
@@ -166,7 +173,7 @@ public class PlayerBoard// implements IPlayerUtil
 
 
     /*
-    @Author CAMM
+    @author CAMM
     Refreshes the information displayed on the player scoreboards according to the scores
     stored in the "scores" hashmap. This method does NOT update the scores of the teams, time, or
     player kills, finals, and beds. Those updates should be controlled by other methods.
@@ -236,6 +243,8 @@ public class PlayerBoard// implements IPlayerUtil
 
     }
 
+
+    //unregister the board for the player
     public void unregister()
     {
 
@@ -254,7 +263,6 @@ public class PlayerBoard// implements IPlayerUtil
                 board.unregisterObjective(buffer);
                 board.handleObjectiveRemoved(buffer);
                 send(new PacketPlayOutScoreboardObjective(buffer, 1));
-                //  send(new PacketPlayOutScoreboardObjective(buffer,1));
             } catch (IllegalArgumentException | IllegalStateException ignored) {
 
             }
@@ -262,6 +270,7 @@ public class PlayerBoard// implements IPlayerUtil
     }
 
     //Unregisters everything regardless of if they exist or not.
+    // this may throw an exception on the player side.
     public void unregisterRegardless()
     {
         try {
@@ -269,7 +278,6 @@ public class PlayerBoard// implements IPlayerUtil
             board.handleObjectiveRemoved(primary);
             send(new PacketPlayOutScoreboardObjective(primary,1));
 
-          //  send(new PacketPlayOutScoreboardObjective(primary,1));
         }
         catch (IllegalArgumentException | IllegalStateException ignored)
         {
@@ -280,7 +288,6 @@ public class PlayerBoard// implements IPlayerUtil
             board.unregisterObjective(buffer);
             board.handleObjectiveRemoved(buffer);
             send(new PacketPlayOutScoreboardObjective(buffer,1));
-          //  send(new PacketPlayOutScoreboardObjective(buffer,1));
         }
         catch (IllegalArgumentException | IllegalStateException ignored)
         {
@@ -318,6 +325,7 @@ public class PlayerBoard// implements IPlayerUtil
     }
 
 
+    //Setting the score name of a score
     public synchronized void setScoreName(String identifier, String newName)
     {
         if (scores.containsKey(identifier))
@@ -328,11 +336,13 @@ public class PlayerBoard// implements IPlayerUtil
     }
 
 
+    //helper to send packets to the player. Packets are a generic type, so that's why there's a <?>
     private void send(Packet<?> packet)
     {
         ((CraftPlayer)player.getRawPlayer()).getHandle().playerConnection.sendPacket(packet);
     }
 
+    //Helper to get the team status of a team
     private static String getTeamStatus(BattleTeam team)
     {
         try {

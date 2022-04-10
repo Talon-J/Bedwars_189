@@ -16,13 +16,13 @@ import java.util.Collection;
 import java.util.Random;
 
 
-public class GameBoundary extends Boundary<Integer>// implements IArenaChatHelper
+public class GameBoundary extends Boundary<Integer>
 {
-    private int[] bounds;
+    private Integer[] bounds;
     private final Random rand;
     private static ChatSender sender;
 
-    public GameBoundary(int[] bounds) {
+    public GameBoundary(Integer[] bounds) {
         this.bounds = bounds;
         rand = new Random();
         analyze();
@@ -36,7 +36,7 @@ public class GameBoundary extends Boundary<Integer>// implements IArenaChatHelpe
     protected void analyze()
     {
             if (bounds==null||bounds.length != 6)
-                bounds = new int[]{0, 0, 0, 0, 0, 0};
+                bounds = reset();
     }
 
 
@@ -50,8 +50,13 @@ public class GameBoundary extends Boundary<Integer>// implements IArenaChatHelpe
             z1 = bounds[4];
             z2 = bounds[5];
         } else {
-            this.bounds = new int[]{0, 0, 0, 0, 0, 0};
+            this.bounds = reset();
         }
+    }
+
+    @Override
+    protected Integer[] reset() {
+        return new Integer[0];
     }
 
     @Override
@@ -63,7 +68,7 @@ public class GameBoundary extends Boundary<Integer>// implements IArenaChatHelpe
         reArrange(ONE, TWO, bounds, REPETITION);
     }
 
-    private void reArrange(int one, int two, int [] order, int repetition) //method loop for rearranging
+    private void reArrange(int one, int two, Integer[] order, int repetition) //method loop for rearranging
     {
         int placeHold;
 
@@ -87,7 +92,7 @@ public class GameBoundary extends Boundary<Integer>// implements IArenaChatHelpe
                 bounds = order;
         }
         else
-            bounds = new int[]{0,0,0,0,0,0};
+            bounds = reset();
     }
 
 
@@ -248,7 +253,7 @@ public class GameBoundary extends Boundary<Integer>// implements IArenaChatHelpe
         sender.sendMessage(ChatColor.YELLOW + "[MAP REGISTER] Registered Zone from (x1=" + x1 + ",y1=" + y1 + ",z1=" + z1 + ") to (x2=" + x2 + ",y2=" + y2 + ",z2=" + z2 + ") with " + type);
     }
 
-    public int[] getValues() {
+    public Integer[] getValues() {
         return bounds;
     }
 

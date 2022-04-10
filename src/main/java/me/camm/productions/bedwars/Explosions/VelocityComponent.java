@@ -9,6 +9,11 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
+/**
+ * todo unfinished.
+ * @author CAMM
+ * Models a class for calculating velocity to apply to entities
+ */
 public class VelocityComponent {
     private final EntityExplodeEvent event;
     private boolean isFireball;
@@ -48,6 +53,9 @@ public class VelocityComponent {
     }//method
 
 
+    /*
+    Construct the velocity and imparts it
+     */
     public void construct(Location origin, Location destination, Entity target){
 
         double deltaX, deltaY, deltaZ;
@@ -80,7 +88,7 @@ public class VelocityComponent {
         deltaX *= 1.2;
         deltaZ *= 1.2;
 
-        System.out.println("==========================================");
+        System.out.println("[debug]==========================================");
         System.out.println("Components: "+deltaX+" "+deltaY+" "+deltaZ);
         System.out.println(deltaX);
         System.out.println(deltaY);
@@ -94,10 +102,13 @@ public class VelocityComponent {
 
 
 
+    /*
+    Imparts velocity onto the entity
+     */
     private void impartVelocity(double xComponent, double yComponent, double zComponent, Entity targeted)
     {
         Vector velocity = new Vector(xComponent,yComponent,zComponent);
-        System.out.println("Targ Original velocity:"+targeted.getVelocity().getX()+" "+targeted.getVelocity().getY()+" "+targeted.getVelocity().getZ());
+        System.out.println("[debug]Targ Original velocity:"+targeted.getVelocity().getX()+" "+targeted.getVelocity().getY()+" "+targeted.getVelocity().getZ());
         targeted.setVelocity(targeted.getVelocity().clone().add(velocity));
     }
 

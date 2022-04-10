@@ -17,7 +17,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.Collection;
 import java.util.UUID;
 
-
+/**
+ * @author CAMM
+ * Class to model a bed bug
+ */
 public class BedBug implements ILifeTimed
 {
     private final BattleTeam team;
@@ -34,6 +37,7 @@ public class BedBug implements ILifeTimed
         MAX_TIME = 15;
     }
 
+ //constructor
     public BedBug(BattleTeam team, BattlePlayer owner,Arena arena,EntityActionListener listener,Location loc) {
         this.team = team;
         this.owner = owner;
@@ -43,6 +47,8 @@ public class BedBug implements ILifeTimed
         this.loc = loc;
     }
 
+
+    //spawn in the bug
     @Override
     public void spawn()
     {
@@ -67,17 +73,20 @@ public class BedBug implements ILifeTimed
 
 
 
+    //handles the targeting of the bug
     public synchronized void handleEntityTarget(Entity toTarget)
     {
         if (toTarget instanceof LivingEntity)
         bug.setTarget((LivingEntity)toTarget);
     }
 
+
     @Override
     public String getType(){
         return "Bed Bug";
     }
 
+    //handles the time the bug is alive
     @Override
     public void handleLifeTime()
     {

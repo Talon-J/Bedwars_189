@@ -3,6 +3,12 @@ package me.camm.productions.bedwars.Explosions.Vectors;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
+
+
+/**
+ * @author CAMM
+ * Models a vector for the game
+ */
 public abstract class GameVector
 {
     protected Vector direction;

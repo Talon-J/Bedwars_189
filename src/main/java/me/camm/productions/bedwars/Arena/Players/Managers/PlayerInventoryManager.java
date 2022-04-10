@@ -3,7 +3,6 @@ package me.camm.productions.bedwars.Arena.Players.Managers;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.*;
-import me.camm.productions.bedwars.Items.SectionInventories.Templates.ISectionInventory;
 import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
 import me.camm.productions.bedwars.Util.DataSets.ShopItemSet;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
@@ -12,7 +11,8 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
-/*
+/**
+ * @author CAMM
 This class manages inventory navigation for players in the game by bringing them to different
 inventories.
  */
@@ -77,6 +77,7 @@ public class PlayerInventoryManager
         if (inv == null)
             return null;
 
+        //todo replace this with a set lookup instead of an arraylist iteration
       for (ShopInventorySetter i: inventories)
       {
           if (i.equals(inv))
@@ -85,6 +86,8 @@ public class PlayerInventoryManager
       return null;
     }
 
+    //the armor section, quickbuy, and the tools sections are the only sections that
+    //can dynamically change
     public void replaceItem(ShopItem toReplace, ShopItem replacement)
     {
         searchAndReplace(armorSection,toReplace, replacement);
@@ -92,6 +95,10 @@ public class PlayerInventoryManager
         searchAndReplace(toolsSection,toReplace, replacement);
     }
 
+    /*
+    Searches and replaces all items that match the similarity of the toReplace item with
+    the replacement item
+     */
     private void searchAndReplace(Inventory inv, ShopItem toReplace, ShopItem replacement)
     {
         if (owner == null)
@@ -107,7 +114,7 @@ public class PlayerInventoryManager
             if (ItemHelper.isItemInvalid(residing))
                 continue;
 
-            //Enchantments can change the name, so....yup.
+            //Enchantments can change the name, so don't use displayName().equalsIgnoreCase()...
             if (residing.isSimilar(toBeReplaced)) {
                 inv.setItem(i, toBeSet);
             }
@@ -116,7 +123,8 @@ public class PlayerInventoryManager
 
 
 
-
+  /////////////////////////
+    //getters
     public ArmorSectionInventory getArmorSection() {
         return armorSection;
     }

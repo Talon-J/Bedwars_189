@@ -146,9 +146,9 @@ public class StringHelper
 
 
     //takes a double array and converts it into an int array
-    public int[] doubleToIntArray(double @NotNull [] values)
+    public Integer[] doubleToIntArray(double @NotNull [] values)
     {
-        int[] processed = new int[values.length];
+        Integer[] processed = new Integer[values.length];
         for (int slot=0;slot<values.length;slot++) {
             processed[slot] = (int) values[slot];
         }

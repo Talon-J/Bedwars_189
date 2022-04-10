@@ -2,8 +2,14 @@ package me.camm.productions.bedwars.Generators;
 
 import org.bukkit.Material;
 
+
+/**
+ * @author CAMM
+ * Enum for types of generators
+ */
 public enum GeneratorType
 {
+
     DIAMOND(Material.DIAMOND_BLOCK,Material.DIAMOND,"Diamond"),
     EMERALD(Material.EMERALD_BLOCK,Material.EMERALD,"Emerald");
 

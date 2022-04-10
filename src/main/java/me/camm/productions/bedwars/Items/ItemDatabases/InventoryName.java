@@ -2,6 +2,10 @@ package me.camm.productions.bedwars.Items.ItemDatabases;
 
 import org.bukkit.ChatColor;
 
+/**
+ * @author CAMM
+ * Possible names for the inventories
+ */
 public enum InventoryName
 {
     QUICK_BUY("Quick Buy"),

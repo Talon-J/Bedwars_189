@@ -5,6 +5,11 @@ import me.camm.productions.bedwars.Items.ItemDatabases.InventoryName;
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.MeleeConfig;
 import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
 
+
+/**
+ * @author CAMM
+ * This inventory models a section inventory in the quick buy
+ */
 //Universal for all players
 public class MeleeSectionInventory extends ShopInventorySetter {
 

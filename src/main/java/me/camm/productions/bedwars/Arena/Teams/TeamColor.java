@@ -4,7 +4,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 
-public enum TeamColors
+/**
+ * @author CAMM
+ * This enum represents the possible colors that a team can take.
+ */
+public enum TeamColor
 {
     RED("Red",14,Color.RED,ChatColor.RED,"R",DyeColor.RED),
     BLUE("Blue",11,Color.BLUE,ChatColor.BLUE,"B",DyeColor.BLUE),
@@ -16,14 +20,16 @@ public enum TeamColors
     GREEN("Green",5,Color.LIME,ChatColor.GREEN,"G",DyeColor.LIME);
 
 
+    //data value for the color
     private final int value;
+
     private final String name;
     private final Color color;
     private final ChatColor chatColor;
     private final String symbol;
     private final DyeColor dye;
 
-    TeamColors(String name, int value, Color color, ChatColor chatColor, String symbol, DyeColor dye)
+    TeamColor(String name, int value, Color color, ChatColor chatColor, String symbol, DyeColor dye)
     {
        this.value = value;
        this.name = name;

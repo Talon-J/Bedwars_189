@@ -5,6 +5,11 @@ import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.QUICK_INV_BORDER_ROW2_START;
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.QUICK_INV_BORDER_START;
 
+
+/**
+ * @author CAMM
+ * This enum is used as a template for placing items into section inventories
+ */
 public enum UtilityConfig
 {
     APPLE(QUICK_INV_BORDER_START.getValue(), ShopItem.GOLDEN_APPLE),

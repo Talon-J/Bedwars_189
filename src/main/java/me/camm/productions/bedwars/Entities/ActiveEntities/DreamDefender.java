@@ -17,6 +17,10 @@ import java.util.Collection;
 import java.util.UUID;
 
 
+/**
+ * @author CAMM
+ * Models a dream defender.
+ */
 public class DreamDefender implements ILifeTimed
 {
     private final BattleTeam team;
@@ -73,6 +77,8 @@ public class DreamDefender implements ILifeTimed
                     return;
                 }
 
+
+                //golems are not aggressive normally, so we need to target for them.
                 TARGET:
                 {
 

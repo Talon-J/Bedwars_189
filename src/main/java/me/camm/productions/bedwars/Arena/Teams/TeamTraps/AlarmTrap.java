@@ -13,9 +13,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
+
+/**
+ * @author CAMM
+ * Models an alarm trap object
+ */
 public class AlarmTrap extends GameTrap
 {
     private static final int MILK_TIME_MILLIS = 30000;
@@ -30,15 +34,16 @@ public class AlarmTrap extends GameTrap
     @Override
     public void activate() {
         World world = team.getArena().getWorld();
-        ConcurrentHashMap<UUID, BattlePlayer> arenaPlayers = team.getArena().getPlayers();
-        ConcurrentHashMap<UUID, BattlePlayer> teamPlayers = team.getPlayers();
+        Map<UUID, BattlePlayer> arenaPlayers = team.getArena().getPlayers();
+        Map<UUID, BattlePlayer> teamPlayers = team.getPlayers();
 
 
         new BukkitRunnable() {
             public void run() {
 
-                BattlePlayer activator = null;
+                final Set<BattlePlayer> activators = new HashSet<>();
 
+                //getting the close entities which may have activated them
                 for (Entity entity: bounds.getCloseEntities(world))
                 {
                     if (!teamPlayers.containsKey(entity.getUniqueId()) &&
@@ -48,16 +53,16 @@ public class AlarmTrap extends GameTrap
                         BattlePlayer current = arenaPlayers.get(entity.getUniqueId());
 
                         if ( (System.currentTimeMillis() - current.getLastMilk()) > MILK_TIME_MILLIS) {
-                            if (activator == null)
-                            activator = current;
+                            activators.add(current);
                             current.getRawPlayer().removePotionEffect(PotionEffectType.INVISIBILITY);
                         }
-                        //this should send a packet remove effect to the packet handler, so it should be fine.
+                        //this should send a packet remove effect to the packet handler, so it should be fine if we
+                        //don't update it here
                     }
                 }
 
-                final BattlePlayer trigger = activator;
 
+                //playing an alarm for all players that activated the trap
                 new BukkitRunnable()
                 {
                     int iterations = 0;
@@ -65,16 +70,32 @@ public class AlarmTrap extends GameTrap
                     @Override
                     public void run()
                     {
-                        if (trigger !=null && trigger.getIsAlive()) {
+                        Iterator<BattlePlayer> iter = activators.iterator();
 
-                            Location loc = trigger.getRawPlayer().getLocation();
-                            if (bounds.containsCoordinate(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())) {
-                                if (note)
-                                    team.sendTeamSoundPacket(PacketSound.ALARM);
-                                else
-                                    team.sendTeamSoundPacket(PacketSound.ALARM_TWO);
-                                note = !note;
+                        while (iter.hasNext()) {
+                            BattlePlayer trigger = iter.next();
+                            if (trigger != null && trigger.getIsAlive())
+                            {
+
+
+                                Location loc = trigger.getRawPlayer().getLocation();
+                                if (!bounds.containsCoordinate(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()))
+                                   continue;
+
+
+                                    if (note)
+                                        team.sendTeamSoundPacket(PacketSound.ALARM);
+                                    else
+                                        team.sendTeamSoundPacket(PacketSound.ALARM_TWO);
+                                    note = !note;
+
                             }
+                            else
+                                iter.remove();
+                        }
+
+                        if (activators.isEmpty()) {
+                            cancel();
                         }
 
                         //just an arbitrary amount for the alarm.
@@ -113,4 +134,4 @@ public class AlarmTrap extends GameTrap
     }
 }
 
-//removes invis from players if not drank magic milk for 30 secs
+

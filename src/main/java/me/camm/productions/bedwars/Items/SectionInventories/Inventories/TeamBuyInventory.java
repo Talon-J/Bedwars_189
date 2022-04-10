@@ -9,7 +9,10 @@ import org.bukkit.inventory.ItemStack;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryName.TEAM_BUY;
 
-
+/**
+ * @author CAMM
+ * This inventory models a section inventory in the quick buy
+ */
 public class TeamBuyInventory extends CraftInventoryCustom
 {
 

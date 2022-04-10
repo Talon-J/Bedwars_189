@@ -8,8 +8,26 @@ import org.bukkit.event.entity.EntityDamageEvent;
 
 import java.util.Random;
 
+/**
+ * @author CAMM
+ * Class to format death messages
+ */
 public class DeathFormatter
 {
+
+        /*
+
+Formats:
+
+    victim was deathCause by killer's minion
+
+    victim deathCauseNatural
+
+    victim was deathCause by killer
+
+    victim directMessage by killer
+
+     */
 
     private final static Random rand;
     private final static DirectDeathMessage[] messages;
@@ -123,18 +141,4 @@ public class DeathFormatter
 
 }
 
-
-
-
-    /*
-
-    entityVictim was deathCause by entityKiller's entityInitiator
-
-    entityVictim deathCauseNatural
-
-    entityVictim was deathCause by entityKiller
-
-    entityVictim directMessage by entityKiller
-
-     */
 

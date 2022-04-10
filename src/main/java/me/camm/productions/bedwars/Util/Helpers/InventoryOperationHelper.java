@@ -431,7 +431,7 @@ public class InventoryOperationHelper
             if (teamItem.isRenewable())
             {
 
-                Trap trap = null;
+                ITrap trap = null;
                 switch (teamItem) {
                     case TRAP_ALARM:
                         trap = new AlarmTrap(team,team.getTrapArea());

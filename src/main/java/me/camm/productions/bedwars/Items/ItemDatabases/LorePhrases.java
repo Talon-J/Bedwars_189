@@ -1,5 +1,10 @@
 package me.camm.productions.bedwars.Items.ItemDatabases;
 
+
+/**
+ * @author CAMM
+ * enum for lore that the items in the shops have
+ */
 public enum LorePhrases
 {
     COST("Cost:"),

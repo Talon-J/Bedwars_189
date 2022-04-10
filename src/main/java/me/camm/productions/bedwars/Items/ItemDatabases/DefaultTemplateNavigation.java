@@ -1,6 +1,10 @@
 package me.camm.productions.bedwars.Items.ItemDatabases;
 
 
+/**
+ * @author CAMM
+ * template for the shops (excluding the buyable items) in the quickbuy shops
+ */
 public enum DefaultTemplateNavigation
 {
     HOME(new int[] {0}, ShopItem.HOME_NAV),

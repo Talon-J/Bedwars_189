@@ -1,10 +1,18 @@
 package me.camm.productions.bedwars.Explosions.Vectors;
 
-import org.bukkit.World;
+
 import org.bukkit.entity.Entity;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.util.Vector;
 
+
+/**
+ * TODO unfinished. Need to refactor.
+ * We need more info on hypixel's tnt and fireballs.
+ *
+ * @author CAMM
+ * Models a velocity vector that yeets entities
+ */
 public class VelocityVector extends GameVector
 {
    private double distanceMagnitude;

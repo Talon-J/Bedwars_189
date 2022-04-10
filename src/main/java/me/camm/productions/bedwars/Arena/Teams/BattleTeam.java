@@ -2,7 +2,7 @@ package me.camm.productions.bedwars.Arena.Teams;
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
-import me.camm.productions.bedwars.Arena.Teams.TeamTraps.Trap;
+import me.camm.productions.bedwars.Arena.Teams.TeamTraps.ITrap;
 import me.camm.productions.bedwars.Entities.ShopKeeper;
 import me.camm.productions.bedwars.Generators.Forge;
 import me.camm.productions.bedwars.Items.ItemDatabases.BattleEnchantment;
@@ -64,7 +64,7 @@ public class BattleTeam
 
 
 
-    private final TeamColors teamColor;  //this is for the color of the team
+    private final TeamColor teamColor;  //this is for the color of the team
     private final Arena arena;
 
     private final GameBoundary bed;
@@ -73,7 +73,7 @@ public class BattleTeam
     private final GameBoundary aura;
     private final GameBoundary trapArea;
 
-    private final Trap[] traps;
+    private final ITrap[] traps;
 
     private final Location quickBuy;
     private final Location teamBuy;
@@ -103,7 +103,7 @@ public class BattleTeam
 
 
 
-    public BattleTeam(Arena arena, TeamColors teamColor, Forge forge, Coordinate teamSpawn, GameBoundary bed, Coordinate chest, Coordinate quickBuy, Coordinate teamBuy, GameBoundary unbreakable, GameBoundary aura, GameBoundary trapArea) {
+    public BattleTeam(Arena arena, TeamColor teamColor, Forge forge, Coordinate teamSpawn, GameBoundary bed, Coordinate chest, Coordinate quickBuy, Coordinate teamBuy, GameBoundary unbreakable, GameBoundary aura, GameBoundary trapArea) {
 
         this.teamColor  = teamColor;
         this.forge = forge;
@@ -133,7 +133,7 @@ public class BattleTeam
         loader = null;
 
         this.teamPrefix = teamColor.getChatColor()+"["+teamColor.getSymbol()+"]";
-        this.traps = new Trap[3];
+        this.traps = new ITrap[3];
         this.teamInventory = new TeamBuyInventory();
         trackerInventory = new TrackerSectionInventory();
 
@@ -153,9 +153,9 @@ public class BattleTeam
     }
 
     //return the next trap to activate and shift the queue down (we could use a queue here)
-    private synchronized Trap shiftTrapsDown()
+    private synchronized ITrap shiftTrapsDown()
     {
-        Trap current = traps[0];
+        ITrap current = traps[0];
 
         traps[0] = null;
         int index = 0;
@@ -169,28 +169,34 @@ public class BattleTeam
         return current;
     }
 
+
+    //initializes the tracking entries with the collection of teams
     public void initTrackingEntries(Collection<BattleTeam> teams){
         trackerInventory.addEntries(teams, this);
     }
 
+
+
+    //removes a team from the tracking inventory and updates the tracker inventory
     public void removeAndUpdateTracker(BattleTeam eliminated){
         trackerInventory.removeEntry(eliminated);
         trackerInventory.updateInventory();
     }
 
+    //counts traps that are loaded on the team
     public int countTraps(){
         int traps = 0;
 
-       for (Trap trap: this.traps)
+       for (ITrap trap: this.traps)
            if (trap != null)
                traps ++;
 
         return traps;
     }
 
-    public synchronized void addTrap(Trap trap)
+    //Adds a trap onto the list of traps
+    public synchronized void addTrap(ITrap trap)
     {
-        //  System.out.println("add trap");
         for (int slot=0;slot<traps.length;slot++)
         {
             if (traps[slot] == null) {
@@ -204,8 +210,9 @@ public class BattleTeam
         }
     }
 
-    public synchronized Trap activateNextTrap() {
-        Trap next = shiftTrapsDown();
+    //activates the next trap and returns the trap that was activated.
+    public synchronized ITrap activateNextTrap() {
+        ITrap next = shiftTrapsDown();
         if (next == null)
             return null;
 
@@ -214,6 +221,7 @@ public class BattleTeam
         return next;
     }
 
+    //loads a heal pool into the executable boundary loader
     public synchronized void loadAura(){
         if (loader != null) {
             loader.load(this,false);
@@ -222,6 +230,9 @@ public class BattleTeam
 
 
 
+    /*
+    Initializes the npcs in the game.
+     */
     //init later so that we can get all players and set skins.
     //(Player appearance, Plugin plugin, Location loc, World world)
     public void initializeNPCs()
@@ -234,6 +245,9 @@ public class BattleTeam
         this.teamGroupBuy = new ShopKeeper(appearanceTwo,arena.getPlugin(), teamBuy, arena.getWorld(),true, teamBuy.getYaw());
     }
 
+    /*
+    Shows the npcs to all players that are registered
+     */
     public void showNPCs()
     {
         teamQuickBuy.sendNPCToAll();
@@ -293,7 +307,7 @@ It is up to the calling method to update the scoreboards of the players.
     }
 
 
-    /**
+    /*
     @author CAMM
     Gets the entry to display on the scoreboard.
     E.g "R RED " <-- The team status is added on to here by external methods.
@@ -374,12 +388,14 @@ It is up to the calling method to update the scoreboards of the players.
         return false;
     }
 
+    //gets the update index of a team upgrade
     // -1 means it doesn't exist or something happened.
     public int getUpgradeIndex(TeamItem item){
         if (upgrades.containsKey(item))
             return upgrades.get(item);
         return -1;
     }
+
 
     //updating the inventory display
     public void updateModifierDisplay(TeamInventoryConfig item)
@@ -388,10 +404,8 @@ It is up to the calling method to update the scoreboards of the players.
         if (upgrades.containsKey(item.getItems())) {
             int[] slots = item.getSlots();
             int index = upgrades.get(item.getItems());
-          //  System.out.println("UpdateModDisplay ) [DEBUG] Updating for : "+item.name() +" and index = "+ index);
 
             for (int slot : slots) {
-               // System.out.println("[DEBUG]UpdateModDisplay: item: "+item.name()+" index: "+index+" slot:"+slot);
                 teamInventory.setItem(item, index, slot);
 
             }
@@ -401,6 +415,9 @@ It is up to the calling method to update the scoreboards of the players.
 
     }
 
+    /*
+    Updates the trap display for the inventory
+     */
     public void updateTrapDisplay(){
         teamInventory.setItem((traps[0]== null) ? TeamInventoryConfig.TRAP_ONE : traps[0].getTrapConfig() ,1,TeamInventoryConfig.TRAP_ONE.getSlots()[0]);
         teamInventory.setItem((traps[1]== null) ? TeamInventoryConfig.TRAP_TWO : traps[1].getTrapConfig() ,1,TeamInventoryConfig.TRAP_TWO.getSlots()[0]);
@@ -427,6 +444,10 @@ It is up to the calling method to update the scoreboards of the players.
 
     }
 
+
+    /*
+    Applies team modifiers that affect players to the player, if applicable.
+     */
     public void applyPlayerModifiersToPlayer(BattlePlayer player)
     {
         ItemHelper.setArmor(ItemHelper.addArmorEnchants(player.getRawPlayer().getInventory().getArmorContents(),activeArmorEnchant),player.getRawPlayer());
@@ -441,20 +462,19 @@ It is up to the calling method to update the scoreboards of the players.
         }
 
         int haste = upgrades.get(TeamItem.BUFF_HASTE)-1;
+        if (haste == 0)
+            return;
 
-        player.sendMessage("[DEBUG] haste lvl: "+haste);
-
-        if (haste == 1)
-            player.getRawPlayer().addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING,Integer.MAX_VALUE,0,true,false));
-         else if (haste == 2)
-            player.getRawPlayer().addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING,Integer.MAX_VALUE,1,true,false));
+   player.getRawPlayer().addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING,Integer.MAX_VALUE,haste-1,true,false));
 
     }
 
 
 
 
-
+    /*
+    Translates enchantment levels to protection amounts.
+     */
     public BattleEnchantment translateToProtectionEnchantments() {
         try {
             int enchantmentLevel = upgrades.get(TeamItem.UPGRADE_PROTECTION) -1;
@@ -487,6 +507,9 @@ It is up to the calling method to update the scoreboards of the players.
      return null;
     }
 
+    /*
+    Translates enchantments to sharpness.
+     */
     public BattleEnchantment translateToSharpness(){
         try {
             int enchantLevel = upgrades.get(TeamItem.UPGRADE_SWORDS) -1;
@@ -530,6 +553,31 @@ It is up to the calling method to update the scoreboards of the players.
         trapArea.register(world, teamColor.getName(), EVERYTHING.getType(), plugin);
     }
 
+    //sends a packet to all players on the team
+    public void sendTeamPacket(Packet<?> packet){
+        players.forEach((uuid,player) -> player.sendPacket(packet));
+    }
+
+    //sends a sound packet to all players on the team
+    public void sendTeamSoundPacket(PacketSound sound){
+        players.forEach((uuid,player) -> player.playSound(sound));
+    }
+
+    //sends a message to all players on the team
+    public void sendTeamMessage(String message)
+    {
+        players.forEach((uuid, battlePlayer) -> battlePlayer.sendMessage(message));
+    }
+
+    //sends a title to all players on the team
+    public void sendTeamTitle(String title, String subtitle, int fadeIn, int stay, int fadeOut)
+    {
+        players.forEach( (uuid, battlePlayer) -> battlePlayer.sendTitle(title, subtitle, fadeIn, stay, fadeOut));
+    }
+
+
+
+    //getters and setters
     public ConcurrentHashMap<UUID,BattlePlayer> getPlayers()
     {
         return players;
@@ -555,25 +603,7 @@ It is up to the calling method to update the scoreboards of the players.
         return remaining;
     }
 
-    public void sendTeamPacket(Packet<?> packet){
-        players.forEach((uuid,player) -> player.sendPacket(packet));
-    }
 
-
-    public void sendTeamSoundPacket(PacketSound sound){
-        players.forEach((uuid,player) -> player.playSound(sound));
-    }
-
-
-    public void sendTeamMessage(String message)
-    {
-       players.forEach((uuid, battlePlayer) -> battlePlayer.sendMessage(message));
-    }
-
-    public void sendTeamTitle(String title, String subtitle, int fadeIn, int stay, int fadeOut)
-    {
-        players.forEach( (uuid, battlePlayer) -> battlePlayer.sendTitle(title, subtitle, fadeIn, stay, fadeOut));
-    }
 
     public synchronized void setMeleeEnchant(BattleEnchantment enchant)
     {
@@ -633,7 +663,7 @@ It is up to the calling method to update the scoreboards of the players.
         return teamPostfix;
     }
 
-    public TeamColors getTeamColor() {
+    public TeamColor getTeamColor() {
         return teamColor;
     }
 
@@ -651,21 +681,13 @@ It is up to the calling method to update the scoreboards of the players.
         return aura;
     }
 
-    public synchronized Trap nextTrap(){
+    public synchronized ITrap nextTrap(){
         return traps[0];
     }
 
     public TeamBuyInventory getTeamInventory()
     {
         return teamInventory;
-    }
-
-    public int getCurrentUpgradeIndex(TeamItem item){
-        return upgrades.getOrDefault(item, -1);
-    }
-
-    public int getTrapMaxStack(){
-        return traps.length;
     }
 
     public GameBoundary getTrapArea() {

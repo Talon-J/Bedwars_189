@@ -2,6 +2,10 @@ package me.camm.productions.bedwars.Arena.Teams;
 
 import org.bukkit.ChatColor;
 
+/**
+ * @author CAMM
+ * Represents all of the possible team titles that can be displayed for a team
+ */
 public enum TeamTitle
 {
     BED_DESTROYED("{\"text\":\""+ChatColor.RED+"BED DESTROYED\"}"),

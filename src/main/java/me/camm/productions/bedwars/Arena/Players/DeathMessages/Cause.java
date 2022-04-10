@@ -2,6 +2,15 @@ package me.camm.productions.bedwars.Arena.Players.DeathMessages;
 
 import java.util.Random;
 
+/**
+ * @author CAMM
+ * Enum for the possible death messages in the game
+ * This enum is for natural causes and indirect causes
+ *
+ * natural cause: E.g you slip off the edge. the fall kills you
+ * indirect cause: E.g someone hits you off the edge. The fall kills you, the hit doesn't
+ *
+ */
 public enum Cause {
 
     VOID("the void",new String[]{"was thrown into","was knocked into","was shoved into","was yeeted into"}),
@@ -37,6 +46,7 @@ public enum Cause {
         return leads[rand.nextInt(leads.length)];
     }
 
+    //gets a random combination of components to build and returns the string
     public String format(){
         if (name == null) {
             return randomLead();

@@ -11,9 +11,14 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * @author CAMM
+ * This class models a counter-offensive trap
+ */
 public class OffensiveTrap extends GameTrap
 {
 
@@ -26,17 +31,17 @@ public class OffensiveTrap extends GameTrap
     @Override
     public void activate()
     {
-        //World world = team.getArena().getWorld();
-        ConcurrentHashMap<UUID, BattlePlayer> teamPlayers = team.getPlayers();
+
+        Map<UUID, BattlePlayer> teamPlayers = team.getPlayers();
 
         new BukkitRunnable(){
             @Override
             public void run() {
 
+                //Giving all team players speed and jump for 15 seconds.
                    for (BattlePlayer player: teamPlayers.values()) {
 
                        Player current = player.getRawPlayer();
-                       //t(PotionEffectType type, int duration, int amplifier, boolean ambient)
                        current.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 300, 1, false,false));
                        current.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 300, 1, false,false));
                    }
@@ -59,7 +64,6 @@ public class OffensiveTrap extends GameTrap
     public TeamInventoryConfig getTrapConfig() {
         return TeamInventoryConfig.OFFENSE_TRAP;
     }
-    //spd and jump to those on same team.
 
 
     public String name() {

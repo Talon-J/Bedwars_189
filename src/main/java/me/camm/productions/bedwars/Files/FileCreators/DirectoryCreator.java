@@ -3,6 +3,7 @@ package me.camm.productions.bedwars.Files.FileCreators;
 import me.camm.productions.bedwars.Files.FileKeywords.ContributorList;
 import me.camm.productions.bedwars.Files.FileKeywords.Instructions;
 import me.camm.productions.bedwars.Files.FileStreams.GameFileWriter;
+import me.camm.productions.bedwars.Util.Helpers.ChatSender;
 import me.camm.productions.bedwars.Util.Helpers.StringHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
@@ -14,6 +15,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
+/**
+ * @author CAMM
+ * Class for creating folders in the server files for configuration
+ */
 public class DirectoryCreator extends StringHelper
 {
     private Server server;
@@ -26,10 +31,13 @@ public class DirectoryCreator extends StringHelper
     private File credits;
     private File instructionFile;
 
+    private final ChatSender sender;
+
 
     public DirectoryCreator(Plugin plugin)
     {
         super(plugin);
+        sender = ChatSender.getInstance();
 
         try {
             this.plugin = plugin;
@@ -48,21 +56,21 @@ public class DirectoryCreator extends StringHelper
 
             //this.getDataFolder().getParentFile().getAbsolutePath()
             if (!mainFile.mkdir())
-             server.getConsoleSender().sendMessage(ChatColor.YELLOW+"BW [WARN]: COULD NOT INITIALIZE MAIN FOLDER. (Does it already exist?)");
+             sender.sendMessage("COULD NOT INITIALIZE MAIN FOLDER. (Does it already exist?)");
 
 
             if (!playerFolder.mkdir())
-                server.getConsoleSender().sendMessage(ChatColor.YELLOW+"BW [WARN]: COULD NOT INITIALIZE PLAYER FOLDER. (Does it already exist?)");
+                sender.sendMessage("COULD NOT INITIALIZE PLAYER FOLDER. (Does it already exist?)");
 
         }
         catch (Exception e)
         {
-           server.getLogger().log(Level.SEVERE,ChatColor.RED+"BW [FATAL]: COULD NOT INITIALIZE FOLDERS. [We can't set up the game like this!]");
-           e.printStackTrace();
-
+            sender.sendConsoleMessage("COULD NOT INITIALIZE FOLDERS. [We can't set up the game like this!]",Level.SEVERE);
         }
     }
 
+
+    //Creates the directory folders the plugin uses
     public boolean createFolders()
     {
         try {
@@ -77,16 +85,13 @@ public class DirectoryCreator extends StringHelper
                 instructions.add(i.getInstructions());
 
 
-
-
-           // boolean doesMainExist = false;
             if (!mainFile.exists())
             {
                 mainFile.createNewFile();
-                server.getConsoleSender().sendMessage(ChatColor.YELLOW+"BW [Detected]:Creating new Main Directory.");
+                sender.sendMessage("Creating new Main Directory.");
             }
             else
-                server.getConsoleSender().sendMessage(ChatColor.YELLOW+"BW [Detected]:Main Directory Exists.");
+                sender.sendMessage("Main Directory Exists.");
 
 
             GameFileWriter creditWriter = new GameFileWriter(credits.getAbsolutePath(),plugin);
@@ -99,7 +104,7 @@ public class DirectoryCreator extends StringHelper
                     credits.exists()&&
                     instructionFile.exists())
             {
-                server.getConsoleSender().sendMessage(ChatColor.GREEN+"BW [DETECTED]: All files exist. Please make sure they are configured.");
+                sender.sendMessage("All files exist. Please make sure they are configured.");
 
                 creditWriter.clear();
                 creditWriter.writeSection(contributors);
@@ -110,7 +115,7 @@ public class DirectoryCreator extends StringHelper
             }
             else
             {
-                server.getConsoleSender().sendMessage(ChatColor.YELLOW+"BW [WARN]: AT-LEAST 1 FILE IN THE CONFIGURATION IS NOT CONFIGURED.");
+                sender.sendPlayerMessage("AT-LEAST 1 FILE IN THE CONFIGURATION IS NOT CONFIGURED.", ChatSender.GameState.WARN);
                 createFiles(mainFile);
                 createFiles(teamFile);
                 createFiles(worldFile);
@@ -118,7 +123,6 @@ public class DirectoryCreator extends StringHelper
                 createFiles(credits);
                 createFiles(instructionFile);
 
-                //TODO - have something to refresh the file [clear the entire file and rewrite.]
                 creditWriter.clear();
                 creditWriter.writeSection(contributors);
 
@@ -131,13 +135,14 @@ public class DirectoryCreator extends StringHelper
         }
         catch (Exception e)
         {
-            server.getConsoleSender().sendMessage(ChatColor.RED+"BW [ERROR]: COULD NOT VERIFY FILE INTEGRITY.");
-            e.printStackTrace();
+            sender.sendPlayerMessage("COULD NOT VERIFY FILE INTEGRITY.", ChatSender.GameState.ERROR);
+
             return false;
         }
 
     }
 
+    //creates a file.
     private boolean createFiles(File file)
     {
         if (!file.exists())
@@ -149,42 +154,17 @@ public class DirectoryCreator extends StringHelper
             }
             catch (FileNotFoundException e)
             {
-                sendFileErrorReport(file, e);
-                e.printStackTrace();
+                sender.sendPlayerMessage("Could not create file "+file.getName()+" (file not found)", ChatSender.GameState.ERROR);
+
                 return false;
             }
             catch (IOException e)
             {
-                sendIOExceptionReport(file, e);
-                e.printStackTrace();
+                sender.sendPlayerMessage("Could not create file "+file.getName()+" (IOException)", ChatSender.GameState.ERROR);
                 return false;
             }
         }
         return true;  //file is init
-    }
-
-
-
-    private void sendFileErrorReport(File file, Exception e)
-    {
-        server.getConsoleSender().sendMessage(ChatColor.RED+"+++ERROR REPORT+++");
-        server.getConsoleSender().sendMessage(ChatColor.RED+"BW - ERROR TYPE: File Creation Error");
-        server.getConsoleSender().sendMessage(ChatColor.RED+"BW [ERROR] - Ran into "+e.toString());
-        server.getConsoleSender().sendMessage(ChatColor.RED+"BW [ERROR] - File Involved: "+file.getName());
-        server.getConsoleSender().sendMessage(ChatColor.RED+"BW [ERROR] - DEBUG - Path: "+file.getAbsolutePath());
-        server.getConsoleSender().sendMessage(ChatColor.RED+"+++END OF REPORT+++");
-
-    }
-
-    private void sendIOExceptionReport(File file, Exception e)
-    {
-        server.getConsoleSender().sendMessage(ChatColor.RED+"---ERROR REPORT---");
-        server.getConsoleSender().sendMessage(ChatColor.RED+"BW - ERROR TYPE: IOException");
-        server.getConsoleSender().sendMessage(ChatColor.RED+"BW [ERROR] - Ran into "+e.toString());
-        server.getConsoleSender().sendMessage(ChatColor.RED+"BW [ERROR] - File Involved: "+file.getName());
-        server.getConsoleSender().sendMessage(ChatColor.RED+"BW [ERROR] - DEBUG - Path: "+file.getAbsolutePath());
-        server.getConsoleSender().sendMessage(ChatColor.RED+"---END OF REPORT---");
-
     }
 
 }

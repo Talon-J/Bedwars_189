@@ -6,6 +6,11 @@ import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
+
+/**
+ * @author CAMM
+ * This enum is used as a template for placing items into section inventories
+ */
 public enum HotBarConfig
 {
     RETURN(Material.ARROW, ChatColor.AQUA+"Return to Quick Buy", ItemCategory.OPERATOR, new int[]{3}),

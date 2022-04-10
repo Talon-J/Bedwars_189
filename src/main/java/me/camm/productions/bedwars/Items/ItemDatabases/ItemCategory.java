@@ -2,7 +2,12 @@ package me.camm.productions.bedwars.Items.ItemDatabases;
 
 import org.bukkit.ChatColor;
 
-public enum ItemCategory   //this is used for interfacing with the shop, specifically the hotbar mngr
+/**
+ * @author CAMM
+ * This enum is used for keeping track of item categories in the game
+ *
+ */
+public enum ItemCategory
 {
     BLOCK(ChatColor.AQUA+"Blocks Section",ShopItem.BLOCKS_NAV),
     MELEE(ChatColor.AQUA+"Melee Section", ShopItem.MELEE_NAV),
@@ -17,8 +22,8 @@ public enum ItemCategory   //this is used for interfacing with the shop, specifi
     SEPARATOR(ChatColor.GRAY+"Separator",null),
     NONE(ChatColor.AQUA+"Empty Slot",null);
 
-    public String type;
-    public ShopItem associate;
+    public final String type;
+    public final ShopItem associate;
    ItemCategory(String type, ShopItem associate)
     {
         this.type = type;

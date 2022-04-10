@@ -32,6 +32,8 @@ import org.bukkit.scoreboard.NameTagVisibility;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -39,11 +41,19 @@ import java.util.*;
 import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeader.*;
 
 
-public class BattlePlayer// implements IPlayerUtil
+/**
+
+ @author CAMM
+ This is a wrapper class for a player that provides added information about
+ a registered player
+ */
+public class BattlePlayer
 {
 
     private final Arena arena;
     private volatile Player player;
+
+    //system time of when they last drank milk
     private volatile long lastMilk;
 
     //boolean values to determine if the player is eliminated or alive.
@@ -60,12 +70,12 @@ public class BattlePlayer// implements IPlayerUtil
     //we use it since if we don't, there will be a cutoff of what is being shown (nothing will be shown instead)
 
 
+    //countdown time for when they respawn
     private volatile int timeTillRespawn;
 
 
-
-
-
+    //not a battle team. This team is for their name color and visibility
+    //to other players
     private Team playerTeam;
 
 
@@ -101,16 +111,17 @@ public class BattlePlayer// implements IPlayerUtil
     private TieredItem armor;
 
 
-    //editor
+    //editor for the quickbuy
     private QuickBuyEditor quickEditor;
 
 
 
     private static final int eliminationTime;
     static {
-        eliminationTime = 5;  //5
+        eliminationTime = 5;
     }
 
+    //constructor
     public BattlePlayer(Player player, BattleTeam team, Arena arena, int number)
     {
         this.arena = arena;
@@ -139,7 +150,10 @@ public class BattlePlayer// implements IPlayerUtil
 
         this.toResend = new HashMap<>();
 
+        //create the scoreboard
         createBoard();
+
+        //create the config files if they don't exist
         PlayerFileCreator creator = new PlayerFileCreator(this,arena);
         creator.createDirectory(); creator.createHotBarFile(); creator.createInventoryFile();
 
@@ -150,10 +164,15 @@ public class BattlePlayer// implements IPlayerUtil
     }
 
 
+    /*
+    Registers a player onto the healthboard and their team (not battleteam)
+     */
     @SuppressWarnings("deprecation")
     public void register()
     {
         Scoreboard healthBoard = arena.getHealthBoard();
+
+        //unregister them first in the case that they've been registered beforehand
         unregister(healthBoard);
 
         //registering a separate team for them.
@@ -164,6 +183,9 @@ public class BattlePlayer// implements IPlayerUtil
         playerTeam.addPlayer(player);
     }
 
+
+    //Tries to unregister them from the health board. removePlayer() is deprecated. Can't really
+    //do anything about that.
     @SuppressWarnings("deprecation")
     public void unregister(Scoreboard healthBoard)
     {
@@ -177,15 +199,15 @@ public class BattlePlayer// implements IPlayerUtil
         }
     }
 
+    //removes the invis effect from the player
     public void removeInvisibilityEffect() {
         player.removePotionEffect(PotionEffectType.INVISIBILITY);
-      //  System.out.println("[DEBUG] Remove invis effect");
     }
 
 
 
     /*
-    @author CAMM
+
     @param newPlayer: Takes in a new player object to replace the old one.
 
     Used to replace the player object and reset the scoreboard when the player rejoins into the game
@@ -193,7 +215,7 @@ public class BattlePlayer// implements IPlayerUtil
 
     Every time a player leaves and joins, it's not the same player object that was previously referenced.
     Also the reason why every listener here must get the player list from the arena (centralized info area)
-    and not keep a copy of the hashmap of players.
+    and not keep a copy of raw players.
 
      */
     public synchronized void refactorPlayer(Player newPlayer)
@@ -204,7 +226,7 @@ public class BattlePlayer// implements IPlayerUtil
     }
 
     /*
-    @Author CAMM
+
     Gets information on the player's configuration for their hotbar and quickbuy files.
      */
     public void instantiateConfig(boolean isInflated)
@@ -218,11 +240,10 @@ public class BattlePlayer// implements IPlayerUtil
     }
 
     /*
-    @Author CAMM.
-    Unfinished. Toggles whether the player should be invisible to other teams. Used when
-    the player drinks an invisibility potion.
 
-    Update: Should hopefully be all good. Still need to test.
+   Toggles whether the player should be invisible to other teams. Used when
+    the player drinks an invisibility potion.
+    does not add or remove the invis effect
      */
     public synchronized void togglePotionInvisibility(boolean isInvisible, PacketHandler handler)
     {
@@ -243,10 +264,10 @@ public class BattlePlayer// implements IPlayerUtil
     }
 
     /*
-    @Author CAMM
+
     Updates the scoreboard and armor stuff on the player's side, but does not account for the invisibility through
     the packet handler.
-    refactor to be private
+
      */
     public synchronized void removeUnprocessedInvisibility()
     {
@@ -258,9 +279,8 @@ public class BattlePlayer// implements IPlayerUtil
 
 
     /*
-    @Author CAMM.
+
     Gets the player's armor as nms items and returns them in an Item stack array.
-    refactor to be private
      */
     public synchronized net.minecraft.server.v1_8_R3.ItemStack[] getNMSArmor()
     {
@@ -274,7 +294,7 @@ public class BattlePlayer// implements IPlayerUtil
     }
 
 
-   //Equips the current armor onto the player.
+   //Equips the current armor registered onto the player.
     public void equipArmor()
     {
       ItemHelper.setArmor(ItemHelper.inventoryItemToArmor(getArmor().getItem(),this),getRawPlayer());
@@ -282,7 +302,7 @@ public class BattlePlayer// implements IPlayerUtil
 
 
     /*
-    @Author CAMM
+
     Sends a packet to all players on opposing teams.
      */
     public void sendOppositionPackets(Packet<?> packet)
@@ -293,6 +313,7 @@ public class BattlePlayer// implements IPlayerUtil
         });
     }
 
+    //Send packets to all players which are not this player
     public void sendPacketsAllNonEqual(Packet<?> packet){
         arena.getPlayers().forEach((uuid,battlePlayer) -> {
             if (!battlePlayer.equals(this)) {
@@ -303,7 +324,7 @@ public class BattlePlayer// implements IPlayerUtil
 
 
     /*
-    @Author CAMM
+
     Hides the player's armor by sending packets to the opposition.
      */
     public void hideArmor()
@@ -322,7 +343,7 @@ public class BattlePlayer// implements IPlayerUtil
 
 
     /*
-    @Author CAMM
+
     Sends packets to all players except this one regarding this player's armor (Updating their information)
      */
     public void sendArmorUpdate()
@@ -348,7 +369,7 @@ public class BattlePlayer// implements IPlayerUtil
 
 
     /*
-    @Author CAMM
+
     Puts the player onto a different score on the packet scoreboard and refreshes their board.
     Problems with player numbers not showing up correctly should not be an issue here.
     Make sure to reflect the change on the scoreboards of the other players after changing teams since
@@ -390,12 +411,12 @@ public class BattlePlayer// implements IPlayerUtil
     }
 
    /*
-    @Author CAMM
+
     Sends a title and a subtitle to a player, with specified time for fading and stay.
     The string given must be in Minecraft's chat component format used like in command blocks.
     E.g  "{\"text\":\"abc\"}"
 
-    Use another method to check that the titles given are properly formatted.
+
     */
     public void sendTitle(String title, String subTitle, int fadeIn, int stay, int fadeOut)
     {
@@ -435,12 +456,14 @@ public class BattlePlayer// implements IPlayerUtil
     Maybe use:
     public void toggleSpectator(boolean isSpectator, boolean isFinal, PacketHandler handler)
 
+    Refactor to be private.
+
+    Update: did the above.
+
 
     Toggles a player's spectator mode.
     Does not teleport the player anywhere
     Does not account for armor or persistent items.
-
-    Refactor to be private.
      */
     private void toggleSpectator(boolean isSpectator, PacketHandler handler)
     {
@@ -495,15 +518,12 @@ public class BattlePlayer// implements IPlayerUtil
         }
     }
 
-    //TODO use these methods to handle when the player dies and respawns.
-    //Also make sure to empty their inv before setting to spec.
-
-
-
-
-
-
-    public void handlePlayerIntoSpectator(PacketHandler handler, boolean isFinal, Player killer)
+    /*
+    Puts a player into spectator mode
+    if is final, will not make a countdown timer for respawning
+    TODO change the placeholder message
+     */
+    public void handlePlayerIntoSpectator(@NotNull PacketHandler handler, boolean isFinal, @Nullable Player killer)
     {
         dropInventory(player.getLocation().clone(),killer);
         teleport(arena.getSpecSpawn());
@@ -512,7 +532,6 @@ public class BattlePlayer// implements IPlayerUtil
         if (!isAlive || isEliminated) {
             PlayerHelper.clearInventory(this.player);
             sendPacketsAllNonEqual(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER,((CraftPlayer)this.player).getHandle()));
-            //  sendPacket(player, new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER,npc));
             return;
         }
 
@@ -573,6 +592,11 @@ public class BattlePlayer// implements IPlayerUtil
 
 
 
+
+    /*
+    This method handles the player respawning.
+    This should not be used for their first spawn in. see handlePlayerFirstSpawn()
+     */
     public void handlePlayerRespawn(PacketHandler handler)
     {
         setSurvival();
@@ -608,7 +632,10 @@ public class BattlePlayer// implements IPlayerUtil
     }
 
 
-
+    /*
+     Handles degradation for tools that are permanent by getting the previous tier (if any) of the current item
+     DOES NOT set the degradated tool for the player. You need to do that separately.
+     */
     private TieredItem handlePersistentItemDegradation(TieredItem current)
     {
         if (current == null)
@@ -619,6 +646,7 @@ public class BattlePlayer// implements IPlayerUtil
 
     }
 
+    //Handles the player's first spawn in.
     public void handlePlayerFirstSpawn()
     {
         player.getInventory().clear();
@@ -636,7 +664,7 @@ public class BattlePlayer// implements IPlayerUtil
     /////////////////////////////////////////////
 
     /*
-    @Author CAMM
+
     Convenience method for sending packets to the current player.
      */
     public void sendPacket(Packet<?> packet)
@@ -645,7 +673,7 @@ public class BattlePlayer// implements IPlayerUtil
     }
 
     /*
-    @Author CAMM
+
     Initializing the scoreboard for the player.
      */
     private void createBoard()
@@ -654,7 +682,7 @@ public class BattlePlayer// implements IPlayerUtil
     }
 
     /*
-    @Author CAMM
+
     Convenience method for teleporting the player to a location.
      */
     public void teleport(Location loc)
@@ -673,7 +701,7 @@ public class BattlePlayer// implements IPlayerUtil
 
     /*
     Empties and clears the player's inventory.
-    Currency items (gold, iron, etc) are dropped
+    Currency items (gold, iron, diamonds, emeralds) are dropped, everything else is cleared.
      */
     public void dropInventory(final Location deathLocation, final Player killer)
     {
@@ -729,6 +757,9 @@ public class BattlePlayer// implements IPlayerUtil
         return toDrop.size() > 0;
     }
 
+
+    //applies an update to the statistics of the player for their scoreboard scoresets.
+    //Does not apply the change to the scoreboard. That is handled in the gamerunner.
     public void updatePlayerStatistics()
     {
         board.setScoreName(FINALS.getPhrase(), FINALS.getPhrase()+getFinals());
@@ -739,14 +770,17 @@ public class BattlePlayer// implements IPlayerUtil
 
 
     /*
-    @Author CAMM
-    Convenience method for sending a message to the player.
+    Convenience method for sending a message to the player. Only that player can see the message.
      */
     public void sendMessage(String message)
     {
         this.player.sendMessage(message);
     }
 
+
+    /*
+    Plays a sound from a packet for a player.
+     */
     public void playSound(PacketSound sound)
     {
         Location loc = player.getLocation();
@@ -754,7 +788,6 @@ public class BattlePlayer// implements IPlayerUtil
     }
 
     /*
-    @Author CAMM
     Returns a boolean whether the given id is part of the hashmap for the npcs
     Who need to be refreshed in terms of packets.
      */
@@ -764,7 +797,6 @@ public class BattlePlayer// implements IPlayerUtil
     }
 
     /*
-    @Author CAMM
     Removes a npc to be resent to the player.
      */
     public synchronized void removeResender(int id)
@@ -772,6 +804,10 @@ public class BattlePlayer// implements IPlayerUtil
         toResend.remove(id);
     }
 
+
+    /*
+    Adds an npc to be resent to the player
+     */
     public synchronized void addResender(ShopKeeper keeper)
     {
         toResend.putIfAbsent(keeper.getId(), keeper);
@@ -800,6 +836,9 @@ public class BattlePlayer// implements IPlayerUtil
         });
     }
 
+    /*
+    Modifies a packet with reflection for updating health values.
+     */
     private PacketPlayOutScoreboardScore modify(PacketPlayOutScoreboardScore packet, String playerName, String objectiveName, int score)
     {
         try
@@ -827,14 +866,19 @@ public class BattlePlayer// implements IPlayerUtil
         }
     }
 
+
     /*
-[22:41:32 INFO]: Field A:CAMM_H87
-[22:41:32 INFO]: Field B:tabHealth
-[22:41:32 INFO]: Field C:20
+    Hides the eliminated players from this player
      */
+    public void hideEliminatedPlayers(){
+        Collection<BattlePlayer> players = arena.getPlayers().values();
 
-
-
+        for (BattlePlayer player: players)
+        {
+            if (player.isEliminated && !player.equals(this))
+                sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER,((CraftPlayer)player.getRawPlayer()).getHandle()));
+        }
+    }
 
 
     //Setter methods
@@ -865,9 +909,7 @@ public class BattlePlayer// implements IPlayerUtil
         return lastMilk;
     }
 
-    /*
-    This value is later shown in their scoreboard, which is controlled externally.
-     */
+
     public synchronized void setFinals(int newFinals)
     {
         this.finals = newFinals;
@@ -878,14 +920,18 @@ public class BattlePlayer// implements IPlayerUtil
         shears = ShopItem.SHEARS;
     }
 
-    /*
-    This value is later shown in their scoreboard, which is controlled externally.
-     */
     public synchronized void setKills(int newKills)
     {
         this.kills = newKills;
     }
 
+
+
+    //////////////////////////////////////////
+
+    //upgrades the pickaxe of the player.
+    //pick is the item to upgrade the player's pick to.
+    //updates the shop to display the next upgrade after the pick.
     public synchronized void setPickUpwards(TieredItem pick) {
         this.pick = pick;
         TieredItem upgrade = ItemHelper.getNextTier(pick);
@@ -893,6 +939,10 @@ public class BattlePlayer// implements IPlayerUtil
 
     }
 
+
+    //downgrades the pickaxe of the player.
+    //pick is the item to downgrade the player's pick to.
+    //updates the shop to display the next upgrade after the pick.
     public synchronized void setPickDownwards(TieredItem pick) {
         TieredItem pickCloned = this.pick;
         this.pick = pick;
@@ -904,6 +954,10 @@ public class BattlePlayer// implements IPlayerUtil
 
     }
 
+
+    //upgrades the axe of the player.
+    //pick is the item to upgrade the player's axe to.
+    //updates the shop to display the next upgrade after the axe.
     public synchronized void setAxeUpwards(TieredItem axe) {
         this.axe = axe;
         TieredItem upgrade = ItemHelper.getNextTier(axe);
@@ -912,6 +966,10 @@ public class BattlePlayer// implements IPlayerUtil
 
 
 
+
+    //downgrades the axe of the player.
+    //pick is the item to downgrade the player's axe to.
+    //updates the shop to display the next upgrade after the axe.
     public synchronized void setAxeDownwards(TieredItem axe) {
         TieredItem axeCloned = this.axe;
         this.axe = axe;
@@ -919,22 +977,12 @@ public class BattlePlayer// implements IPlayerUtil
         TieredItem prevUpgrade = ItemHelper.getNextTier(axeCloned);
         TieredItem currentUpgrade = ItemHelper.getNextTier(axe);
 
-        shopManager.replaceItem(prevUpgrade == null ? axe.getItem(): prevUpgrade.getItem(),currentUpgrade == null ? axe.getItem() : currentUpgrade.getItem());
+        shopManager.replaceItem(prevUpgrade == null ? axe.getItem() : prevUpgrade.getItem(), currentUpgrade == null ? axe.getItem() : currentUpgrade.getItem());
 
-    }
-
-    public void hideEliminatedPlayers(){
-        Collection<BattlePlayer> players = arena.getPlayers().values();
-
-        for (BattlePlayer player: players)
-        {
-            if (player.isEliminated && !player.equals(this))
-              sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER,((CraftPlayer)player.getRawPlayer()).getHandle()));
-        }
     }
 
     /*
-    @Author CAMM
+
     Setter method to set the number of beds the player has broken.
     This value is later shown in their scoreboard, which is controlled externally.
      */
@@ -944,7 +992,7 @@ public class BattlePlayer// implements IPlayerUtil
     }
 
     /*
-    @Author CAMM
+
     Setter method to set whether the player should be eliminated.
     This value is later shown in their scoreboard, which is controlled externally.
      */
@@ -953,6 +1001,9 @@ public class BattlePlayer// implements IPlayerUtil
         this.isEliminated = isEliminated;
     }
 
+    /*
+    Set the current armor of the player
+     */
     public synchronized void setPurchasedArmor(TieredItem armor) {
         this.armor = armor;
     }

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class PointWall extends SoakBoundary
 {
-    public PointWall(double[] bounds)
+    public PointWall(Double[] bounds)
     {
         super(bounds);
     }
@@ -17,7 +17,7 @@ public class PointWall extends SoakBoundary
      */
     public ArrayList<Location> iterate(double precision, World world)
     {
-        double[] values = getValues();
+        Double[] values = getValues();
         if (values==null||values.length !=6)
             return new ArrayList<>();
 

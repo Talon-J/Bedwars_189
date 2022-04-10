@@ -18,6 +18,11 @@ import java.util.StringTokenizer;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.HOT_BAR_END;
 
+
+/**
+ * @author CAMM
+ * Reader to read the info from the player config files
+ */
 public class PlayerFileReader extends StringHelper
 {
     private final Plugin plugin;
@@ -37,6 +42,9 @@ public class PlayerFileReader extends StringHelper
         this.barFile = new File(getHotBarPath(player));
     }
 
+    /*
+       Reads the bar config file and returns a manager.
+     */
     public HotbarManager readBarFile()
     {
         HotbarManager manager;
@@ -91,6 +99,9 @@ public class PlayerFileReader extends StringHelper
         }
     }
 
+    /*
+    Reads the inventory file and returns a manager for this
+     */
     public PlayerInventoryManager readInvFile()
     {
         try (BufferedReader reader = new BufferedReader(new FileReader(inventoryFile)))

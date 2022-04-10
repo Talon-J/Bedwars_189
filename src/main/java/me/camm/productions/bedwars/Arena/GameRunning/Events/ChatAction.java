@@ -13,11 +13,16 @@ public class ChatAction extends Action
     private boolean spent;
 
 
+    /**
+     *
+     * @param text the text to send
+     */
     public ChatAction(String text) {
         this.text = text;
         spent = false;
     }
 
+    //We use the chat sender to send messages.
     @Override
     public void activate() {
         if (!spent)

@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.logging.Level;
 
 public final class BedWars extends JavaPlugin
 {
@@ -104,6 +105,7 @@ public final class BedWars extends JavaPlugin
     @Override @SuppressWarnings("unchecked")
     public void onDisable()
     {
+        ChatSender sender = ChatSender.getInstance();
         try {
             Field c = EntityTypes.class.getDeclaredField("c");
             c.setAccessible(true);
@@ -122,7 +124,7 @@ public final class BedWars extends JavaPlugin
         }
         catch (Exception e)
         {
-            ChatSender sender = ChatSender.getInstance();
+
             sender.sendPlayerMessage("Failed to unregister the Ender Dragon.", ChatSender.GameState.ERROR);
             e.printStackTrace();
         }
@@ -164,7 +166,7 @@ public final class BedWars extends JavaPlugin
                     initial.handleObjectiveRemoved(objective);
                     send(new PacketPlayOutScoreboardObjective(objective, 1), player);
                 } catch (IllegalArgumentException | IllegalStateException e) {
-                    e.printStackTrace();
+                 sender.sendConsoleMessage("Error occurred trying to unregister objective "+objective.getName()+" for "+player.getName(), Level.WARNING);
                 }
             }
         }

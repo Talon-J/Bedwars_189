@@ -5,6 +5,10 @@ import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 
 import java.util.UUID;
 
+/**
+ * @author CAMM
+ * Interface for modelling entities on a team
+ */
 public interface IGameTeamable
 {
     UUID getUUID();

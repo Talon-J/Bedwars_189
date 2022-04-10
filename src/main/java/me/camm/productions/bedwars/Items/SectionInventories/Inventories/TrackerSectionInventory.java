@@ -2,7 +2,7 @@ package me.camm.productions.bedwars.Items.SectionInventories.Inventories;
 
 
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
-import me.camm.productions.bedwars.Arena.Teams.TeamColors;
+import me.camm.productions.bedwars.Arena.Teams.TeamColor;
 import me.camm.productions.bedwars.Items.ItemDatabases.InventoryName;
 import me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty;
 import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
@@ -20,11 +20,16 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+
+/**
+ * @author CAMM
+ * This inventory models a tracker inventory for the player (where the player determines who to track)
+ */
 public class TrackerSectionInventory extends CraftInventoryCustom
 {
 
     private final Set<BattleTeam> entries;
-    private static final int LENGTH = TeamColors.values().length;
+    private static final int LENGTH = TeamColor.values().length;
     private static final ItemStack AIR = new ItemStack(Material.AIR);
     private static final int ROW = InventoryProperty.LARGE_ROW_TWO_START.getValue();
     private static final ItemStack SEPARATOR = ItemHelper.createGlassPane(ItemCategory.SEPARATOR);
@@ -63,7 +68,7 @@ public class TrackerSectionInventory extends CraftInventoryCustom
             setItem(slot+ROW,AIR);
             if (iter.hasNext()) {
                 BattleTeam team = iter.next();
-                TeamColors color = team.getTeamColor();
+                TeamColor color = team.getTeamColor();
 
                 ItemStack trackStack = ItemHelper.createColoredGlass(Material.STAINED_GLASS_PANE,color.getDye());
               if (trackStack!=null) {

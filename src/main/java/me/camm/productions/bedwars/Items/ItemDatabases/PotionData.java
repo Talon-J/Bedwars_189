@@ -1,5 +1,10 @@
 package me.camm.productions.bedwars.Items.ItemDatabases;
 
+
+/**
+ * @author CAMM
+ * Data for potions
+ */
 public enum PotionData
 {
     SPEED_DURATION(900),

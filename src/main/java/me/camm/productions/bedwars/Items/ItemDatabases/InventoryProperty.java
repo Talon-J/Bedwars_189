@@ -1,5 +1,11 @@
 package me.camm.productions.bedwars.Items.ItemDatabases;
 
+
+/**
+ * @author CAMM
+ * Parameters in the inventories for easier navitation.
+ *
+ */
 public enum InventoryProperty
 {
     HOT_BAR_START(0),

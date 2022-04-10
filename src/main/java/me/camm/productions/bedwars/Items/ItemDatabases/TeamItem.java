@@ -3,6 +3,11 @@ package me.camm.productions.bedwars.Items.ItemDatabases;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
+
+/**
+ * @author CAMM
+ * This enum is for all of the team items in the team buy inventories
+ */
 public enum TeamItem {
     TRAP_ALARM(Material.REDSTONE_TORCH_ON, new String[]{ChatColor.WHITE+"Alarm trap"}, new String[]{"Reveals invisible players.","Costs 1, 2, or 3 diamonds depending on trap slots active"}, new int[]{1,2,3}, Material.DIAMOND,true),
     TRAP_OFFENSIVE(Material.FEATHER, new String[]{ChatColor.WHITE+"Counter-Offensive trap"}, new String[]{"Give speed 2 and jump 2 to allied players near the base.","Costs 1, 2, or 3 diamonds depending on trap slots active"},new int[]{1,2,3}, Material.DIAMOND,true),

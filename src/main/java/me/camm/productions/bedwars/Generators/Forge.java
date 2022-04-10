@@ -1,6 +1,6 @@
 package me.camm.productions.bedwars.Generators;
 
-import me.camm.productions.bedwars.Arena.Teams.TeamColors;
+import me.camm.productions.bedwars.Arena.Teams.TeamColor;
 import me.camm.productions.bedwars.Files.FileKeywords.TeamFileKeywords;
 import me.camm.productions.bedwars.Util.Randoms.WeightedItem;
 import me.camm.productions.bedwars.Util.Randoms.WeightedRandom;
@@ -18,6 +18,10 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
+/**
+ * @author CAMM
+ * class for a forge in the game
+ */
 public class Forge implements Runnable {
     private final String type;
     private final World world;
@@ -44,6 +48,7 @@ public class Forge implements Runnable {
     private static final int MAX_GOLD;
     private static final int MAX_IRON;
 
+    //weighted random for spawning items
     private final WeightedRandom<WeightedItem<Material>> spawningRandom;
     private final WeightedItem<Material> emeraldChance;
     private final WeightedItem<Material> goldChance;
@@ -56,7 +61,7 @@ public class Forge implements Runnable {
 
     }
 
-    public Forge(double x, double y, double z, World world, TeamColors color, long initialTime, Plugin plugin)  //construct
+    public Forge(double x, double y, double z, World world, TeamColor color, long initialTime, Plugin plugin)  //construct
     {
         this.recount = false;
         this.location = new Location(world, x, y, z);
@@ -89,24 +94,29 @@ public class Forge implements Runnable {
 
     }
 
+    //returns the forge location
     public Location getForgeLocation() {
         return location;
     }
 
+    //returns the pickup distance
     public double getDistance() {
         return PICKUP_DISTANCE;
     }
 
+    //disables the forge
     public synchronized void disableForge() {
         this.isAlive = false;
     }
 
+    //gets the team color of the forge
     public String getColor() {
         return color;
     }
 
 
-    public synchronized void setTier(int newTier)  //you would check for the color first externally
+    //sets the tier of the forge to a new tier
+    public synchronized void setTier(int newTier)
     {
         this.tier = newTier;
 
@@ -130,10 +140,12 @@ public class Forge implements Runnable {
         }
     }
 
+    //returns a random time for the thread to sleep
     public long randomize() {
         return (long) (spawnTime * (spawningTimeRand.nextDouble() * 1.5));
     }
 
+    //Spawns an item
     public synchronized void spawnItem() {
         int freedom = verifyCount();
         Material mat;
@@ -163,6 +175,7 @@ public class Forge implements Runnable {
     }
 
 
+    //drops an item onto the ground dependant on the material
     private void drop(Material mat) {
         if (!isAlive || !plugin.isEnabled())
             return;
@@ -193,6 +206,7 @@ public class Forge implements Runnable {
 
     }
 
+    //updates the amount of gold or iron that the forge has spawned on the ground.
     public synchronized void updateChildren(Material mat, int amount) {
 
         if (mat == Material.GOLD_INGOT) {
@@ -212,6 +226,7 @@ public class Forge implements Runnable {
 
 
 
+          //verifies that the forge is not spawning more than it's cap
     private int verifyCount()
         {
             if (!recount) {
@@ -258,6 +273,7 @@ public class Forge implements Runnable {
         }
 
 
+        //core thread for the spawning mechanic
     @Override
     public void run()
     {
@@ -279,6 +295,7 @@ public class Forge implements Runnable {
 
     }
 
+    //get the tier
     public synchronized int getTier(){
       return tier;
     }

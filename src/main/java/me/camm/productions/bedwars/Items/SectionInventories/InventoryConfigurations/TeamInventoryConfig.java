@@ -3,6 +3,11 @@ package me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurat
 import me.camm.productions.bedwars.Items.ItemDatabases.TeamItem;
 import static me.camm.productions.bedwars.Items.ItemDatabases.TeamItem.*;
 
+
+/**
+ * @author CAMM
+ * This enum is used as a template for placing items into section inventories
+ */
 public enum TeamInventoryConfig
 {
     ALARM_TRAP(new int[]{16},TRAP_ALARM),

@@ -16,6 +16,11 @@ import static me.camm.productions.bedwars.Items.ItemDatabases.DefaultTemplateNav
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.QUICK_INV_BORDER_END;
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.QUICK_INV_BORDER_START;
 
+
+/**
+ * @author CAMM
+ * This abstract class is used for inventory util
+ */
 //this is a subclass of inventory.
 public abstract class ShopInventorySetter extends CraftInventoryCustom implements ISectionInventory
 {

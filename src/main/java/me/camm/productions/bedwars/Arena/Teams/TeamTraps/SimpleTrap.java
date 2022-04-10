@@ -17,8 +17,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-
-
+/**
+ * @author CAMM
+ * Models the "it's a trap!" item in the trap menu
+ */
 public class SimpleTrap extends GameTrap
 {
     private static final String NAME = "Trap";
@@ -36,19 +38,17 @@ public class SimpleTrap extends GameTrap
 
         Collection<Entity> close = bounds.getCloseEntities(world);
 
+        //adding effects to the opposition
         new BukkitRunnable(){
             @Override
             public void run() {
                 for (Entity entity: close)
                 {
-                    if (!(entity instanceof Player))
-                        continue;
 
-                    //If on another team
-                    Player player = (Player)entity;
-
+                    //If on another team, then add effects.
                     if (!players.containsKey(entity.getUniqueId()))
                     {
+                        Player player = (Player)entity;
                         player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 160, 0, false, false));
                         player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW,160,0,false,false));
                     }

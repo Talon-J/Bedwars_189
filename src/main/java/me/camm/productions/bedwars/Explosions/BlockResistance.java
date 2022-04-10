@@ -1,5 +1,11 @@
 package me.camm.productions.bedwars.Explosions;
 
+
+/**
+ *
+ * @author CAMM
+ * Enum for block resistance types
+ */
 public enum BlockResistance
 {
 

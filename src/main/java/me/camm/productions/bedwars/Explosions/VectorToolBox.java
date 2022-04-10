@@ -1,17 +1,22 @@
 package me.camm.productions.bedwars.Explosions;
 
-import org.bukkit.Location;
+
 import org.bukkit.Material;
-import org.bukkit.World;
+
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.util.Vector;
+
 
 import java.util.Random;
 
 import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.*;
 
+
+/**
+@author CAMM
+Helper for vectors
+ */
 public class VectorToolBox
 {
     private static final String MAP_DATA;
@@ -28,7 +33,7 @@ public class VectorToolBox
 
 
     /*
-    @Author CAMM_H87
+    @Author CAMM
     Returns boolean whether a block meets certain parameters, depending on the registered teams, the block
     check type, and the block data.
     SEE: checkWoodData() and checkColoredData()
@@ -43,6 +48,9 @@ public class VectorToolBox
         return isDistinctlyColorable ? checkColoredData(data, block, colors):checkWoodData(data, block);
     }
 
+    /*
+    Returns whether an entity should be given velocity from an explosion
+     */
     public static boolean isValidVelocityType(Entity entity) {
         boolean valid = true;
         EntityType type = entity.getType();
@@ -60,6 +68,9 @@ public class VectorToolBox
         return valid;
     }
 
+    /*
+    returns whether an entity can be damaged
+     */
     public static boolean isValidDamageType(Entity entity)
     {
         boolean valid = true;
@@ -88,7 +99,7 @@ public class VectorToolBox
 
 
     /*
-    @Author CAMM_H87
+    @Author CAMM
     This method returns whether the block has metadata, and if the block type is oak wood (data==0)
     If returns true, the block can be broken. Else, it cannot.
      */
@@ -100,7 +111,7 @@ public class VectorToolBox
 
 
     /*
-    @Author CAMM_H87
+    @Author CAMM
     Checks for whether a colored block was placed.
     If the block color is the same as a team, and the block doesn't have metadata, it can be broken.
      */
@@ -127,7 +138,7 @@ public class VectorToolBox
 
 
     /*
-    @Author CAMM_H87
+    @Author CAMM
    Checks the resistance a block would put up in an explosion.
      */
     public static double calculateResistance(double blockStrength)
@@ -139,7 +150,7 @@ public class VectorToolBox
 
 
     /*
-    @Author CAMM_H87
+    @Author CAMM
     Rolls a random chance with a maximum of the ceiling vector parameter.
     If the chance is greater than the drop chance, then the block breaks naturally, and drops an item.
     Else, it is just set to air.

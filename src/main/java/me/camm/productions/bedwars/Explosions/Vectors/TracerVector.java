@@ -9,6 +9,12 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+
+/**
+ * TODO unfinished. Need to refactor.
+ * @author CAMM
+ * Models a vector for tracing the path of an explosion hit
+ */
 public class TracerVector extends GameVector
 {
     private final double magnitude;

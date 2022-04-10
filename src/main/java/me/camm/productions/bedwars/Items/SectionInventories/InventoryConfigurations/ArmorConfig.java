@@ -4,6 +4,11 @@ import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.QUICK_INV_BORDER_START;
 
+
+/**
+ * @author CAMM
+ * This enum is used as a template for placing items into section inventories
+ */
 public enum ArmorConfig
 {
     //Note that this enum should be synced up with both the quick buy and section inventories of the player.

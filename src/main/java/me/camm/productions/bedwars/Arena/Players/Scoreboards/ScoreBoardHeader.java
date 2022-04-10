@@ -2,6 +2,10 @@ package me.camm.productions.bedwars.Arena.Players.Scoreboards;
 
 import org.bukkit.ChatColor;
 
+/**
+ * @author CAMM
+ * Enum for the headers in the scoreboard for the players
+ */
 public enum ScoreBoardHeader
 {
     DIAMOND_TWO_HEADER("Diamond II in "+ ChatColor.GREEN),
@@ -12,6 +16,7 @@ public enum ScoreBoardHeader
     SUDDEN_DEATH_HEADER("S.Death in "+ChatColor.GREEN),
     GAME_END_HEADER("Game end in "+ChatColor.RED),
 
+    //blank lines in the scoreboard
     B_ONE(ChatColor.RED.toString()),
     B_TWO(ChatColor.YELLOW.toString()),
     B_THREE(ChatColor.GREEN.toString()),
@@ -25,8 +30,8 @@ public enum ScoreBoardHeader
     CURRENT_TEAM(ChatColor.GRAY+"You"),
     HEART(" "+ChatColor.RED+"\u2764"+ChatColor.RESET),
 
-    //change to a randomizer
-    SPACE_CREDIT(ChatColor.YELLOW+"not hypixel.net"),
+    //changed to a randomizer
+ //   SPACE_CREDIT(ChatColor.YELLOW+"not hypixel.net"),
 
     DUMMY("dummy"),
     HEALTH_CATEGORY("Health"),
@@ -38,9 +43,9 @@ public enum ScoreBoardHeader
     INITIALIZER_TWO("INITIALIZER_TWO"),
 
     //QUICK_BUY("QuickBuy"),  //Use the inventory database titles instead
-    //TEAM_BUY("TeamBuy"),
+
     TIME("Time");
-    //TEAM_JOIN(ChatColor.DARK_AQUA+""+ChatColor.BOLD+"Join a Team");
+
 
 
 

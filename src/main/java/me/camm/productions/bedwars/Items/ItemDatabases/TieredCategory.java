@@ -1,5 +1,10 @@
 package me.camm.productions.bedwars.Items.ItemDatabases;
 
+
+/**
+ * @author CAMM
+ * Categories for tiered items
+ */
 public enum TieredCategory
 {
     AXE("Axe"),

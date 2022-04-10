@@ -5,7 +5,10 @@ import me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty;
 import me.camm.productions.bedwars.Items.ItemDatabases.InventoryName;
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.UtilityConfig;
 import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
-
+/**
+ * @author CAMM
+ * This inventory models a section inventory in the quick buy
+ */
 public class UtilitySectionInventory extends ShopInventorySetter {
 
 

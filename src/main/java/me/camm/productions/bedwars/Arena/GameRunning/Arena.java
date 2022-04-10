@@ -3,7 +3,6 @@ package me.camm.productions.bedwars.Arena.GameRunning;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Generators.Generator;
-import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
 import me.camm.productions.bedwars.Util.Locations.Boundaries.GameBoundary;
 import me.camm.productions.bedwars.Util.Locations.RegisterType;
@@ -19,49 +18,71 @@ import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeader.*;
 import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.ARENA;
 import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.MAP;
 
-
+/**
+ * @author CAMM
+ * Models an arena for the game to run in
+ */
 public class Arena
 {
   private final GameBoundary bounds;
+  //the bounds of the arena
+
   private final int voidLevel;
-  private final HashMap<String, BattleTeam> teams;  //the string is the team color
+
+  private final HashMap<String, BattleTeam> teams;
+  //the string is the team color
+
   private ArrayList<Generator> generators;
   private final World world;
- // private boolean isRunning;
+
   private final Plugin plugin;
+
+  //location of the spectator spawn
   private final Location specSpawn;
 
+  //we're using this to keep track of players
   private static int playerAssignment;
 
- // private final HashMap<String, GameItem> quickBuyItems;
 
+
+  //objectives for the health above the name tags, and in the tablist
   private final Scoreboard healthBoard;
   private final Objective nameHealth;
   private final Objective tabHealth;
 
+    //we can't have a single scoreboard for each player because each board is different for each player, but we can have one
+    //single board for displaying the health.
 
-  private ConcurrentHashMap<UUID, BattlePlayer> players;
 
-  //we can't have a single scoreboard for each team because each board is different for each team, but we can have one
-    //for displaying the players online.
+    //registered players
+    private final Map<UUID, BattlePlayer> players;
 
+
+
+    /**
+     *
+     * Constructor.
+     *
+     * @param bounds bounds of the map
+     * @param spectatorSpawn where the spectators spawn
+     * @param voidLevel y level for the void
+     * @param world world the match will take place in
+     * @param plugin owning plugin
+     */
   public Arena(GameBoundary bounds, Coordinate spectatorSpawn, int voidLevel, World world, Plugin plugin)
   {
-     //  this.teams = new HashMap<>();
+
 
       playerAssignment = 0;
       this.bounds = bounds;
       this.voidLevel = voidLevel;
-      //this.quickBuyItems = setShopItems();
 
       this.world = world;
       this.plugin = plugin;
@@ -69,8 +90,11 @@ public class Arena
       this.players = new ConcurrentHashMap<>();
       this.teams = new HashMap<>();
 
+      //converting to a location
           specSpawn = spectatorSpawn.getAsLocation(world);
 
+
+          //initializing the scoreboards
           healthBoard = Bukkit.getScoreboardManager().getNewScoreboard();
 
          nameHealth = healthBoard.registerNewObjective(HEALTH_CATEGORY.getPhrase(),HEALTH_CRITERIA.getPhrase());
@@ -81,8 +105,8 @@ public class Arena
       tabHealth.setDisplayName(HEALTH_CATEGORY.getPhrase());
       tabHealth.setDisplaySlot(DisplaySlot.PLAYER_LIST);
 
-
-     Score initOne = nameHealth.getScore(INITIALIZER_ONE.getPhrase()); //board must have atleast 1 score to display properly
+//boards must have at least 1 score to display properly, so we put in a placeholder
+     Score initOne = nameHealth.getScore(INITIALIZER_ONE.getPhrase());
       initOne.setScore(1);
       Score initTwo = tabHealth.getScore(INITIALIZER_TWO.getPhrase());
       initTwo.setScore(1);
@@ -90,21 +114,27 @@ public class Arena
   }
 
 
-    public synchronized void removePlayer(UUID uuid)
+  //removes the player from the game (includes the scoreboard and the teams).
+    //You don't need to do anything else to remove the player.
+    public void unregisterPlayer(UUID uuid)
     {
         if (players.containsKey(uuid))
         {
             BattlePlayer player = players.get(uuid);
+            player.getBoard().unregister();
             player.getTeam().removePlayer(player.getRawPlayer());
             players.remove(uuid);
+
         }
     }
 
+    //adds a player to the arena. DOES NOT register them. You need to do that separately.
     public synchronized void addPlayer(UUID uuid, BattlePlayer player)
     {
         players.put(uuid, player);
     }
 
+    //adds teams to the arena. They are added separately since the config info is in separate files.
   public void addTeams(@NotNull ArrayList<BattleTeam> list)
   {
       for (BattleTeam team: list)
@@ -114,6 +144,11 @@ public class Arena
       }
   }
 
+
+  //gets the teams as an arraylist.
+    //use  new ArrayList<>(arena.getTeams().values()) instead or
+    //simply getTeams().values() for a collection if order doesn't matter.
+  @Deprecated
   public ArrayList<BattleTeam> getTeamList()
   {
       ArrayList<BattleTeam> list = new ArrayList<>();
@@ -123,15 +158,16 @@ public class Arena
   }
 
 
+  //gets a player number for a player
   public synchronized int assignPlayerNumber()
   {
       playerAssignment++;
       return playerAssignment;
   }
 
+  //registers the map
   public void registerMap()
   {
-      //(World world, String type, Plugin plugin, Material notRegister
       bounds.register(world, ARENA.getData(), RegisterType.EVERYTHING.getType(),plugin); //registering the playable area
      bounds.registerButNotBlockOrAir(world,MAP.getData(),plugin,Material.BED_BLOCK);  //registering all blocks to map blocks except for beds
 
@@ -140,6 +176,7 @@ public class Arena
           generator.registerBox();
   }
 
+  //registers the zones for the teams
   public void registerTeamZones()
   {
       teams.forEach((String,team) -> team.registerBase());
@@ -149,9 +186,10 @@ public class Arena
   {
       ArrayList<Integer> values = new ArrayList<>();
 
-      teams.forEach((String, team) ->  //getting colors from each team
-              values.add(team.getTeamColor().getValue())
-  );
+      for (BattleTeam battleTeam : teams.values()) {
+          values.add(battleTeam.getTeamColor().getValue());
+      }
+
       int[] arrayValues = new int[values.size()];  //transferring to int array
 
       for (int slot=0;slot<values.size();slot++)
@@ -160,25 +198,41 @@ public class Arena
       return arrayValues;
   }
 
+  /*
+  @unused
+   hides the eliminated players from all players (This is done somewhere else.)
+   */
   public void hideEliminated(){
       for (BattlePlayer player: players.values())
           player.hideEliminatedPlayers();
   }
 
+    /*
+       sends a sound to players in a given area around an origin
+       we square the distance to save computation time (sqrt() is somewhat of an inefficient operation)
+     */
   public void sendLocalizedSound(PacketSound sound,Location origin, double distance){
+
+      distance *= distance;
       for (BattlePlayer player: players.values())
       {
-          if (origin.distance(player.getRawPlayer().getLocation()) < distance)
+          if (origin.distanceSquared(player.getRawPlayer().getLocation()) < distance)
           player.playSound(sound);
       }
   }
 
 
+    /*
+    Use ChatSender.sendMessage() instead
+     */
+  @Deprecated
   public void sendMessage(String message)
   {
       plugin.getServer().broadcastMessage(message);
   }
 
+
+  //getters
     public Scoreboard getHealthBoard()
     {
         return healthBoard;
@@ -209,7 +263,7 @@ public class Arena
         return plugin;
     }
 
-    public synchronized ConcurrentHashMap<UUID, BattlePlayer> getPlayers()
+    public Map<UUID, BattlePlayer> getPlayers()
     {
         return players;
     }
@@ -222,14 +276,6 @@ public class Arena
     public Location getSpecSpawn()
     {
         return specSpawn;
-    }
-
-    public Objective getNameHealth() {
-        return nameHealth;
-    }
-
-    public Objective getTabHealth() {
-        return tabHealth;
     }
 
     public GameBoundary getBounds(){

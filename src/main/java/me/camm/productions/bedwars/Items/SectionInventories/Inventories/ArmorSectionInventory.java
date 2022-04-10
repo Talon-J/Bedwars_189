@@ -7,6 +7,10 @@ import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurati
 import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
 
 
+/**
+ * @author CAMM
+ * This inventory models a section inventory in the quick buy
+ */
 //1 for each player
 //this is an instance of Inventory
 public class ArmorSectionInventory extends ShopInventorySetter {

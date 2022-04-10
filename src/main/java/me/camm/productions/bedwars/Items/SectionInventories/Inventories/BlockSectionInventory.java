@@ -8,6 +8,10 @@ import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryName.BLOCKS;
 
 
+/**
+ * @author CAMM
+ * This inventory models a section inventory in the quick buy
+ */
 //Universal for all players
 public class BlockSectionInventory extends ShopInventorySetter {
 

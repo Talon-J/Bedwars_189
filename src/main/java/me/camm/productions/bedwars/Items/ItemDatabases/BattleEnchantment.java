@@ -2,6 +2,11 @@ package me.camm.productions.bedwars.Items.ItemDatabases;
 
 import org.bukkit.enchantments.Enchantment;
 
+
+/**
+ * @author CAMM
+ * enum for enchantments that the player can get
+ */
 public enum BattleEnchantment
 {
     PROTECTION_ONE(Enchantment.PROTECTION_ENVIRONMENTAL,1),

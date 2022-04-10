@@ -4,7 +4,11 @@ import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Arena.Teams.TeamTitle;
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.TeamInventoryConfig;
 
-public interface Trap
+/**
+ * @author CAMM
+ * This interface models a generic trap
+ */
+public interface ITrap
 {
     /* Activates the trap*/
     void activate();

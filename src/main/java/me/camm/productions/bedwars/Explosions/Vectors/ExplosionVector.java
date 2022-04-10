@@ -11,6 +11,11 @@ import static me.camm.productions.bedwars.Explosions.VectorToolBox.calculateResi
 import static me.camm.productions.bedwars.Explosions.VectorToolBox.isDataDestructable;
 
 
+/**
+ * TODO unfinished. Need to refactor.
+ * @author CAMM
+ * Models a vector that breaks blocks
+ */
 public class ExplosionVector extends GameVector
 {
     private double strength;

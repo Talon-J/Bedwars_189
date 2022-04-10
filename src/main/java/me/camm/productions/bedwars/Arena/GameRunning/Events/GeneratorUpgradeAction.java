@@ -5,14 +5,24 @@ import me.camm.productions.bedwars.Arena.GameRunning.GameRunner;
 import me.camm.productions.bedwars.Generators.Generator;
 import me.camm.productions.bedwars.Generators.GeneratorType;
 
-public class GeneratorAction extends GameActionPhysical
+/**
+ * @author CAMM
+ * This game event action is used to upgrade generators by 1 level
+ */
+public class GeneratorUpgradeAction extends GameActionPhysical
 {
 
     private final GameRunner runner;
     private final GeneratorType type;
 
-
-    public GeneratorAction(GameRunner runner, GeneratorType type, String header) {
+    /**
+     *
+     * @param runner game runner
+     * @param type the generator type to upgrade
+     * @param header the header to show on the scoreboards AS the time (in the wrapper class)
+     *               approaches the activation time
+     */
+    public GeneratorUpgradeAction(GameRunner runner, GeneratorType type, String header) {
         this.runner = runner;
         this.type = type;
         spent = false;
@@ -30,33 +40,23 @@ public class GeneratorAction extends GameActionPhysical
 
         int tier = 0;
 
-        if (type==GeneratorType.DIAMOND)
-        {
+
+        //looping through the specified generators and upgrading them
             for (Generator generator : arena.getGenerators())
             {
-                if (generator.getGenType()== GeneratorType.DIAMOND)
-                {
-                    generator.setGeneratorTier(generator.getTier() + 1, generator.getNextNewSpawnTime());
-                    tier = generator.getTier();
-                }
-            }
-        }
-        else
-        {
-            for (Generator generator : arena.getGenerators())
-            {
-                if (generator.getGenType()== GeneratorType.EMERALD)
+                if (generator.getGenType()==type)
                 {
                     generator.setGeneratorTier(generator.getTier() + 1, generator.getNextNewSpawnTime());
                     tier = generator.getTier();
                 }
             }
 
-        }
 
+      //getting the game event text
         String coloredMessage = type == GeneratorType.DIAMOND ?
                 GameEventText.UPGRADE_DIAMONDS.getText() : GameEventText.UPGRADE_EMERALDS.getText();
 
+            //sending the upgrade message
         sender.sendMessage(coloredMessage + tier);
     }
 

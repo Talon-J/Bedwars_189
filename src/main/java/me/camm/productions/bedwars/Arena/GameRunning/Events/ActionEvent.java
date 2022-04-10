@@ -4,7 +4,7 @@ package me.camm.productions.bedwars.Arena.GameRunning.Events;
 /**
  * @author CAMM
  * This class is a wrapper class for an action event. It includes the time
- * of when it should activate.
+ * of when it should activate, as well as an action to do.
  */
 public class ActionEvent {
 
@@ -24,7 +24,7 @@ public class ActionEvent {
             action.activate();
     }
 
-    //get the header for the scoreboard of the players.
+    //get the header for the scoreboard of the players if the action is a physical event
     public String getHeader(){
         if (action instanceof GameActionPhysical)
             return ((GameActionPhysical)action).getHeader();

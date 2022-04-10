@@ -1,9 +1,13 @@
 package me.camm.productions.bedwars.Files.FileKeywords;
 
+/**
+ * @author CAMM
+ * List of contributors and what they did (alphabetical order)
+ */
 public enum ContributorList
 {
     CODE_TEAM(new String[] {"Coding Crew:"}),
-    CODER(new String[] {"Developer: ","CAMM_H87"}),
+    CODER(new String[] {"Developers: ","Asdf_Noob","CAMM_H87"}),
 
     PLAY_TEAM(new String[]{"Play Team:"}),
     TESTING(new String[] {"General Testing:","CAMM_H87","KiwiGod888","Lachi_molala","Marcaroni_","MrTeavee"}),

@@ -1,5 +1,10 @@
 package me.camm.productions.bedwars.Files.FileKeywords;
 
+/**
+ * @author CAMM
+ * Keywords for reading from the team config files
+ * Index is the order that they should come in
+ */
 public enum TeamFileKeywords
 {
     TEAM_GENERATE("TeamColor",0),

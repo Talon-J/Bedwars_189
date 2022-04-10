@@ -2,6 +2,11 @@ package me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurat
 
 import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 
+
+/**
+ * @author CAMM
+ * This enum is used as a template for placing items into section inventories
+ */
 public enum DefaultQuickItemConfig
 {
 

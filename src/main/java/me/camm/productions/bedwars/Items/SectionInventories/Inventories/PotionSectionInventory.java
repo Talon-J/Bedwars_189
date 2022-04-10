@@ -6,6 +6,10 @@ import me.camm.productions.bedwars.Items.ItemDatabases.InventoryName;
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.PotionConfig;
 import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
 
+/**
+ * @author CAMM
+ * This inventory models a section inventory in the quick buy
+ */
 
 public class PotionSectionInventory extends ShopInventorySetter {
 

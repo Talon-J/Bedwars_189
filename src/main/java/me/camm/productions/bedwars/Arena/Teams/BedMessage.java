@@ -1,5 +1,11 @@
 package me.camm.productions.bedwars.Arena.Teams;
 
+
+/**
+ * @author CAMM
+ * This enum is for the possible messages that can be displayed when a bed is destroyed
+ * Syntax is [color bed] was [bedmessage] by [destroyer]
+ */
 public enum BedMessage
 {
     COOKIES("traded in for milk and cookies"),

@@ -2,7 +2,7 @@ package me.camm.productions.bedwars.Files.FileStreams;
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
-import me.camm.productions.bedwars.Arena.Teams.TeamColors;
+import me.camm.productions.bedwars.Arena.Teams.TeamColor;
 import me.camm.productions.bedwars.Files.FileKeywords.DataSeparatorKeys;
 import me.camm.productions.bedwars.Files.FileKeywords.TeamFileKeywords;
 import me.camm.productions.bedwars.Generators.Forge;
@@ -33,7 +33,7 @@ public class TeamFileReader extends StringHelper {
 
     private final Plugin plugin;
     //  private String path;
-    private TeamColors color;
+    private TeamColor color;
     private final Arena arena;
 
 
@@ -59,7 +59,7 @@ public class TeamFileReader extends StringHelper {
             }
             reader.close();
 
-            TeamColors[] colors = TeamColors.values();
+            TeamColor[] colors = TeamColor.values();
 
 
             int index = 0;
@@ -82,7 +82,7 @@ public class TeamFileReader extends StringHelper {
                             throw new ParameterException(TEAMS.getValue(), line, " A valid color (see instructions.txt)", string);
 
 
-                        for (TeamColors currentColor : colors) {
+                        for (TeamColor currentColor : colors) {
                             if (currentColor.getName().equalsIgnoreCase(color)) {
                                 this.color = currentColor;
                                 index = key.getIndex() + 1;
@@ -93,7 +93,7 @@ public class TeamFileReader extends StringHelper {
                         break;
 
                     case FORGE_TIME: {
-                        int[] time = doubleToIntArray(getNumbers(string));
+                        Integer[] time = doubleToIntArray(getNumbers(string));
                         if (time.length != 1)
                             throw new ParameterException(TEAMS.getValue(), line, "One time parameter, not many or zero", string);
 
@@ -106,7 +106,7 @@ public class TeamFileReader extends StringHelper {
 
                     }
                     break;
-                    //  public Forge(double x, double y, double z, World world, String color, int initialTime, Plugin plugin)
+
                     case FORGE_SPAWN: {
                         double[] numbers = getNumbers(string);
                         if (numbers == null)

@@ -110,6 +110,8 @@ public class GameIntializer implements CommandExecutor
         return true;
     }
 
+
+    //getters
     public Arena getArena()
     {
         return arena;

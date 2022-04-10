@@ -5,7 +5,7 @@ import me.camm.productions.bedwars.Arena.GameRunning.GameRunner;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Players.DeathMessages.Cause;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
-import me.camm.productions.bedwars.Arena.Teams.TeamColors;
+import me.camm.productions.bedwars.Arena.Teams.TeamColor;
 import me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy.IGameOwnable;
 import me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy.IGameTeamable;
 import me.camm.productions.bedwars.Entities.ActiveEntities.Hierarchy.ILifeTimed;
@@ -270,7 +270,7 @@ public class EntityActionListener implements Listener
 
             BattlePlayer sending = arenaPlayers.get(player.getUniqueId());
             BattleTeam team = sending.getTeam();
-            TeamColors color = team.getTeamColor();
+            TeamColor color = team.getTeamColor();
 
             team.sendTeamMessage(ChatColor.RESET + "<" + color.getChatColor() + player.getName() + ChatColor.RESET + ">" + event.getMessage());
         }

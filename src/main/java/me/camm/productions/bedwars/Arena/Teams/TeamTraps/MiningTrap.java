@@ -14,21 +14,30 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * @author CAMM
+ * This class models a miner-fatigue trap
+ */
 public class MiningTrap extends GameTrap
 {
 
     private static final String NAME = "Mining-Fatigue trap";
+
+
     public MiningTrap(BattleTeam team, GameBoundary bounds) {
         this.team = team;
         this.bounds = bounds;
     }
 
+    //activate the trap
     @Override
     public void activate()
     {
         World world = team.getArena().getWorld();
         ConcurrentHashMap<UUID, BattlePlayer> teamPlayers = team.getPlayers();
 
+        //get all of the close entities, and add mining fatigue to them. Gives mining- fatigue
+        //for 10 seconds.
         new BukkitRunnable() {
             public void run() {
 
@@ -64,4 +73,4 @@ public class MiningTrap extends GameTrap
         return TeamTitle.TRIGGERED;
     }
 }
-//gives mining fatigue for 10 secs
+

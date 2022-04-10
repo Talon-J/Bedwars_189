@@ -14,6 +14,10 @@ import org.bukkit.util.Vector;
 import java.util.Random;
 import java.util.UUID;
 
+/**
+ * @author CAMM
+ * Models a piece of tnt that is exploding.
+ */
 public class GameTNT implements IGameOwnable
 {
     private final BlockPlaceEvent event;

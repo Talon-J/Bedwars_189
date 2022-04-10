@@ -9,9 +9,9 @@ import org.bukkit.plugin.Plugin;
 
 public class SoakBoundary extends Boundary<Double>
 {
-    private volatile double[] bounds;
+    private volatile Double[] bounds;
 
-    public SoakBoundary(double[] bounds) {
+    public SoakBoundary(Double[] bounds) {
         this.bounds = bounds;
         analyze();
         reArrange();
@@ -28,16 +28,20 @@ public class SoakBoundary extends Boundary<Double>
         this.z1 = z1;
         this.z2 = z2;
 
-        bounds = new double[]{x1, x2, y1, y2, z1, z2};
+        bounds = new Double[]{x1, x2, y1, y2, z1, z2};
         reArrange();
     }
 
+    @Override
+    protected Double[] reset() {
+        return new Double[]{0d, 0d, 0d, 0d, 0d, 0d};
+    }
 
     @Override
     protected void analyze()
     {
         if (bounds==null||bounds.length != 6)
-            bounds = new double[]{0, 0, 0, 0, 0, 0};
+            bounds = reset();
     }
 
 
@@ -51,12 +55,12 @@ public class SoakBoundary extends Boundary<Double>
             z1 = bounds[4];
             z2 = bounds[5];
         } else {
-            this.bounds = new double[]{0, 0, 0, 0, 0, 0};
+            this.bounds = reset();
         }
     }
 
 
-    private void reArrange(int one, int two, double [] order, int repetition) //method loop for rearranging
+    private void reArrange(int one, int two, Double[] order, int repetition) //method loop for rearranging
     {
         double placeHold;
 
@@ -80,7 +84,7 @@ public class SoakBoundary extends Boundary<Double>
                 bounds = order;
         }
         else
-            bounds = new double[]{0,0,0,0,0,0};
+            bounds = reset();
     }
 
     @Override
@@ -159,9 +163,9 @@ public class SoakBoundary extends Boundary<Double>
     public PointWall generateWall(WallFace toCollapseUpon)
     {
         if (toCollapseUpon==null)
-            return new PointWall(new double[] {0,0,0,0,0,0});
+            return new PointWall(reset());
 
-        double[] coords = bounds.clone();
+        Double[] coords = bounds.clone();
         switch (toCollapseUpon)
         {
             //x1 to x2, y1 ... y2, z1... z2
@@ -207,8 +211,6 @@ public class SoakBoundary extends Boundary<Double>
                 }
             }
         }
-        // plugin.getServer().broadcastMessage(ChatColor.YELLOW + "BW [Completed]: Registered Zone from " + x1 + "||" + y1 + "||" + z1 + " TO " + x2 + "||" + y2 + "||" + z2 + " For the type of " + type);
-
     }
 
     //Registering everything that is not air
@@ -222,7 +224,6 @@ public class SoakBoundary extends Boundary<Double>
                 }
             }
         }
-        //   plugin.getServer().broadcastMessage(ChatColor.YELLOW + "BW [Completed]:Registered Zone from " + x1 + "||" + y1 + "||" + z1 + " TO " + x2 + "||" + y2 + "||" + z2 + " For the type of " + type);
     }
 
 
@@ -236,10 +237,9 @@ public class SoakBoundary extends Boundary<Double>
                 }
             }
         }
-        //   plugin.getServer().broadcastMessage(ChatColor.YELLOW + "BW [Completed]: Registered Zone from " + x1 + "||" + y1 + "||" + z1 + " TO " + x2 + "||" + y2 + "||" + z2 + " For the type of " + type);
     }
 
-    public double[] getValues() {
+    public Double[] getValues() {
         reArrange();
         return bounds;
     }

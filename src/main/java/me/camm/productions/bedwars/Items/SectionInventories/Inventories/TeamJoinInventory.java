@@ -12,6 +12,11 @@ import java.util.Collection;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryName.TEAM_JOIN;
 
+
+/**
+ * @author CAMM
+ * This inventory models the inventory for joining teams
+ */
 //This class is not part of the other shop inventories. Not an instance of Inventory.
 public class TeamJoinInventory   //class to make inv for players to join teams
 {

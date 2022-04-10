@@ -12,9 +12,12 @@ import org.bukkit.util.Vector;
 import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.MAP;
 
 
-/*
-Class for the bridge egg object that the player throws
+
+/**
+ * @author CAMM
+ * Models a bridge egg object that the player throws
  */
+
 public class BridgeEgg
 {
     private final Egg egg;

@@ -1,6 +1,11 @@
 package me.camm.productions.bedwars.Items.ItemDatabases;
 
-//For sorting the items in the quick buy shop in order
+
+/**
+ * @author CAMM
+ * this enum is used for items that have upgrades, and is
+ * For sorting the items in the quick buy shop in order
+ */
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.ShopItem.*;
 import static me.camm.productions.bedwars.Items.ItemDatabases.TieredCategory.*;

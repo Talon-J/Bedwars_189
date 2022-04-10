@@ -20,11 +20,17 @@ import java.util.List;
 
 import static me.camm.productions.bedwars.Arena.GameRunning.Events.EventTime.*;
 
+/**
+ * @author CAMM
+ * Models a generator object in the plugin
+ */
 public class Generator
 {
 
     private final static int GROUPED_PLAYER_NUMBER;
 
+
+    //number to check for when deciding the cap for diamond and emerald spawn amounts
     static {
         GROUPED_PLAYER_NUMBER = 3;
     }
@@ -39,9 +45,7 @@ public class Generator
     private int tier;
 
     private final Material type;
-    //private String spawning; //What the generator is spawning
-
-
+    //What the generator is spawning
     private final GeneratorType genType;
 
     private int timeCount;
@@ -63,11 +67,13 @@ public class Generator
 
 
     private final World world;
+
+    //registered area where you can't place or break blocks
     private final GameBoundary box;
 
 
     private final double x;
-    private final double y;  //location of the block. The 3 other titles will be calibrated to match the location
+    private final double y;  //location of the spinning block. The 3 other titles will be calibrated to match the location
     private final double z;
 
     //time of upgrades is controlled externally
@@ -101,7 +107,7 @@ public class Generator
     }
 
     /*
- @Author CAMM_H87
+ @Author CAMM
  When this method is called, the generator spawns in the world and gets ready to rumble :D
 
   */
@@ -172,6 +178,8 @@ public class Generator
 
     }
 
+
+    //getters, setters and helpers
     public void registerBox()
     {
         box.register(world,name,1,plugin);  //register all blocks
@@ -255,7 +263,8 @@ public class Generator
     }
 
 
-    public void setGeneratorTier(int tier, int newSpawnTime)  //setting the tier
+    //sets the tier of the generator
+    public void setGeneratorTier(int tier, int newSpawnTime)
     {
         //1 --> -1
         //2 --> 0
@@ -270,6 +279,7 @@ public class Generator
     }
 
 
+    //uses sinusodial and cosine function to make the block spin around based on an x value, time
     public void setRotation(double time)
     {
         double yaw = (360*(Math.sin(0.3*time)))*5;
@@ -294,6 +304,7 @@ public class Generator
       return false;   //If the time is 0, return true, else return false
     }
 
+    //spawns an item into the world depending on the type
     public void spawnItem()
     {
         int nearby = 0;
@@ -365,6 +376,7 @@ public class Generator
 
 
 
+    //actually creates an item and spawns it
     private void summonItem()
     {
         new BukkitRunnable()

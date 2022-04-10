@@ -1,7 +1,12 @@
 package me.camm.productions.bedwars.Arena.GameRunning.Events;
 
+/**
+ * @author CAMM
+ * This enum is for the time events that occur in the game
+ */
 public enum EventTime
 {
+
     TIME_IN_MINUTE(60),
 
     TICKS(2),
@@ -15,7 +20,7 @@ public enum EventTime
     EMERALD_TIER_TWO_TIME(50),
     EMERALD_TIER_THREE_TIME(35),
 
-   //set to smaller values for testing
+
 
     DIAMOND_UPGRADE_TWO(300), //300
     EMERALD_UPGRADE_TWO(600), //600
@@ -30,22 +35,6 @@ public enum EventTime
     DRAGON_SPAWN_TIME(2400), //2400
     GAME_END_WARNING(2700), //2700
     TOTAL_GAME_TIME(3000); //3000
-
-    /*
-       DIAMOND_UPGRADE_TWO(5), //300
-    EMERALD_UPGRADE_TWO(10), //600
-
-    DIAMOND_UPGRADE_THREE(15), //900
-    EMERALD_UPGRADE_THREE(20), //1200
-
-    BED_WARNING_TIME(25), //1500
-    BED_DESTROY_TIME(30), //1800
-
-    DRAGON_WARNING_TIME(35), //2100
-    DRAGON_SPAWN_TIME(40), //2400
-     */
-
-
 
 
     private final int time;

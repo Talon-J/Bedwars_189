@@ -13,6 +13,10 @@ import java.util.ArrayList;
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.*;
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryName.QUICK_BUY;
 
+/**
+ * @author CAMM
+ * This inventory models a section inventory in the quick buy
+ */
 public class QuickBuySection extends ShopInventorySetter {
    private ArrayList<ShopItemSet> values;
 

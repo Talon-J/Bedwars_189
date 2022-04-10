@@ -6,6 +6,10 @@ import org.bukkit.inventory.Inventory;
 
 import java.util.ArrayList;
 
+/**
+ * @author CAMM
+ * This is an interface for functionality that section inventories should have
+ */
 public interface ISectionInventory
 {
     void setTemplate(boolean isInflated, boolean includeEmpties);

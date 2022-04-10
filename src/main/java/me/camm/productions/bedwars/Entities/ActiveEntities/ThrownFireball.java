@@ -15,6 +15,10 @@ import org.bukkit.util.Vector;
 
 import java.util.UUID;
 
+/**
+ * @author CAMM
+ * Models a travelling fireball with an owner.
+ */
 public class ThrownFireball implements IGameOwnable
 {
     private final Plugin plugin;
@@ -33,12 +37,13 @@ public class ThrownFireball implements IGameOwnable
     {
         Player player = owner.getRawPlayer();
 
+        //spawning the ball
        ball = player.getWorld().spawn(player.getEyeLocation().toVector()
                 .add(player.getLocation().getDirection().multiply(1.25)).toLocation
                  (player.getWorld(), player.getLocation().getYaw(), player.getLocation().getPitch()),Fireball.class);  //Most likely 1.25
 
 
-        //Note: set to 0 for physics. Originally 4.
+        //Note: set to 0 for physics.
         ball.setYield(0F);
         ball.setShooter(player);
 

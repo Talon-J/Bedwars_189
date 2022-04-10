@@ -18,7 +18,10 @@ import java.util.*;
 
 
 
-
+/**
+ * @author CAMM
+ * Models a ender dragon in the game
+ */
 public class GameDragon extends EntityEnderDragon implements IGameAutonomous
 {
     private final Arena arena;

@@ -5,6 +5,10 @@ import org.bukkit.Material;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory.*;
 
+/**
+ * @author CAMM
+ * This enum represents all of the buyable items in the shops (quick buy shops)
+ */
 public enum ShopItem
 {
     WOOL(4, 16, Material.WOOL, Material.IRON_INGOT, ChatColor.GRAY + "Wool", BLOCK, false, false, 4),

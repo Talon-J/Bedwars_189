@@ -9,6 +9,11 @@ import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+
+/**
+ * @author CAMM
+ * This inventory models the quick buy editor for the player
+ */
 public class QuickBuyEditor
 {
     private final BattlePlayer owner;

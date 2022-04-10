@@ -24,6 +24,10 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+/**
+ * @author CAMM
+ * Models a shop keeper that the player buys things from
+ */
 public class ShopKeeper
 {
     private ArmorStand shopType;
@@ -39,7 +43,7 @@ public class ShopKeeper
 
     public ShopKeeper(Player appearance, Plugin plugin, Location loc, World world, boolean isTeamKeeper, double yaw)
     {
-      //  this.world = world;
+
 
         Chunk chunk = world.getChunkAt(loc);
         if (!chunk.isLoaded())
@@ -50,7 +54,7 @@ public class ShopKeeper
         this.yaw = yaw;
         this.plugin = plugin;
         this.isTeamKeeper = isTeamKeeper;
-        //this.spawnLocation = loc;
+
         profile = new GameProfile(UUID.randomUUID(), isTeamKeeper? ChatColor.BOLD+""+ChatColor.GOLD+"SHOP": ChatColor.BOLD+""+ChatColor.AQUA+"SHOP");
 
         new BukkitRunnable()

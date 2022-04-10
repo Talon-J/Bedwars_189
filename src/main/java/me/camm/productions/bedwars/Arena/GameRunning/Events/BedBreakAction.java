@@ -25,7 +25,9 @@ public class BedBreakAction extends GameActionPhysical {
     }
 
 
-
+    /*
+     * Activates the event if it is not spent.
+     */
     @Override
     public void activate() {
         if (spent)
@@ -37,17 +39,24 @@ public class BedBreakAction extends GameActionPhysical {
         sender.sendMessage(GameEventText.DESTROY_BEDS.getText());
         arena.getTeams().forEach((string, battleTeam) -> {
 
-            if (!battleTeam.doesBedExist())
-                battleTeam.sendTeamTitle(ALL_BEDS_DESTROYED.getMessage(), "",10,40,10);  //say that all beds have been destroyed
-                //10, 40, and 10 are just arbitrary values. We could have them as any positive int. It's just that these values
-            //work out well
+            //if the team's bed does not exist, then send an additional message that says that all beds are destroyed
 
+            if (!battleTeam.doesBedExist())
+                battleTeam.sendTeamTitle(ALL_BEDS_DESTROYED.getMessage(), "",10,40,10);
+                //10, 40, and 10 are just arbitrary values. We could have them as any positive int. It's just that these values
+            //work out well (The numbers are in values of ticks. 20 ticks = 1 second)
+
+            //maybe put them into final variables?
+
+
+            //we attempt to put them on their last stand (break their bed). The method already handles messaging etc.
             battleTeam.putOnLastStand();
         });
 
     }
 
 
+    //getting the header
     @Override
     String getHeader() {
         return header;

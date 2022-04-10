@@ -5,6 +5,7 @@ import me.camm.productions.bedwars.Files.FileKeywords.DataSeparatorKeys;
 import me.camm.productions.bedwars.Files.FileKeywords.WorldFileKeyword;
 import me.camm.productions.bedwars.Generators.Generator;
 import me.camm.productions.bedwars.Generators.GeneratorType;
+import me.camm.productions.bedwars.Util.Helpers.ChatSender;
 import me.camm.productions.bedwars.Util.Helpers.StringHelper;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
 import me.camm.productions.bedwars.Util.Locations.Boundaries.GameBoundary;
@@ -41,7 +42,6 @@ public class WorldFileReader extends StringHelper
     public WorldFileReader(Plugin plugin)
     {
         super(plugin);
-       // this.path = path;
         this.plugin = plugin;
 
         this.world = null;
@@ -51,6 +51,7 @@ public class WorldFileReader extends StringHelper
 
     public Arena read() throws BedWarsException
     {
+        ChatSender sender = ChatSender.getInstance();
         ArrayList<String> values = new ArrayList<>();
         ArrayList<Generator> generators = new ArrayList<>();
         try {
@@ -68,144 +69,145 @@ public class WorldFileReader extends StringHelper
             reader.close();
 
             int line = 0;
-            for (String string: values)
-            {
-                line++;
-                WorldFileKeyword key = getKeyword(string);
-                if (key==null)
-                    continue;
-
-                if (index!=key.getIndex()) {
-                   throw new OrderException(key.getIndex(), index, string);
-                }
+            for (String string: values) {
 
 
+                try {
+                    line++;
+                    WorldFileKeyword key = getKeyword(string);
+                    if (key == null)
+                        continue;
 
-                if (!isArenaComplete)
-                {
-                    switch (key)
-                    {
-                        case WORLD:
-                            String name = getInfoSection(string);
-                            if (name == null)
-                                throw new ParameterException(WORLD.getValue(),line,"non null value",null);
-
-                            this.world = Bukkit.getWorld(name);
-                            if (world == null)
-                                throw new EquationException(WORLD.getValue(),line,"non null world",string, null);
+                    if (index != key.getIndex()) {
+                        throw new OrderException(key.getIndex(), index, string);
+                    }
 
 
+                    if (!isArenaComplete) {
+                        switch (key) {
+                            case WORLD:
+                                String name = getInfoSection(string);
+                                if (name == null)
+                                    throw new ParameterException(WORLD.getValue(), line, "non null value", null);
 
-                            index = key.getIndex()+1;
-                            break;
-
-                        case ARENA_BOUNDS: {
-                            double[] numbers = getNumbers(string);
-                            if (numbers == null)
-                                throw new ParameterException(WORLD.getValue(), line, "valid boundaries for the arena", string);
-
-                            if (numbers.length != 6)
-                                throw new ParameterException(WORLD.getValue(), line, "arena bounds to have 6 parameters", "" + string);
-
-                            this.bounds = new GameBoundary(doubleToIntArray(numbers));
-                            index = key.getIndex() + 1;
-                        }
-                            break;
-
-                        case SPEC_SPAWN: {
-                            double[] numbers = getNumbers(string);
-                            if (numbers == null)
-                                throw new ParameterException(WORLD.getValue(),line, "valid coordinates for spectator spawn",string);
-
-                            if (numbers.length != 3)
-                                throw new ParameterException(WORLD.getValue(), line, "spectator spawn to have 3 parameters", "" + string);
-
-                            this.spectatorSpawn = new Coordinate(numbers);
-                            index = key.getIndex() + 1;
-                        }
-                            break;
-
-                        case VOID:
-                            double[] voidProcessed = getNumbers(string);
-                            if (voidProcessed == null)
-                                throw new ParameterException(WORLD.getValue(),line, "valid y value for void",string);
-
-                            double voidLevel;
-                            if (voidProcessed.length>0)
-                                voidLevel = voidProcessed[0];
-                            else
-                                throw new ParameterException(WORLD.getValue(),line, "void to only have 1 parameter",string);
+                                this.world = Bukkit.getWorld(name);
+                                if (world == null)
+                                    throw new EquationException(WORLD.getValue(), line, "non null world", string, null);
 
 
-                            if (this.world!=null&&this.bounds!=null&&spectatorSpawn!=null)
-                            {
-                                isArenaComplete = true;
-                                this.arena = new Arena(bounds,spectatorSpawn,(int)voidLevel,world,plugin);
-                                index = 0;
+                                index = key.getIndex() + 1;
+                                break;
+
+                            case ARENA_BOUNDS: {
+                                double[] numbers = getNumbers(string);
+                                if (numbers == null)
+                                    throw new ParameterException(WORLD.getValue(), line, "valid boundaries for the arena", string);
+
+                                if (numbers.length != 6)
+                                    throw new ParameterException(WORLD.getValue(), line, "arena bounds to have 6 parameters", "" + string);
+
+                                this.bounds = new GameBoundary(doubleToIntArray(numbers));
+                                index = key.getIndex() + 1;
                             }
-                            else
-                                throw new EquationException(WORLD.getValue(),line, "all values to be defined",string,null);
                             break;
+
+                            case SPEC_SPAWN: {
+                                double[] numbers = getNumbers(string);
+                                if (numbers == null)
+                                    throw new ParameterException(WORLD.getValue(), line, "valid coordinates for spectator spawn", string);
+
+                                if (numbers.length != 3)
+                                    throw new ParameterException(WORLD.getValue(), line, "spectator spawn to have 3 parameters", "" + string);
+
+                                this.spectatorSpawn = new Coordinate(numbers);
+                                index = key.getIndex() + 1;
+                            }
+                            break;
+
+                            case VOID:
+                                double[] voidProcessed = getNumbers(string);
+                                if (voidProcessed == null)
+                                    throw new ParameterException(WORLD.getValue(), line, "valid y value for void", string);
+
+                                double voidLevel;
+                                if (voidProcessed.length > 0)
+                                    voidLevel = voidProcessed[0];
+                                else
+                                    throw new ParameterException(WORLD.getValue(), line, "void to only have 1 parameter", string);
+
+
+                                if (this.world != null && this.bounds != null && spectatorSpawn != null) {
+                                    isArenaComplete = true;
+                                    this.arena = new Arena(bounds, spectatorSpawn, (int) voidLevel, world, plugin);
+                                    index = 0;
+                                } else
+                                    throw new EquationException(WORLD.getValue(), line, "all values to be defined", string, null);
+                                break;
+                        }
+                    } else {
+                        switch (key) {
+                            case GENERATOR:
+                                index = key.getIndex() + 1;
+                                break;
+
+                            case GEN_TYPE:
+                                this.generatorType = getInfoSection(string);
+                                if (generatorType == null)
+                                    throw new ParameterException(WORLD.getValue(), line, "valid value for generator type", string);
+
+                                if (!(GeneratorType.DIAMOND.getSimpleName().equalsIgnoreCase(generatorType) || GeneratorType.EMERALD.getSimpleName().equalsIgnoreCase(generatorType)))
+                                    throw new ParameterException(WORLD.getValue(), line, "either emerald or diamond for generator type", string);
+
+                                index = key.getIndex() + 1;
+                                break;
+
+                            case GEN_SPAWN: {
+                                double[] numbers = getNumbers(string);
+                                if (numbers == null)
+                                    throw new ParameterException(WORLD.getValue(), line, "valid value for generator spawn", string);
+
+                                if (numbers.length != 3)
+                                    throw new ParameterException(WORLD.getValue(), line, "generator spawn to have 3 parameters", "" + string);
+
+                                this.generatorSpawn = new Coordinate(numbers);
+                                index = key.getIndex() + 1;
+                            }
+
+                            break;
+
+                            case GEN_BOX: {
+                                double[] numbers = getNumbers(string);
+                                if (numbers == null)
+                                    throw new ParameterException(WORLD.getValue(), line, "valid coordinates for generator box", string);
+
+                                if (numbers.length != 6)
+                                    throw new ParameterException(WORLD.getValue(), line, "generator area to have 6 parameters", "" + string);
+
+                                GameBoundary generatorBounds = new GameBoundary(doubleToIntArray(numbers));
+                                index = 0;
+
+                                if (generatorType != null && generatorSpawn != null && arena != null)
+                                    generators.add(new Generator(generatorSpawn.getX(), generatorSpawn.getY(), generatorSpawn.getZ(), world, generatorType, plugin, generatorBounds));
+                            }
+                            break;
+                        }
                     }
                 }
-                else
-                {
-                    switch (key)
-                    {
-                        case GENERATOR:
-                           index = key.getIndex()+1;
-                            break;
-
-                        case GEN_TYPE:
-                            this.generatorType = getInfoSection(string);
-                            if (generatorType == null)
-                                throw new ParameterException(WORLD.getValue(),line, "valid value for generator type",string);
-
-                            if (!(GeneratorType.DIAMOND.getSimpleName().equalsIgnoreCase(generatorType) ||GeneratorType.EMERALD.getSimpleName().equalsIgnoreCase(generatorType)))
-                                throw new ParameterException(WORLD.getValue(),line, "either emerald or diamond for generator type",string);
-
-                            index  = key.getIndex()+1;
-                            break;
-
-                        case GEN_SPAWN: {
-                            double[] numbers = getNumbers(string);
-                            if (numbers == null)
-                                throw new ParameterException(WORLD.getValue(), line, "valid value for generator spawn", string);
-
-                            if (numbers.length != 3)
-                                throw new ParameterException(WORLD.getValue(), line, "generator spawn to have 3 parameters", "" + string);
-
-                            this.generatorSpawn = new Coordinate(numbers);
-                            index = key.getIndex() + 1;
-                        }
-
-                            break;
-
-                        case GEN_BOX: {
-                            double[] numbers = getNumbers(string);
-                            if (numbers == null)
-                                throw new ParameterException(WORLD.getValue(),line, "valid coordinates for generator box",string);
-
-                            if (numbers.length != 6)
-                                throw new ParameterException(WORLD.getValue(), line, "generator area to have 6 parameters", "" + string);
-
-                            GameBoundary generatorBounds = new GameBoundary(doubleToIntArray(numbers));
-                            index = 0;
-
-                            // public Generator(double x, double y, double z, World world, String spawning, Plugin plugin, RegisteredBoundary box)
-                            if (generatorType != null && generatorSpawn != null && arena != null)
-                                generators.add(new Generator(generatorSpawn.getX(), generatorSpawn.getY(), generatorSpawn.getZ(), world, generatorType, plugin, generatorBounds));
-                        }
-                            break;
-                    }
+                catch (BedWarsException e) {
+                     sender.sendPlayerMessage(e.getMessage(), ChatSender.GameState.WARN);
                 }
             }
 
-        }
-        catch (IOException ignored)
-        {
 
         }
+        catch (IOException e)
+        {
+          sender.sendPlayerMessage(e.getMessage(), ChatSender.GameState.WARN);
+        }
+
+
+
+
         if (arena!=null)
             arena.setGenerators(generators);
         return arena;

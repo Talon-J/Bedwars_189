@@ -2,6 +2,10 @@ package me.camm.productions.bedwars.Arena.GameRunning.Events;
 
 import org.bukkit.ChatColor;
 
+/**
+ * @author CAMM
+ * This enum is for the chat text that comes up during certain events
+ */
 public enum GameEventText
 {
     BED_DESTROY_SCHEDULED_WARNING(ChatColor.RED+"All beds will be destroyed in 5 minutes!"),

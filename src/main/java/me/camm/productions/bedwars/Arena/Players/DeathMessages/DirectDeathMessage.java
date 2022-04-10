@@ -1,8 +1,15 @@
 package me.camm.productions.bedwars.Arena.Players.DeathMessages;
 
+
+/**
+ * @author CAMM
+ * Enum for direct death messages.
+ * format is [player] (something) by [killer]
+ */
 public enum DirectDeathMessage
 {
-    //a direct death is where a player directly kills another player, either with a bow or melee
+    //a direct death is where a player directly kills another player,
+    // either with a bow or melee or explosives
     FRIED("was deep fried by"),
     GRAVY_SAUCE("slipped in gravy sauce spilled by"),
     TOOK_L("took the L to"),
