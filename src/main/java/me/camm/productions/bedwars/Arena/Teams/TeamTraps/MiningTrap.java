@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MiningTrap extends GameTrap
 {
 
+    private static final String NAME = "Mining-Fatigue trap";
     public MiningTrap(BattleTeam team, GameBoundary bounds) {
         this.team = team;
         this.bounds = bounds;
@@ -53,9 +54,9 @@ public class MiningTrap extends GameTrap
         return TeamInventoryConfig.MINER_TRAP;
     }
 
-    @Override
-    public String toString() {
-        return "Mining-Fatigue trap";
+
+    public String name() {
+        return NAME;
     }
 
     @Override

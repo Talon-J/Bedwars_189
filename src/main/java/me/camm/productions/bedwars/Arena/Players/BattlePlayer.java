@@ -14,6 +14,7 @@ import me.camm.productions.bedwars.Files.FileStreams.PlayerFileReader;
 import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Items.ItemDatabases.TieredItem;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
+import me.camm.productions.bedwars.Util.Helpers.PlayerHelper;
 import me.camm.productions.bedwars.Util.PacketSound;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.ChatColor;
@@ -38,7 +39,7 @@ import java.util.*;
 import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeader.*;
 
 
-public class BattlePlayer implements IPlayerUtil
+public class BattlePlayer// implements IPlayerUtil
 {
 
     private final Arena arena;
@@ -49,6 +50,7 @@ public class BattlePlayer implements IPlayerUtil
     //The alive value is for when they are in spectator mode and about to respawn.
     private boolean isEliminated;
     private volatile boolean isAlive;
+    private boolean hasCompass;
 
     //The time the player has until next respawn.
     //Used by a player death counter and also for when bed destroyed while counting down.
@@ -120,6 +122,7 @@ public class BattlePlayer implements IPlayerUtil
         this.isEliminated = false;
         this.timeTillRespawn = 0;
         this.isAlive = true;
+        this.hasCompass = false;
 
         this.finals = 0;
         this.kills = 0;
@@ -356,10 +359,10 @@ public class BattlePlayer implements IPlayerUtil
 
        if (!this.team.equals(newTeam)&&!newTeam.isEliminated())
        {
-           board.setScoreName(CURRENT_TEAM.getPhrase(), getTeamStatus(this.team));
+           board.setScoreName(CURRENT_TEAM.getPhrase(), PlayerHelper.getTeamStatus(this.team));
            //sets the score with the "you" to the default score name regarding a team.
 
-           board.setScoreName(newTeam.getTeamColor().getName(), getTeamStatus(newTeam) + CURRENT_TEAM.getPhrase());
+           board.setScoreName(newTeam.getTeamColor().getName(), PlayerHelper.getTeamStatus(newTeam) + CURRENT_TEAM.getPhrase());
            //Sets the default score to one with the "you"
 
            board.interchangeIdentifiers(CURRENT_TEAM.getPhrase(), this.team.getTeamColor().getName(), newTeam.getTeamColor().getName());
@@ -417,7 +420,7 @@ public class BattlePlayer implements IPlayerUtil
      */
     public void sendRespawnTitle(TeamTitle title, TeamTitle subTitle, int secondsRemaining, int fadeIn, int stay, int fadeOut)
     {
-        String respawn = addRespawnNumber(subTitle,secondsRemaining);
+        String respawn = PlayerHelper.addRespawnNumber(subTitle,secondsRemaining);
         sendTitle(title.getMessage(), respawn, fadeIn, stay, fadeOut);
     }
 
@@ -507,7 +510,7 @@ public class BattlePlayer implements IPlayerUtil
 
 
         if (!isAlive || isEliminated) {
-            clearInventory(this.player);
+            PlayerHelper.clearInventory(this.player);
             sendPacketsAllNonEqual(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER,((CraftPlayer)this.player).getHandle()));
             //  sendPacket(player, new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER,npc));
             return;
@@ -689,7 +692,7 @@ public class BattlePlayer implements IPlayerUtil
 
                 });
 
-                clearInventory(player);
+                PlayerHelper.clearInventory(player);
                 cancel();
             }
         }.runTask(arena.getPlugin());
@@ -1044,6 +1047,14 @@ public class BattlePlayer implements IPlayerUtil
 
     public QuickBuyEditor getQuickEditor() {
         return quickEditor;
+    }
+
+    public boolean hasCompass(){
+        return hasCompass;
+    }
+
+    public void setHasCompass(boolean compass){
+        this.hasCompass = compass;
     }
 
 

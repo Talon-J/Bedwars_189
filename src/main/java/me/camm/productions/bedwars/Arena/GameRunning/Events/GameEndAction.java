@@ -19,7 +19,7 @@ public class GameEndAction extends GameActionPhysical
             return;
 
         spent = true;
-        runner.sendMessage(GameEventText.GAME_END_TEXT.getText());
+        sender.sendMessage(GameEventText.GAME_END_TEXT.getText());
         runner.endGame(null);
     }
 

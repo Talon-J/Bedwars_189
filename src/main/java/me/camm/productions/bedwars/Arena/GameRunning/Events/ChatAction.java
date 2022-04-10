@@ -1,16 +1,19 @@
 package me.camm.productions.bedwars.Arena.GameRunning.Events;
 
-import me.camm.productions.bedwars.Arena.GameRunning.GameRunner;
 
-public class ChatAction implements IAction
+/**
+ * @author CAMM
+ * This class models non physical events (These events only have to do with
+ * scoreboards or the chat)
+ */
+public class ChatAction extends Action
 {
     private final String text;
-    private final GameRunner runner;
+
     private boolean spent;
 
 
-    public ChatAction(String text, GameRunner runner) {
-        this.runner = runner;
+    public ChatAction(String text) {
         this.text = text;
         spent = false;
     }
@@ -18,7 +21,7 @@ public class ChatAction implements IAction
     @Override
     public void activate() {
         if (!spent)
-        runner.sendMessage(text);
+        sender.sendMessage(text);
         spent = true;
     }
 }

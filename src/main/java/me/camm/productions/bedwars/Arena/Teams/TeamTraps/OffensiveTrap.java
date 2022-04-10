@@ -5,7 +5,7 @@ import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Arena.Teams.TeamTitle;
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.TeamInventoryConfig;
 import me.camm.productions.bedwars.Util.Locations.Boundaries.GameBoundary;
-import org.bukkit.World;
+
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -16,6 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class OffensiveTrap extends GameTrap
 {
+
+    private static final String NAME = "Counter-offensive trap";
     public OffensiveTrap(BattleTeam team, GameBoundary bounds) {
         this.team = team;
         this.bounds = bounds;
@@ -24,7 +26,7 @@ public class OffensiveTrap extends GameTrap
     @Override
     public void activate()
     {
-        World world = team.getArena().getWorld();
+        //World world = team.getArena().getWorld();
         ConcurrentHashMap<UUID, BattlePlayer> teamPlayers = team.getPlayers();
 
         new BukkitRunnable(){
@@ -60,9 +62,8 @@ public class OffensiveTrap extends GameTrap
     //spd and jump to those on same team.
 
 
-    @Override
-    public String toString() {
-        return "Counter-offensive trap";
+    public String name() {
+        return NAME;
     }
 
     @Override

@@ -57,7 +57,7 @@ public class GeneratorAction extends GameActionPhysical
         String coloredMessage = type == GeneratorType.DIAMOND ?
                 GameEventText.UPGRADE_DIAMONDS.getText() : GameEventText.UPGRADE_EMERALDS.getText();
 
-        runner.sendMessage(coloredMessage + tier);
+        sender.sendMessage(coloredMessage + tier);
     }
 
     @Override

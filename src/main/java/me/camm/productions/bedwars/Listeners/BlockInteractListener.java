@@ -8,6 +8,7 @@ import me.camm.productions.bedwars.Arena.Teams.TeamTitle;
 import me.camm.productions.bedwars.Entities.ActiveEntities.GameTNT;
 import me.camm.productions.bedwars.Structures.SoakerSponge;
 import me.camm.productions.bedwars.Structures.Tower;
+import me.camm.productions.bedwars.Util.Helpers.ChatSender;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
 import me.camm.productions.bedwars.Util.PacketSound;
 import org.bukkit.ChatColor;
@@ -42,6 +43,7 @@ public class BlockInteractListener implements Listener
     private final HashSet<String> activeSponges;
     private final static BedMessage[] messages;
     private final static Random rand;
+    private ChatSender sender;
 
     //Messages for when the bed is broken
     //random for picking a random message
@@ -55,6 +57,7 @@ public class BlockInteractListener implements Listener
         this.plugin = plugin;
         this.arena = arena;
         this.activeSponges = new HashSet<>();
+        sender = ChatSender.getInstance();
 
 
        // Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "gamerule doFireTick false");
@@ -184,8 +187,8 @@ public class BlockInteractListener implements Listener
 
             event.setCancelled(true);
             if (broken == null) {
-                plugin.getLogger().log(Level.WARNING," A bed was broken at "+x+", "+y+", "+z+" ." +
-                        "It was registered, but couldn't find a team it belonged to!");
+                sender.sendConsoleMessage(" A bed was broken at "+x+", "+y+", "+z+" ." +
+                        "It was registered, but couldn't find a team it belonged to!",Level.WARNING);
                 return;
             }
 
@@ -233,11 +236,8 @@ public class BlockInteractListener implements Listener
                 player.getBoard().updateTeamStatuses();
 
             String lead = messages[rand.nextInt(messages.length)].getMessage();
-            arena.sendMessage(ChatColor.WHITE+""+ChatColor.BOLD+"BED DESTRUCTION >"+broken.getTeamColor().getName()+ChatColor.RESET+" was "+lead+" by "+
+            sender.sendMessage(ChatColor.WHITE+""+ChatColor.BOLD+"BED DESTRUCTION >"+broken.getTeamColor().getName()+ChatColor.RESET+" was "+lead+" by "+
                     broke.getTeam().getTeamColor().getChatColor()+broke.getRawPlayer().getName()+"!");
-
-
-
             return;
         }
 
@@ -250,7 +250,7 @@ public class BlockInteractListener implements Listener
 
 
         BattleTeam comparison = null;
-        for (BattleTeam team: arena.getTeamList())
+        for (BattleTeam team: arena.getTeams().values())
         {
             Coordinate chest = team.getChest();
            if  (chest.isBlock(arena.getWorld(),block))
@@ -269,7 +269,6 @@ public class BlockInteractListener implements Listener
         if (!broke.getTeam().equals(comparison)) {
             event.setCancelled(true);
             broke.sendMessage(ChatColor.RED+"You cannot open that chest while " + comparison.getTeamColor().getName() + "is not eliminated!");
-
         }
     }
 

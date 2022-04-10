@@ -22,7 +22,7 @@ public enum HotBarConfig
     private final Material mat;
     private final String name;
     private final ItemCategory category;
-    int[] slots;
+    final int[] slots;
 
     HotBarConfig(Material mat, String name, ItemCategory category, int[] slots) {
         this.mat = mat;

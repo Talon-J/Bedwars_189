@@ -15,4 +15,6 @@ public interface Trap
     TeamInventoryConfig getTrapConfig();
 
     TeamTitle getTrapTitle();
+
+    String name();
 }

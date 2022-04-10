@@ -1,28 +1,37 @@
 package me.camm.productions.bedwars.Arena.GameRunning.Events;
 
-public class ActionEvent {
-    private final int time;
-    private final IAction action;
 
-    public ActionEvent(int time, IAction action) {
+/**
+ * @author CAMM
+ * This class is a wrapper class for an action event. It includes the time
+ * of when it should activate.
+ */
+public class ActionEvent {
+
+
+    private final int time;
+    private final Action action;
+
+
+    //constructor
+    public ActionEvent(int time, Action action) {
         this.action = action;
         this.time = time;
     }
 
+    //activate the event.
     public void activateEvent() {
             action.activate();
     }
 
-    public int getTime() {
-        return time;
-    }
-
+    //get the header for the scoreboard of the players.
     public String getHeader(){
         if (action instanceof GameActionPhysical)
             return ((GameActionPhysical)action).getHeader();
         return null;
     }
 
+    //get the time of which the event should activate
     public int getActivationTime(){
         return time;
     }

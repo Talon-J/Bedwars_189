@@ -1,8 +1,9 @@
 package me.camm.productions.bedwars.Arena.GameRunning.Commands;
 
 
-/*
+/**
 This enum is used for permissions and their names.
+@author CAMM
  */
 public enum CommandKeyword
 {

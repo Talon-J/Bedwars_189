@@ -32,7 +32,7 @@ public class ShopItemSet
   @Override
   public String toString()
   {
-      return item.toString() +" "+ slot;
+      return item.name() +" "+ slot;
   }
 }
 

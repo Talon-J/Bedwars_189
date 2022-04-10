@@ -154,7 +154,7 @@ public class ItemUseListener implements Listener
 
             if (block.getType()==Material.CHEST) {
 
-                for (BattleTeam team : arena.getTeamList()) {
+                for (BattleTeam team : arena.getTeams().values()) {
                     if (team.getChest().isBlock(arena.getWorld(), block)) {
 
                         if (currentPlayer.getIsEliminated()) {

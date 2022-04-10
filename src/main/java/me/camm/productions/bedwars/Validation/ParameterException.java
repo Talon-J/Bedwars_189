@@ -4,7 +4,7 @@ package me.camm.productions.bedwars.Validation;
 import org.bukkit.ChatColor;
 
 
-public class ParameterException extends BedWarsException
+public class ParameterException extends ConfigException
 {
     protected final String file;
     protected final int line;
@@ -12,6 +12,7 @@ public class ParameterException extends BedWarsException
     protected final String given;
 
     public ParameterException(String file, int line, String expected, String given) {
+        super("");
         this.file = file;
         this.line = line;
         this.expected = expected;

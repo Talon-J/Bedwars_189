@@ -4,12 +4,10 @@ import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.GameRunning.Commands.CommandKeyword;
 import me.camm.productions.bedwars.Arena.GameRunning.GameRunner;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
-import me.camm.productions.bedwars.Arena.Players.IPlayerUtil;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Entities.ShopKeeper;
-import me.camm.productions.bedwars.Util.Helpers.IArenaChatHelper;
-import me.camm.productions.bedwars.Util.Helpers.IArenaWorldHelper;
-import me.camm.productions.bedwars.Util.Helpers.RunningTeamHelper;
+import me.camm.productions.bedwars.Util.Helpers.ChatSender;
+import me.camm.productions.bedwars.Util.Helpers.TeamHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -24,7 +22,7 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelper, IPlayerUtil
+public class LogListener implements Listener//, IArenaChatHelper, IArenaWorldHelper, IPlayerUtil
 {
     private PacketHandler packetHandler;
     private final Arena arena;
@@ -33,6 +31,7 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
 
     private final ArrayList<ShopKeeper> keepers;
     private final HashMap<UUID, PermissionAttachment[]> perms;
+    private final ChatSender sender;
 
     public LogListener(Arena arena, GameRunner runner,ArrayList<ShopKeeper> keepers) {
         this.packetHandler = null;
@@ -41,6 +40,7 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
         this.runner = runner;
         this.keepers = keepers;
         perms = new HashMap<>();
+        sender = ChatSender.getInstance();
 
     }
 
@@ -86,7 +86,7 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
         current.dropInventory(current.getRawPlayer().getLocation().clone(),null);
 
         if (!runner.isRunning()) {
-            RunningTeamHelper.updateTeamBoardStatus(registeredPlayers.values());
+            TeamHelper.updateTeamBoardStatus(registeredPlayers.values());
             return;
         }
         BattleTeam team = current.getTeam();
@@ -98,9 +98,9 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
         if (!team.doesBedExist())
         {
             //eliminate them
-            sendMessage(current.getTeam().getTeamColor().getChatColor()+current.getRawPlayer().getName()+ChatColor.YELLOW+" was on their last life! They have been eliminated!",plugin);
+            sender.sendMessage(current.getTeam().getTeamColor().getChatColor()+current.getRawPlayer().getName()+ChatColor.YELLOW+" was on their last life! They have been eliminated!");
             current.setEliminated(true);
-            RunningTeamHelper.updateTeamBoardStatus(registeredPlayers.values());
+            TeamHelper.updateTeamBoardStatus(registeredPlayers.values());
             //check for the team stuff to see if there's a win here.
         }
 
@@ -111,7 +111,7 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
         if (remaining -1 <= 0)
         {
             team.eliminate();
-            RunningTeamHelper.updateTeamBoardStatus(registeredPlayers.values());
+            TeamHelper.updateTeamBoardStatus(registeredPlayers.values());
             runner.attemptEndGame();
         }
     }
@@ -183,7 +183,7 @@ public class LogListener implements Listener, IArenaChatHelper, IArenaWorldHelpe
 
         current.getRawPlayer().setScoreboard(arena.getHealthBoard());  //refreshing the board.
         runner.initializeTimeBoardHead(current);
-        RunningTeamHelper.updateTeamBoardStatus(registeredPlayers.values());
+        TeamHelper.updateTeamBoardStatus(registeredPlayers.values());
 
 
         if (!runner.isRunning())

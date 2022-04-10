@@ -18,6 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class AlarmTrap extends GameTrap
 {
+    private static final int MILK_TIME_MILLIS = 30000;
+    private static final int ALARM_TIME_TICKS = 120;
+    private static final String NAME = "Alarm Trap";
 
     public AlarmTrap(BattleTeam team, GameBoundary effectiveRange) {
         this.team = team;
@@ -44,7 +47,7 @@ public class AlarmTrap extends GameTrap
 
                         BattlePlayer current = arenaPlayers.get(entity.getUniqueId());
 
-                        if ( (System.currentTimeMillis() - current.getLastMilk()) > 30000) {
+                        if ( (System.currentTimeMillis() - current.getLastMilk()) > MILK_TIME_MILLIS) {
                             if (activator == null)
                             activator = current;
                             current.getRawPlayer().removePotionEffect(PotionEffectType.INVISIBILITY);
@@ -75,7 +78,7 @@ public class AlarmTrap extends GameTrap
                         }
 
                         //just an arbitrary amount for the alarm.
-                        if (iterations > 120)
+                        if (iterations > ALARM_TIME_TICKS)
                             cancel();
 
                         iterations ++;
@@ -100,9 +103,8 @@ public class AlarmTrap extends GameTrap
         return TeamInventoryConfig.ALARM_TRAP;
     }
 
-    @Override
-    public String toString() {
-        return "Alarm Trap";
+    public String name() {
+        return NAME;
     }
 
     @Override

@@ -4,17 +4,27 @@ import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.GameRunning.GameRunner;
 import me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeader;
 
+
 import static me.camm.productions.bedwars.Arena.Teams.TeamTitle.ALL_BEDS_DESTROYED;
 
+
+/**
+ * @author CAMM
+ * This class models the action of breaking the bed at a given time
+ */
 public class BedBreakAction extends GameActionPhysical {
 
     private final GameRunner runner;
 
+    //constructor
     public BedBreakAction(GameRunner runner) {
+        super();
         this.runner = runner;
         header = ScoreBoardHeader.BED_GONE_HEADER.getPhrase();
         spent = false;
     }
+
+
 
     @Override
     public void activate() {
@@ -24,7 +34,7 @@ public class BedBreakAction extends GameActionPhysical {
 
         Arena arena = runner.getArena();
 
-        runner.sendMessage(GameEventText.DESTROY_BEDS.getText());
+        sender.sendMessage(GameEventText.DESTROY_BEDS.getText());
         arena.getTeams().forEach((string, battleTeam) -> {
 
             if (!battleTeam.doesBedExist())

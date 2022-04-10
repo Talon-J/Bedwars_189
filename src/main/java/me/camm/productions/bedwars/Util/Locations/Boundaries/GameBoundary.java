@@ -1,7 +1,7 @@
 package me.camm.productions.bedwars.Util.Locations.Boundaries;
 
 
-import me.camm.productions.bedwars.Util.Helpers.IArenaChatHelper;
+import me.camm.productions.bedwars.Util.Helpers.ChatSender;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -16,10 +16,11 @@ import java.util.Collection;
 import java.util.Random;
 
 
-public class GameBoundary extends Boundary<Integer> implements IArenaChatHelper
+public class GameBoundary extends Boundary<Integer>// implements IArenaChatHelper
 {
     private int[] bounds;
     private final Random rand;
+    private static ChatSender sender;
 
     public GameBoundary(int[] bounds) {
         this.bounds = bounds;
@@ -27,6 +28,7 @@ public class GameBoundary extends Boundary<Integer> implements IArenaChatHelper
         analyze();
         reArrange();
         dissectArray();
+        sender = ChatSender.getInstance();
     }
 
 
@@ -190,7 +192,7 @@ public class GameBoundary extends Boundary<Integer> implements IArenaChatHelper
                 }
             }
         }
-        sendRegistry(plugin,type);
+        sendRegistry(type);
     }
 
     //Registering everything that is not air
@@ -204,7 +206,7 @@ public class GameBoundary extends Boundary<Integer> implements IArenaChatHelper
                 }
             }
         }
-        sendRegistry(plugin,type);
+        sendRegistry(type);
     }
 
    //registering all materials that are air
@@ -218,7 +220,7 @@ public class GameBoundary extends Boundary<Integer> implements IArenaChatHelper
                 }
             }
         }
-        sendRegistry(plugin,type);
+        sendRegistry(type);
     }
 
     //registering all materials except for that provided, and air
@@ -232,7 +234,7 @@ public class GameBoundary extends Boundary<Integer> implements IArenaChatHelper
                 }
             }
         }
-       sendRegistry(plugin,type);
+       sendRegistry(type);
     }
 
     //Checking if the boundary contains a coordinate
@@ -241,9 +243,9 @@ public class GameBoundary extends Boundary<Integer> implements IArenaChatHelper
         return (x1<=x && x<=x2) && (y1<=y && y<=y2) && (z1<=z && z<=z2);
     }
 
-    private void sendRegistry(Plugin plugin, String type)
+    private void sendRegistry(String type)
     {
-        sendMessage(ChatColor.YELLOW + "[MAP REGISTER] Registered Zone from (x1=" + x1 + ",y1=" + y1 + ",z1=" + z1 + ") to (x2=" + x2 + ",y2=" + y2 + ",z2=" + z2 + ") with " + type,plugin);
+        sender.sendMessage(ChatColor.YELLOW + "[MAP REGISTER] Registered Zone from (x1=" + x1 + ",y1=" + y1 + ",z1=" + z1 + ") to (x2=" + x2 + ",y2=" + y2 + ",z2=" + z2 + ") with " + type);
     }
 
     public int[] getValues() {

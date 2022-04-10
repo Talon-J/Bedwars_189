@@ -49,6 +49,22 @@ public class GameFileWriter {
         }
     }
 
+    public void write(ArrayList<String> lines, boolean delete)
+    {
+        try
+        {
+            writer = new BufferedWriter(new FileWriter(file,!delete));
+            for (String s : lines) {
+                writer.write(s + "\n");
+            }
+            writer.close();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
     public void writeSection(ArrayList<String[]> values)  //arraylist of string arrays.
     {
         try

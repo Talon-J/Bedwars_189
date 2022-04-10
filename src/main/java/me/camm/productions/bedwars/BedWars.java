@@ -15,6 +15,7 @@ import me.camm.productions.bedwars.Files.FileStreams.GameFileWriter;
 import me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.QuickBuySection;
 import me.camm.productions.bedwars.Util.DataSets.ShopItemSet;
+import me.camm.productions.bedwars.Util.Helpers.ChatSender;
 import me.camm.productions.bedwars.Util.Helpers.StringHelper;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Bukkit;
@@ -23,6 +24,7 @@ import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
@@ -38,17 +40,32 @@ public final class BedWars extends JavaPlugin
     private final String DRAGON_NAME = "EnderDragon";
     private final int DRAGON_ID = 63;
 
+    private static Plugin plugin;
+
+    public static Plugin getPlugin(){
+        return plugin;
+    }
+
+
+
     @Override @SuppressWarnings("unchecked")
     public void onEnable()
     {
-        sendMessage(ChatColor.GREEN+"[BEDWARS] - STARTING UP");
-        sendMessage(ChatColor.AQUA+"[BEDWARS] - It is recommended that you make a backup of this world before starting the game, if you haven't done so.");
-        DirectoryCreator fileCreator = new DirectoryCreator(this);
 
+        plugin = this;
+        ChatSender sender = ChatSender.getInstance();
+
+        //we init it right away so that we can use it anywhere.
+
+        sender.sendMessage(ChatColor.GREEN+"STARTING UP");
+        sender.sendMessage(ChatColor.AQUA+"It is recommended that you make a backup of this world before starting the game, if you haven't done so.");
+
+
+        DirectoryCreator fileCreator = new DirectoryCreator(this);
        if (!fileCreator.createFolders())
        {
-           sendMessage(ChatColor.RED+"[BEDWARS] [ERROR]: FILES ARE NOT CONFIGURED. CANNOT CONTINUE UNTIL CONFIGURATION IS COMPLETE.");
-           sendMessage(ChatColor.RED+"[BEDWARS] PLEASE RELOAD THE PLUGIN AFTER CONFIGURATION IS COMPLETE.");
+           sender.sendPlayerMessage("FILES ARE NOT CONFIGURED. CANNOT CONTINUE UNTIL CONFIGURATION IS COMPLETE.", ChatSender.GameState.ERROR);
+           sender.sendMessage("PLEASE RELOAD THE PLUGIN AFTER CONFIGURATION IS COMPLETE.");
        }
        else
        {
@@ -76,8 +93,7 @@ public final class BedWars extends JavaPlugin
            }
            catch (Exception e)
            {
-               sendMessage(ChatColor.RED+"[BEDWARS]Attempted to register custom entities for EnderDragons. Failed. Game cannot proceed at this point.");
-               e.printStackTrace();
+               sender.sendPlayerMessage("Unable to register the Ender dragon. The game cannot proceed at this point.", ChatSender.GameState.ERROR);
            }
        }
 
@@ -106,7 +122,8 @@ public final class BedWars extends JavaPlugin
         }
         catch (Exception e)
         {
-            sendMessage(ChatColor.RED+"[BEDWARS]Attempted to unregister custom entities for the EnderDragons. Failed.");
+            ChatSender sender = ChatSender.getInstance();
+            sender.sendPlayerMessage("Failed to unregister the Ender Dragon.", ChatSender.GameState.ERROR);
             e.printStackTrace();
         }
         
@@ -121,7 +138,7 @@ public final class BedWars extends JavaPlugin
 
         GameRunner runner = initialization.getRunner();
 
-        runner.setIsRunning(false);
+        runner.setRunning(false);
         initialization.getArena().getTeams().forEach((string, team) -> {
             if (team!=null&&team.getForge()!=null)
             team.getForge().disableForge();
@@ -174,8 +191,7 @@ public final class BedWars extends JavaPlugin
 
                     Arrays.stream(barItems).forEach(item -> valueList.add(
                             item == null ? null : item.toString()));
-                    String[] barList = valueList.toArray(new String[valueList.size()]);
-                    barWriter.write(barList, false);
+                    barWriter.write(valueList, false);
                 }
 
 
@@ -189,8 +205,7 @@ public final class BedWars extends JavaPlugin
                    shopWriter.clear();
                     ArrayList<String> shopList = new ArrayList<>();
                     shopSet.forEach(pack -> shopList.add(pack == null ? ShopItem.EMPTY_SLOT.name() : pack.toString()));
-                    String[] shopWriteList = shopList.toArray(new String[shopList.size()]);
-                    shopWriter.write(shopWriteList, false);
+                    shopWriter.write(shopList, false);
                 }
             });
 
@@ -203,10 +218,6 @@ public final class BedWars extends JavaPlugin
         ((CraftPlayer)player).getHandle().playerConnection.sendPacket(packet);
     }
 
-    private void sendMessage(String message)
-    {
-        getServer().getConsoleSender().sendMessage(message);
-    }
 
     /*
 TODO: (In the very near future)

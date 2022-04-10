@@ -8,7 +8,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
+import java.util.Collection;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryName.TEAM_JOIN;
 
@@ -16,11 +16,11 @@ import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryName.TEAM
 public class TeamJoinInventory   //class to make inv for players to join teams
 {
     private Inventory inventory;
-    private final ArrayList<BattleTeam> teams;
+    private final Collection<BattleTeam> teams;
 
     public TeamJoinInventory(Arena arena)
     {
-        teams = arena.getTeamList();
+        teams = arena.getTeams().values();
         createInventory();
     }
 
@@ -34,15 +34,16 @@ public class TeamJoinInventory   //class to make inv for players to join teams
 
 
 
-       for (int slot=0;slot<teams.size();slot++)
+        int slot = 0;
+       for (BattleTeam currentTeam: teams)
        {
-           BattleTeam currentTeam = teams.get(slot);
            ItemStack wool = new ItemStack(Material.WOOL,1,(short)0,(byte)(currentTeam.getTeamColor().getValue()));
            ItemMeta woolMeta = wool.getItemMeta();
 
            woolMeta.setDisplayName(currentTeam.getTeamColor().getName());
            wool.setItemMeta(woolMeta);
            inventory.setItem(slot,wool);
+           slot++;
        }
     }
 

@@ -3,7 +3,6 @@ package me.camm.productions.bedwars.Arena.Players.Scoreboards;
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
-import me.camm.productions.bedwars.Arena.Players.IPlayerUtil;
 import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 import me.camm.productions.bedwars.Util.DataSets.ScoreSet;
 import net.minecraft.server.v1_8_R3.*;
@@ -19,7 +18,7 @@ import java.util.Random;
 import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeader.*;
 
 
-public class PlayerBoard implements IPlayerUtil
+public class PlayerBoard// implements IPlayerUtil
 {
     private final BattlePlayer player;
     private final Arena arena;
@@ -88,7 +87,7 @@ public class PlayerBoard implements IPlayerUtil
 
         send(new PacketPlayOutScoreboardDisplayObjective(1,primary));  //show the primary
 
-        ArrayList<BattleTeam> teams = arena.getTeamList();
+        Collection<BattleTeam> teams = arena.getTeams().values();
         int selectedScore = teams.size()+7; // 7 to account for the other scores.
 
 
@@ -241,7 +240,6 @@ public class PlayerBoard implements IPlayerUtil
     {
 
         if (isShowingPrimary) {
-            System.out.println("[DEBUG] prim");
             try {
                 board.unregisterObjective(primary);
                 board.handleObjectiveRemoved(primary);
@@ -333,6 +331,25 @@ public class PlayerBoard implements IPlayerUtil
     private void send(Packet<?> packet)
     {
         ((CraftPlayer)player.getRawPlayer()).getHandle().playerConnection.sendPacket(packet);
+    }
+
+    private static String getTeamStatus(BattleTeam team)
+    {
+        try {
+            String previousName;
+            if (team.isEliminated())
+                previousName = team.getDisplayScoreboardEntry() + " " + TEAM_DEAD.getPhrase();
+            else if (!team.doesBedExist())
+                previousName = team.getDisplayScoreboardEntry() + " " + team.getRemainingPlayers();
+            else
+                previousName = team.getDisplayScoreboardEntry() + " " + TEAM_ALIVE.getPhrase();
+
+            return previousName;
+        }
+        catch (NullPointerException e)
+        {
+            return "Team DNE";
+        }
     }
 
 }

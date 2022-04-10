@@ -49,7 +49,7 @@ public class Arena
   private final Objective tabHealth;
 
 
-  private volatile ConcurrentHashMap<UUID, BattlePlayer> players;
+  private ConcurrentHashMap<UUID, BattlePlayer> players;
 
   //we can't have a single scoreboard for each team because each board is different for each team, but we can have one
     //for displaying the players online.
@@ -212,11 +212,6 @@ public class Arena
     public synchronized ConcurrentHashMap<UUID, BattlePlayer> getPlayers()
     {
         return players;
-    }
-
-    public synchronized void setPlayers(ConcurrentHashMap<UUID,BattlePlayer> players)
-    {
-        this.players = players;
     }
 
     public int getVoidLevel()

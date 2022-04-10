@@ -8,7 +8,9 @@ import me.camm.productions.bedwars.Generators.Forge;
 import me.camm.productions.bedwars.Items.ItemDatabases.BattleEnchantment;
 import me.camm.productions.bedwars.Items.ItemDatabases.TeamItem;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.TeamBuyInventory;
+import me.camm.productions.bedwars.Items.SectionInventories.Inventories.TrackerSectionInventory;
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.TeamInventoryConfig;
+import me.camm.productions.bedwars.Util.Helpers.ChatSender;
 import me.camm.productions.bedwars.Util.Locations.Boundaries.ExecutableBoundaryLoader;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 import me.camm.productions.bedwars.Util.Locations.Coordinate;
@@ -26,6 +28,7 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -52,7 +55,9 @@ public class BattleTeam
     private final ConcurrentHashMap<TeamItem,Integer> upgrades; //only for non renewable upgrades
     private volatile int dragonSpawnNumber;
     private ExecutableBoundaryLoader loader;
-    private boolean auraActive;
+   // private boolean auraActive;
+    private final ChatSender sender;
+    private TrackerSectionInventory trackerInventory;
 
 
     //////////////////////////////////////////////////////////////////
@@ -76,16 +81,16 @@ public class BattleTeam
     private ShopKeeper teamGroupBuy;
 
     private volatile boolean isEliminated;
-    //private volatile boolean bedExists;
-
     private final Forge forge;
-   // private final Team team;
+
     private boolean canStartForge;
     private final Location teamSpawn;
 
 
     private final String teamPrefix;
     private final static String teamPostfix;
+
+
 
 
     private static final byte[] bedBreakData;
@@ -108,7 +113,8 @@ public class BattleTeam
         this.box = unbreakable;
 
         this.aura = aura;
-        auraActive = false;
+
+        sender = ChatSender.getInstance();
 
 
         this.trapArea = trapArea;
@@ -129,6 +135,7 @@ public class BattleTeam
         this.teamPrefix = teamColor.getChatColor()+"["+teamColor.getSymbol()+"]";
         this.traps = new Trap[3];
         this.teamInventory = new TeamBuyInventory();
+        trackerInventory = new TrackerSectionInventory();
 
 
         this.upgrades = new ConcurrentHashMap<>();
@@ -162,6 +169,15 @@ public class BattleTeam
         return current;
     }
 
+    public void initTrackingEntries(Collection<BattleTeam> teams){
+        trackerInventory.addEntries(teams, this);
+    }
+
+    public void removeAndUpdateTracker(BattleTeam eliminated){
+        trackerInventory.removeEntry(eliminated);
+        trackerInventory.updateInventory();
+    }
+
     public int countTraps(){
         int traps = 0;
 
@@ -174,7 +190,7 @@ public class BattleTeam
 
     public synchronized void addTrap(Trap trap)
     {
-        System.out.println("add trap");
+        //  System.out.println("add trap");
         for (int slot=0;slot<traps.length;slot++)
         {
             if (traps[slot] == null) {
@@ -199,7 +215,7 @@ public class BattleTeam
     }
 
     public synchronized void loadAura(){
-        if (loader != null && (!auraActive)) {
+        if (loader != null) {
             loader.load(this,false);
         }
     }
@@ -241,7 +257,7 @@ public class BattleTeam
 
         bed.replace(Material.AIR,Material.BED_BLOCK,bedBreakData,arena.getWorld());
         bed.unregister(BED.getData(), arena.getWorld(), arena.getPlugin());
-        arena.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "TEAM ELIMINATED >> " + ChatColor.RESET + teamColor.getChatColor() + getCapitalizedColor() + " Team" + ChatColor.RED + " has been eliminated!");
+        sender.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "TEAM ELIMINATED >> " + ChatColor.RESET + teamColor.getChatColor() + getCapitalizedColor() + " Team" + ChatColor.RED + " has been eliminated!");
         players.values().forEach(player ->player.setEliminated(true));
 
     }
@@ -277,7 +293,7 @@ It is up to the calling method to update the scoreboards of the players.
     }
 
 
-    /*
+    /**
     @author CAMM
     Gets the entry to display on the scoreboard.
     E.g "R RED " <-- The team status is added on to here by external methods.
@@ -292,13 +308,30 @@ It is up to the calling method to update the scoreboards of the players.
     @author CAMM
     Adds a player to a team and removes them from other teams.
      */
-    public synchronized boolean addPlayer(BattlePlayer player)
+    public boolean addPlayer(BattlePlayer player)
     {
-
         if (!this.isEliminated && !players.containsKey(player.getUUID())) {
+
+            int size = this.players.size();
+            Iterator<BattlePlayer> mates = this.players.values().iterator();
+            ChatColor color = teamColor.getChatColor();
+
+            if (size > 0)
+                player.sendMessage(ChatColor.GOLD+"You will be team mates with: ");
+            else
+                player.sendMessage(ChatColor.GOLD+"You are currently the only player on this team.");
+
+                while (mates.hasNext()) {
+                    BattlePlayer teammate = mates.next();
+                    if (!teammate.equals(player)) {
+                        player.sendMessage("- "+color+teammate.getRawPlayer().getName());
+                    }
+                }
+
             player.getTeam().removePlayer(player.getRawPlayer());
             players.put(player.getUUID(), player);
             player.register();
+
             return true;
         }
 
@@ -562,13 +595,6 @@ It is up to the calling method to update the scoreboards of the players.
         return this.activeArmorEnchant;
     }
 
-    /*
-    public TeamColors getColor()
-    {
-        return this.teamColor;
-    }
-
-     */
 
     public synchronized boolean isEliminated()
     {

@@ -28,7 +28,7 @@ public class ExecutableBoundaryLoader implements Runnable
     private final ArrayList<TimeSet> coolingTeams;
     private final Thread thread;
     private volatile boolean running;
-    private volatile boolean waiting;
+ //   private volatile boolean waiting;
     private final Arena arena;
 
     private final Collection<BattlePlayer> players;
@@ -41,7 +41,7 @@ public class ExecutableBoundaryLoader implements Runnable
         thread = new Thread(this);
 
         this.running = true;
-        waiting = false;
+      //  waiting = false;
         players = arena.getPlayers().values();
 
         primedTraps = new ArrayList<>();
@@ -55,7 +55,7 @@ public class ExecutableBoundaryLoader implements Runnable
     }
 
     public void resume(){
-        waiting = false;
+     //   waiting = false;
         synchronized (lock) {
             lock.notify();
         }
@@ -75,10 +75,11 @@ public class ExecutableBoundaryLoader implements Runnable
 
                     if (primedTraps.size() == 0 && coolingTeams.size() == 0 && healAuras.size() == 0) {
 
-                        waiting = true;
+                      //  waiting = true;
                            lock.wait();
                     }
                 }
+
 
                     Thread.sleep(1000);
                     nextSecond();
@@ -98,8 +99,9 @@ public class ExecutableBoundaryLoader implements Runnable
                             if (!player.getIsAlive() || player.getIsEliminated())
                                 break TRAPS;
 
-                            if (block.hasMetadata(BlockRegisterType.TRAP.getData()))
-                            {
+                            if (!block.hasMetadata(BlockRegisterType.TRAP.getData()))
+                                break TRAPS;
+
 
 
 
@@ -133,7 +135,7 @@ public class ExecutableBoundaryLoader implements Runnable
                                Trap activated = current.activateNextTrap();
                                if (activated != null)
                                {
-                                   current.sendTeamMessage(ChatColor.RED+"[TRAP] Your "+activated+" was activated by "+player.getTeam().getTeamColor().getName()+" team!");
+                                   current.sendTeamMessage(ChatColor.RED+"[TRAP] Your "+activated.name()+" was activated by "+player.getTeam().getTeamColor().getName()+" team!");
                                    current.sendTeamTitle(activated.getTrapTitle().getMessage(),"",5,40,5);
                                    current.sendTeamSoundPacket(PacketSound.ENDERMAN);
 
@@ -143,7 +145,7 @@ public class ExecutableBoundaryLoader implements Runnable
 
 
 
-                            }
+
                         }
 
                         HEALS:{
@@ -152,8 +154,10 @@ public class ExecutableBoundaryLoader implements Runnable
 
                             BattleTeam current = null;
 
-                            if (block.hasMetadata(BlockRegisterType.AURA.getData()))
-                            {
+                            if (!block.hasMetadata(BlockRegisterType.AURA.getData()))
+                                break HEALS;
+
+
                                 for (BattleTeam team: healAuras)
                                 {
                                     Coordinate coordinate = team.getAura().getRandomCoordinateWithin();
@@ -170,21 +174,23 @@ public class ExecutableBoundaryLoader implements Runnable
                                 if (current == null)
                                     break HEALS;
                                 //use bukkit runnable here
-                                if (player.getTeam().equals(current)) {
+                                if (!player.getTeam().equals(current)) {
+                                    break HEALS;
+
+                                }
                                     new BukkitRunnable() {
                                         @Override
                                         public void run() {
                                             //use bukkit runnable here
                                             player.getRawPlayer().addPotionEffect(HEALING);
-
                                             cancel();
                                         }
                                     }.runTask(arena.getPlugin());
-                                }
+
 
                                 //PotionEffectType type, int duration, int amplifier, boolean ambient
 
-                            }
+
                         }
                     });
             }
@@ -215,10 +221,6 @@ public class ExecutableBoundaryLoader implements Runnable
         else
             healAuras.add(team);
 
-    }
-
-    public synchronized boolean isWaiting() {
-        return waiting;
     }
 
     private synchronized void nextSecond()

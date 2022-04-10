@@ -16,13 +16,12 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-//slow and blind players, 8 sec
 
-//Unfinished.
 
 
 public class SimpleTrap extends GameTrap
 {
+    private static final String NAME = "Trap";
     public SimpleTrap(BattleTeam team, GameBoundary bounds) {
         this.team = team;
         this.bounds = bounds;
@@ -71,9 +70,9 @@ public class SimpleTrap extends GameTrap
         return TeamInventoryConfig.SIMPLE_TRAP;
     }
 
-    @Override
-    public String toString() {
-        return "Trap";
+
+    public String name() {
+        return NAME;
     }
 
     @Override

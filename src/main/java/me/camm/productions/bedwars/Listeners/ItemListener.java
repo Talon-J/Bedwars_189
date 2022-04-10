@@ -2,14 +2,14 @@ package me.camm.productions.bedwars.Listeners;
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
+import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
+import me.camm.productions.bedwars.Generators.Forge;
 import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Items.ItemDatabases.TieredItem;
 
 import me.camm.productions.bedwars.Util.Helpers.InventoryOperationHelper;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;
 import org.bukkit.Location;
-
-import org.bukkit.entity.Entity;
 
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -23,7 +23,9 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 
 
-import java.util.Collection;
+
+import java.util.HashMap;
+
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,10 +35,17 @@ import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.ARENA
 public class ItemListener implements Listener
 {
     private final Arena arena;
+    private final HashMap<String, Forge> forges;
 
     public ItemListener(Arena arena)
     {
         this.arena = arena;
+        forges = new HashMap<>();
+
+        for (BattleTeam team: arena.getTeams().values()) {
+            Forge forge = team.getForge();
+            forges.put(forge.getId().toString(),forge);
+        }
     }
 
     @EventHandler
@@ -74,6 +83,7 @@ public class ItemListener implements Listener
                 return;
             }
 
+            String name = event.getItem().getName();
             ItemStack picked = event.getItem().getItemStack().clone();
 
 
@@ -90,34 +100,38 @@ public class ItemListener implements Listener
                 }
 
             }
-            else if (ItemHelper.isCurrencyItem(picked)) {
+            else if (ItemHelper.isCurrencyItem(picked))
+            {
 
                 Location loc = player.getTeam().getForge().getForgeLocation();
-                double distance = player.getTeam().getForge().getDistance();
+                double distanceSquared = player.getTeam().getForge().getDistance();
+                distanceSquared *= distanceSquared;
 
                 Item pickup = event.getItem();
                 if (!pickup.hasMetadata(FORGE_SPAWN.getKey()))
                     return;
 
-                Collection<Entity> nearby = loc.getWorld().getNearbyEntities(loc, distance, distance, distance);
-                for (Entity entity : nearby) {
-                    if (!(entity instanceof Player))
+                Forge forge = null;
+                if (name != null) {
+                    forge = forges.getOrDefault(name, null);
+                }
+
+                if (forge != null)
+                    forge.updateChildren(picked.getType(),picked.getAmount());
+
+                for (BattlePlayer current : player.getTeam().getPlayers().values()) {
+                    if (!(current.getTeam().equals(player.getTeam()) && !current.equals(player))) {
+                    continue;
+                    }
+
+                    if (current.getRawPlayer().getLocation().distanceSquared(loc) > distanceSquared)
                         continue;
 
-                    Player current = (Player) entity;
-                    if (!players.containsKey(current.getUniqueId()))
-                        continue;
+                        if (current.getRawPlayer().getInventory().firstEmpty() != -1 &&
+                                (current.getIsAlive() && !current.getIsEliminated()))
+                            current.getRawPlayer().getInventory().addItem(picked);
 
-                    BattlePlayer currentReceiver = players.get(current.getUniqueId());
-                    if (!player.getTeam().equals(currentReceiver.getTeam()))  //if on the same team, then share
-                        continue;
 
-                    if (player.getUUID().equals(currentReceiver.getUUID()))  //if they are not the same player
-                        continue;
-
-                    if (currentReceiver.getRawPlayer().getInventory().firstEmpty() != -1 &&
-                            (currentReceiver.getIsAlive() && !currentReceiver.getIsEliminated()))
-                        currentReceiver.getRawPlayer().getInventory().addItem(picked);
                 }
             }
 

@@ -6,7 +6,7 @@ import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
 
 import java.util.Collection;
 
-public class RunningTeamHelper
+public class TeamHelper
 {
     public static BattleTeam isVictorFound(Collection<BattleTeam> teams)
     {

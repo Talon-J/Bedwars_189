@@ -1,6 +1,6 @@
 package me.camm.productions.bedwars.Arena.GameRunning.Events;
 
-public abstract class GameActionPhysical implements IAction {
+public abstract class GameActionPhysical extends Action{
     protected boolean spent;
     protected String header;
     abstract String getHeader();

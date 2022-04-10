@@ -810,7 +810,7 @@ public class InventoryOperationHelper
                     currentPlayer.getQuickEditor().setItem(slot, EMPTY);
                 }
                 else
-                    ItemHelper.sellItem(clickedItem, currentPlayer, isInflated);
+                    ItemHelper.sellItem(clickedItem, currentPlayer, isInflated,event);
             }
             else if (event.isShiftClick())
             {
@@ -818,7 +818,7 @@ public class InventoryOperationHelper
                 currentPlayer.getQuickEditor().display();
             }
             else
-                ItemHelper.sellItem(clickedItem, currentPlayer, isInflated);
+                ItemHelper.sellItem(clickedItem, currentPlayer, isInflated,event);
 
 
 

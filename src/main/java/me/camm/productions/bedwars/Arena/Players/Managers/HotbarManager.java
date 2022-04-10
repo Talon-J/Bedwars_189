@@ -8,8 +8,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+
+import javax.annotation.Nullable;
 
 import static me.camm.productions.bedwars.Items.ItemDatabases.InventoryProperty.HOT_BAR_END;
 import static me.camm.productions.bedwars.Items.ItemDatabases.ItemCategory.*;
@@ -157,8 +161,7 @@ public class HotbarManager
 
 
         /*
-        TODO:
-        refactor this to include game items as the parameters. Makes it SO much more efficient.
+
 
 
        DEFINITION OF HAS ROOM
@@ -202,14 +205,10 @@ public class HotbarManager
         If all hotbar slots are full, then check for items that are in slots with different reservations.
         If such item exists on a slot with the same reservation as y, then replace that item with y and
         put the replaced item deeper in the inventory.
-
-
-
-
          */
 
-    public void set(ItemStack item, ShopItem enumItem, Player player)
-    {
+    public void set(ItemStack item, ShopItem enumItem, Player player, @Nullable InventoryClickEvent event) {
+
         ItemCategory category = enumItem.category;
         Inventory playerInv = player.getInventory();
 
@@ -229,12 +228,12 @@ public class HotbarManager
         TieredItem enumTiered = ItemHelper.isTieredItem(enumItem);
         // normal item
         if (enumTiered != null) {
-
             if (enumTiered.getIndex() == ItemHelper.getLowestTier(enumTiered).getIndex()) {
-
-                doNormalSet(playerInv, enumItem, item,player);
+                doNormalSet(playerInv, enumItem, item,player,event);
                 return;
             }
+
+
 
             //If the item does not replace other things
 
@@ -275,29 +274,40 @@ public class HotbarManager
             //if there is nothing to replace, do a normal set.
 
         }
-        doNormalSet(playerInv,enumItem, item, player);
+        doNormalSet(playerInv,enumItem, item, player,event);
 
     }
 
-
-    //When we need behaviour similar to that of setting normally
-    private void doNormalSet(Inventory playerInv, ShopItem enumItem, ItemStack item, Player player)
+    public void set(ItemStack item, ShopItem enumItem, Player player)
     {
+       set(item, enumItem,player, null);
+    }
+
+
+
+    private void doNormalSet(Inventory playerInv, ShopItem enumItem, ItemStack item, Player player,@Nullable InventoryClickEvent event) {
+
+        if (event != null) {
+           boolean result = setWithEvent(playerInv,item,event);
+
+           if (result)
+               return;
+        }
+
 
         //if there is already a slot in the inv with the stack
         //merge the stacks together.
-      for (int slot=0;slot<layout.length;slot++) {
+        ItemStack stack;
+        for (int slot=0;slot<layout.length;slot++) {
 
-          ItemStack stack = playerInv.getItem(slot);
-          if (item.isSimilar(stack) && (stack.getAmount()+item.getAmount() <= item.getMaxStackSize()))
-          {
-              item.setAmount(item.getAmount()+stack.getAmount());
-              playerInv.setItem(slot,item);
-              return;
-          }
-      }
-
-
+            stack = playerInv.getItem(slot);
+            if (item.isSimilar(stack) && (stack.getAmount()+item.getAmount() <= item.getMaxStackSize()))
+            {
+                item.setAmount(item.getAmount()+stack.getAmount());
+                playerInv.setItem(slot,item);
+                return;
+            }
+        }
 
         for (int slot=0;slot<layout.length;slot++)
         {
@@ -309,52 +319,52 @@ public class HotbarManager
                 continue;
 
 
-             // test if the residing item is valid
-             ShopItem residingAssociate = ItemHelper.getAssociate(residing);
+            // test if the residing item is valid
+            ShopItem residingAssociate = ItemHelper.getAssociate(residing);
 
                 /*
                 So if the slot is empty and the slot is reserved, place it in.
                  */
-             if (residingAssociate == null) {
+            if (residingAssociate == null) {
                 //if we cannot resolve the residing item as an enum item
 
-                 //check if it's currency
-                 if (ItemHelper.isCurrencyItem(residing))
-                 {
-                     ItemStack residingPlaceholder = residing.clone();
-                     playerInv.setItem(slot, item);
-                     playerInv.addItem(residingPlaceholder);
-                 }
-                 else
-                     playerInv.setItem(slot, item);
-                    return;
+                //check if it's currency
+                if (ItemHelper.isCurrencyItem(residing))
+                {
+                    ItemStack residingPlaceholder = residing.clone();
+                    playerInv.setItem(slot, item);
+                    playerInv.addItem(residingPlaceholder);
                 }
+                else
+                    playerInv.setItem(slot, item);
+                return;
+            }
 
 
-                //so if the two categories between residing and placing in are not the same,
-                // and the reserved slot matches the one to place in,
-                //then replace the item.
-             if ((residingAssociate.category != enumItem.category))
-                 {
-                     //replace the item in the slot.
-                     //Add the replaced item back.
-                     ItemStack residingPlaceholder = residing.clone();
-                    playerInv.setItem(slot,item);
-                   playerInv.addItem(residingPlaceholder);
-                   return;
-                 }
+            //so if the two categories between residing and placing in are not the same,
+            // and the reserved slot matches the one to place in,
+            //then replace the item.
+            if ((residingAssociate.category != enumItem.category))
+            {
+                //replace the item in the slot.
+                //Add the replaced item back.
+                ItemStack residingPlaceholder = residing.clone();
+                playerInv.setItem(slot,item);
+                playerInv.addItem(residingPlaceholder);
+                return;
+            }
 
-                //in this case, residing and item are the same category and residing is in the reserved slot, so we
-                //try to place it in.
-                 if (!item.isSimilar(residing))
-                     continue;
+            //in this case, residing and item are the same category and residing is in the reserved slot, so we
+            //try to place it in.
+            if (!item.isSimilar(residing))
+                continue;
 
-                 if ( (item.getAmount() + residing.getAmount()) > residing.getMaxStackSize() )
-                     continue;
+            if ( (item.getAmount() + residing.getAmount()) > residing.getMaxStackSize() )
+                continue;
 
-                 item.setAmount(item.getAmount() + residing.getAmount());
-                 playerInv.setItem(slot, item);
-                 return;
+            item.setAmount(item.getAmount() + residing.getAmount());
+            playerInv.setItem(slot, item);
+            return;
 
         }
 
@@ -367,21 +377,21 @@ public class HotbarManager
             ItemStack residing = playerInv.getItem(slot);
 
             //If the category is not specified there...
-               if (layout[slot] == null)
-               {
-                   //if the item is undefined or it is currency, place it in.
-                   if (residing == null || residing.getType() == Material.AIR) {
-                       playerInv.setItem(slot,item);
-                       return;
-                   }
-                   else if (ItemHelper.isCurrencyItem(residing))
-                   {
-                       ItemStack cloned = residing.clone();
-                       playerInv.setItem(slot, item);
-                       playerInv.addItem(cloned);
-                       return;
-                   }
-               }
+            if (layout[slot] == null)
+            {
+                //if the item is undefined or it is currency, place it in.
+                if (residing == null || residing.getType() == Material.AIR) {
+                    playerInv.setItem(slot,item);
+                    return;
+                }
+                else if (ItemHelper.isCurrencyItem(residing))
+                {
+                    ItemStack cloned = residing.clone();
+                    playerInv.setItem(slot, item);
+                    playerInv.addItem(cloned);
+                    return;
+                }
+            }
         }
 
         //try to place it in their main hand
@@ -393,5 +403,36 @@ public class HotbarManager
 
         //If the entire hotbar is unavailable, then just add the item to the inv.
         playerInv.addItem(item);
+    }
+
+
+
+    private boolean setWithEvent(Inventory playerInv, ItemStack newStack, @NotNull InventoryClickEvent event){
+
+        int button = event.getHotbarButton();
+        if (button < 0 || button > 8)
+            throw new IllegalStateException("Button should be 0 or more and less than or equal to 8");
+
+        if (playerInv.firstEmpty() == -1) {
+            return false;
+        }
+
+
+        ItemStack residing = playerInv.getItem(button);
+
+            int stackSize = residing.getMaxStackSize() + newStack.getMaxStackSize();
+            if (newStack.isSimilar(residing) && stackSize <= residing.getMaxStackSize()) {
+                residing.setAmount(stackSize);
+                return true;
+            }
+
+            residing = residing.clone();
+            playerInv.setItem(button, newStack);
+            playerInv.addItem(residing);
+
+        return true;
+
+
+
     }
 }

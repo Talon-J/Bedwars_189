@@ -3,6 +3,7 @@ package me.camm.productions.bedwars.Arena.Players.Managers;
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Items.ItemDatabases.ShopItem;
 import me.camm.productions.bedwars.Items.SectionInventories.Inventories.*;
+import me.camm.productions.bedwars.Items.SectionInventories.Templates.ISectionInventory;
 import me.camm.productions.bedwars.Items.SectionInventories.Templates.ShopInventorySetter;
 import me.camm.productions.bedwars.Util.DataSets.ShopItemSet;
 import me.camm.productions.bedwars.Util.Helpers.ItemHelper;

@@ -47,6 +47,8 @@ public enum InventoryProperty
     QUICK_INV_ROW3_START(37),
     QUICK_INV_BORDER_END(43),
 
+
+    MEDIUM_SHOP_SIZE(36),
     SMALL_SHOP_SIZE(27),
     SMALL_CRAFTING_GRID(4),
     SHOP_SIZE(54);

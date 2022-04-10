@@ -2,12 +2,13 @@ package me.camm.productions.bedwars.Validation;
 
 import org.bukkit.ChatColor;
 
-public class OrderException extends BedWarsException
+public class OrderException extends ConfigException
 {
     private final int expectedOrder, position;
     private final String value;
 
     public OrderException(int expectedOrder, int position, String value) {
+        super("");
         this.expectedOrder = expectedOrder;
         this.position = position;
         this.value = value;

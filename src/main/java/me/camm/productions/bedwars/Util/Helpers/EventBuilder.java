@@ -1,9 +1,13 @@
 package me.camm.productions.bedwars.Util.Helpers;
 
+import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.GameRunning.Events.*;
 import me.camm.productions.bedwars.Arena.GameRunning.GameRunner;
 import static me.camm.productions.bedwars.Arena.GameRunning.Events.EventTime.*;
 import me.camm.productions.bedwars.Arena.GameRunning.Events.GameEventText;
+import me.camm.productions.bedwars.Listeners.*;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.Plugin;
 
 import static me.camm.productions.bedwars.Arena.Players.Scoreboards.ScoreBoardHeader.*;
 import static me.camm.productions.bedwars.Generators.GeneratorType.*;
@@ -22,13 +26,13 @@ public class EventBuilder
         times.add(new ActionEvent(DIAMOND_UPGRADE_THREE.getTime(), new GeneratorAction(runner,DIAMOND,DIAMOND_THREE_HEADER.getPhrase())));
         times.add(new ActionEvent(EMERALD_UPGRADE_THREE.getTime(), new GeneratorAction(runner,EMERALD,EMERALD_THREE_HEADER.getPhrase())));
 
-        times.add(new ActionEvent(BED_WARNING_TIME.getTime(), new ChatAction(GameEventText.BED_DESTROY_SCHEDULED_WARNING.getText(),runner)));
+        times.add(new ActionEvent(BED_WARNING_TIME.getTime(), new ChatAction(GameEventText.BED_DESTROY_SCHEDULED_WARNING.getText())));
         times.add(new ActionEvent(BED_DESTROY_TIME.getTime(), new BedBreakAction(runner)));
 
-        times.add(new ActionEvent(DRAGON_WARNING_TIME.getTime(), new ChatAction(GameEventText.DRAGON_SPAWN_SCHEDULED_WARNING.getText(), runner)));
+        times.add(new ActionEvent(DRAGON_WARNING_TIME.getTime(), new ChatAction(GameEventText.DRAGON_SPAWN_SCHEDULED_WARNING.getText())));
         times.add(new ActionEvent(DRAGON_SPAWN_TIME.getTime(), new DragonSpawnAction(runner)));
 
-        times.add(new ActionEvent(GAME_END_WARNING.getTime(), new ChatAction(GameEventText.GAME_END_SCHEDULED_WARNING.getText(), runner)));
+        times.add(new ActionEvent(GAME_END_WARNING.getTime(), new ChatAction(GameEventText.GAME_END_SCHEDULED_WARNING.getText())));
         times.add(new ActionEvent(TOTAL_GAME_TIME.getTime(), new GameEndAction(runner)));
 
 

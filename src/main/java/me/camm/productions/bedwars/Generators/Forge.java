@@ -16,17 +16,18 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.NoSuchElementException;
-import java.util.Random;
+import java.util.*;
 
-public class Forge implements Runnable
-{
+public class Forge implements Runnable {
     private final String type;
     private final World world;
     private final Location location;
     private final Plugin plugin;
+
+    private int goldCount, ironCount;
+    private boolean recount;
+
+    private final UUID id;
 
     private final String color;
 
@@ -47,6 +48,7 @@ public class Forge implements Runnable
     private final WeightedItem<Material> emeraldChance;
     private final WeightedItem<Material> goldChance;
 
+
     static {
         PICKUP_DISTANCE = 1.5;
         MAX_GOLD = 16;
@@ -54,83 +56,67 @@ public class Forge implements Runnable
 
     }
 
-    /*
+    public Forge(double x, double y, double z, World world, TeamColors color, long initialTime, Plugin plugin)  //construct
+    {
+        this.recount = false;
+        this.location = new Location(world, x, y, z);
+        this.color = color.getName();
+        this.initialTime = initialTime;
+        this.world = world;
+        this.tier = 0;
+        this.plugin = plugin;
+        this.type = TeamFileKeywords.FORGE_SPAWN.getKey();
 
-t1 = +50%
-2: 100
-3: spawn emerald
-4: 200
-
---> 350%
-
-Supposedly, /n = the percentage we need.
-[Try set forge initial time to 1.5 secs.]
-     */
-
-//normal
-  public Forge(double x, double y, double z, World world, TeamColors color, long initialTime, Plugin plugin)  //construct
-  {
-     this.location = new Location(world, x,y,z);
-      this.color = color.getName();
-      this.initialTime = initialTime;
-      this.world = world;
-      this.tier = 0;
-      this.plugin = plugin;
-      this.type = TeamFileKeywords.FORGE_SPAWN.getKey();
-
-      this.spawnTime = initialTime;
-      this.isAlive = true;
+        this.spawnTime = initialTime;
+        this.isAlive = true;
+        this.id = UUID.randomUUID();
+        ironCount = goldCount = 0;
 
 
-      Chunk chunk = world.getChunkAt(location);
-      if (!chunk.isLoaded())
-          chunk.load();
+        Chunk chunk = world.getChunkAt(location);
+        if (!chunk.isLoaded())
+            chunk.load();
 
-      spawningTimeRand = new Random();
-      emeraldChance = new WeightedItem<>(Material.EMERALD,0);
-      goldChance = new WeightedItem<>(Material.GOLD_INGOT,0);
+        spawningTimeRand = new Random();
+        emeraldChance = new WeightedItem<>(Material.EMERALD, 0);
+        goldChance = new WeightedItem<>(Material.GOLD_INGOT, 0);
 
-      ArrayList<WeightedItem<Material>> materials = new ArrayList<>();
-      materials.add(new WeightedItem<>(Material.IRON_INGOT,0.8));
-      materials.add(goldChance);
-      materials.add(emeraldChance);
-      spawningRandom = new WeightedRandom<>(materials);
+        ArrayList<WeightedItem<Material>> materials = new ArrayList<>();
+        materials.add(new WeightedItem<>(Material.IRON_INGOT, 0.8));
+        materials.add(goldChance);
+        materials.add(emeraldChance);
+        spawningRandom = new WeightedRandom<>(materials);
 
-  }
+    }
 
-  public Location getForgeLocation()
-  {
-      return location;
-  }
+    public Location getForgeLocation() {
+        return location;
+    }
 
-  public double getDistance()
-  {
-      return PICKUP_DISTANCE;
-  }
+    public double getDistance() {
+        return PICKUP_DISTANCE;
+    }
 
-  public synchronized void disableForge()
-  {
-      this.isAlive = false;
-  }
+    public synchronized void disableForge() {
+        this.isAlive = false;
+    }
 
-  public String getColor()
-  {
-      return color;
-  }
+    public String getColor() {
+        return color;
+    }
 
 
     public synchronized void setTier(int newTier)  //you would check for the color first externally
     {
         this.tier = newTier;
 
-        switch (tier)
-        {
+        switch (tier) {
             case 1:
-                spawnTime = (long)(initialTime/1.5);
+                spawnTime = (long) (initialTime / 1.5);
                 break;
 
             case 2:
-                spawnTime = (long)(initialTime/2.5);
+                spawnTime = (long) (initialTime / 2.5);
                 break;
 
             case 3:
@@ -138,19 +124,17 @@ Supposedly, /n = the percentage we need.
                 break;
 
             case 4:
-                spawnTime = (long)(initialTime/3.5);
+                spawnTime = (long) (initialTime / 3.5);
                 emeraldChance.setWeight(0.005);
                 break;
         }
     }
 
-    public long randomize()
-    {
-       return (long)(spawnTime*(spawningTimeRand.nextDouble()*1.5));
+    public long randomize() {
+        return (long) (spawnTime * (spawningTimeRand.nextDouble() * 1.5));
     }
 
-    public synchronized void spawnItem()
-    {
+    public synchronized void spawnItem() {
         int freedom = verifyCount();
         Material mat;
 
@@ -160,7 +144,7 @@ Supposedly, /n = the percentage we need.
                 break;
 
             case 0:
-                  mat = Material.IRON_INGOT;
+                mat = Material.IRON_INGOT;
                 break;
 
             case 1:
@@ -168,7 +152,7 @@ Supposedly, /n = the percentage we need.
                 break;
 
             default:
-                 mat = spawningRandom.getNext().getItem();
+                mat = spawningRandom.getNext().getItem();
 
         }
 
@@ -179,30 +163,65 @@ Supposedly, /n = the percentage we need.
     }
 
 
-        private void drop(Material mat)
-        {
-            if (!isAlive || !plugin.isEnabled())
-                return;
+    private void drop(Material mat) {
+        if (!isAlive || !plugin.isEnabled())
+            return;
 
-            goldChance.setWeight(Math.min(goldChance.getWeight()+0.01, 0.2));
+        goldChance.setWeight(Math.min(goldChance.getWeight() + 0.01, 0.2));
 
-            new BukkitRunnable()
-            {
-                public void run()
-                {
-                    Item spawned = world.dropItem(location, new ItemStack(mat, 1));
-                    spawned.setVelocity(new Vector(0,0,0));
-                    spawned.setMetadata(type,new FixedMetadataValue(plugin,1));
-                    cancel();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                Item spawned = world.dropItem(location, new ItemStack(mat, 1));
+                spawned.setCustomName(id.toString());
+                spawned.setVelocity(new Vector(0, 0, 0));
+                spawned.setMetadata(type, new FixedMetadataValue(plugin, 1));
+
+                if (mat == Material.IRON_INGOT) {
+                     ironCount ++;
                 }
-            }.runTask(plugin);
 
+                if (mat == Material.GOLD_INGOT) {
+                    goldCount ++;
+                }
+
+                cancel();
+            }
+        }.runTask(plugin);
+
+
+
+    }
+
+    public synchronized void updateChildren(Material mat, int amount) {
+
+        if (mat == Material.GOLD_INGOT) {
+            goldCount -= amount;
+
+            if (goldCount <=0 || goldCount >= MAX_GOLD)
+                recount = true;
+        }
+        else {
+            ironCount -= amount;
+
+            if (ironCount <=0 || ironCount >= MAX_IRON)
+                recount = true;
         }
 
+          }
 
-        private int verifyCount()
+
+
+    private int verifyCount()
         {
-            try {
+            if (!recount) {
+                if (goldCount >= MAX_GOLD) //if gold is invalid
+                    return ironCount >= MAX_IRON ? SpawningFreedom.NO_SPAWNING.getFreedom() : SpawningFreedom.ONLY_IRON.getFreedom();
+                else
+                    return ironCount >= MAX_IRON ? SpawningFreedom.ONLY_GOLD.getFreedom() : SpawningFreedom.FULL_SPAWNING.getFreedom();
+            }
+
+
                 int goldCount = 0;
                 int ironCount = 0;
 
@@ -235,36 +254,37 @@ Supposedly, /n = the percentage we need.
                     return ironCount >= MAX_IRON ? SpawningFreedom.NO_SPAWNING.getFreedom() : SpawningFreedom.ONLY_IRON.getFreedom();
                 else
                     return ironCount >= MAX_IRON ? SpawningFreedom.ONLY_GOLD.getFreedom() : SpawningFreedom.FULL_SPAWNING.getFreedom();
-            }
-            catch (NoSuchElementException e)  //this is thrown by getNearByentities() in world.
-            {
-                e.printStackTrace();
-                plugin.getServer().broadcastMessage("[WARN] - Forge for team "+color+" encountered an exception. It might not work as intended.");
-                return -1;
-            }
+
         }
 
 
     @Override
     public void run()
     {
-        while (isAlive)
-        {
-            try
-            {
-                Thread.sleep(randomize());
-                spawnItem();
-            }
-            catch (InterruptedException e)
-            {
-               disableForge();
-            }
-        }
+
+                while (isAlive)
+                {
+                    try
+                    {
+                        Thread.sleep(randomize());
+                        spawnItem();
+                    }
+                    catch (InterruptedException e)
+                    {
+                        disableForge();
+                    }
+                }
+
+
 
     }
 
     public synchronized int getTier(){
       return tier;
+    }
+
+    public UUID getId(){
+      return id;
     }
 
     private enum SpawningFreedom {
@@ -273,7 +293,7 @@ Supposedly, /n = the percentage we need.
         ONLY_GOLD(1),
         FULL_SPAWNING(2);  //spawn everything
 
-      int freedom;
+      final int freedom;
 
       SpawningFreedom(int freedom)
       {
@@ -287,4 +307,5 @@ Supposedly, /n = the percentage we need.
 
 
     }
+
 }

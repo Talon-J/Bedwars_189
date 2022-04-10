@@ -6,4 +6,5 @@ import me.camm.productions.bedwars.Util.Locations.Boundaries.GameBoundary;
 public abstract class GameTrap implements Trap {
     protected BattleTeam team;
     protected GameBoundary bounds;
+
 }

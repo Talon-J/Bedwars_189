@@ -1,13 +1,11 @@
 package me.camm.productions.bedwars.Util.Helpers;
 
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
-import me.camm.productions.bedwars.Arena.Players.IPlayerUtil;
 import me.camm.productions.bedwars.Arena.Players.Managers.HotbarManager;
 import me.camm.productions.bedwars.Items.ItemDatabases.*;
 import me.camm.productions.bedwars.Items.SectionInventories.InventoryConfigurations.HotBarConfig;
 import me.camm.productions.bedwars.Util.DataSets.ShopItemSet;
 import me.camm.productions.bedwars.Util.PacketSound;
-import net.minecraft.server.v1_8_R3.ItemCloth;
 import net.minecraft.server.v1_8_R3.NBTTagCompound;
 import net.minecraft.server.v1_8_R3.PacketPlayOutNamedSoundEffect;
 import org.bukkit.*;
@@ -16,18 +14,17 @@ import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,15 +41,19 @@ import static me.camm.productions.bedwars.Items.ItemDatabases.PotionData.*;
 import static org.bukkit.Material.*;
 
 
-public class ItemHelper implements IPlayerUtil
+public class ItemHelper
 {
   private static final ArrayList<ShopItem> restrictedFileItems;
   private static final ArrayList<TieredItem> tieredItemList;
   private static final ArrayList<TieredItem> lowestTiers;
   private static final HashSet<ShopItem> navigators;
 
+  private static final HashMap<String, ShopItem> itemAssociator;
+
+
 
  static {
+        itemAssociator = new HashMap<>();
          TieredItem[] tieredItems = TieredItem.values();
          ShopItem[] inventory = ShopItem.values();
          navigators = new HashSet<>();
@@ -70,6 +71,8 @@ public class ItemHelper implements IPlayerUtil
          }
 
          for (ShopItem item : inventory) {
+
+             itemAssociator.put(item.name,item);
 
              if (isNavigator(item)) {
                  navigators.add(item);
@@ -110,7 +113,7 @@ public class ItemHelper implements IPlayerUtil
 
     // sells an item. accounts for team enchants and inflation. also accounts for if the item is a placeholder.
     //also accounts for dream defenders.
-    public static void sellItem(ShopItem item, BattlePlayer player, boolean isInflated)
+    public static void sellItem(ShopItem item, BattlePlayer player, boolean isInflated, InventoryClickEvent event)
     {
 
         if (item==null)
@@ -164,11 +167,10 @@ public class ItemHelper implements IPlayerUtil
                         newArmor[slot] = enchant(newArmor[slot],enchantment);
                 }
 
-                player.setPurchasedArmor(possible == null ? player.getArmor() : possible);
-
-                if (!didPay(player,item,isInflated))
+                if (didNotPay(player, item, isInflated))
                     return;
 
+                player.setPurchasedArmor(possible == null ? player.getArmor() : possible);
                 setArmor(newArmor, player.getRawPlayer());
 
             }
@@ -186,7 +188,7 @@ public class ItemHelper implements IPlayerUtil
                     return;
                 }
 
-                if (!didPay(player,item,isInflated))
+                if (didNotPay(player, item, isInflated))
                     return;
 
                 if (item== ShopItem.STICK)
@@ -200,9 +202,9 @@ public class ItemHelper implements IPlayerUtil
 
 
                 if (enchantment==null)
-                    manager.set(bought,item,player.getRawPlayer());
+                    manager.set(bought,item,player.getRawPlayer(),event);
                 else
-                    manager.set(enchant(bought,enchantment),item,player.getRawPlayer());
+                    manager.set(enchant(bought,enchantment),item,player.getRawPlayer(),event);
             }
             break;
 
@@ -217,7 +219,7 @@ public class ItemHelper implements IPlayerUtil
                     return;
                 }
 
-                if (!didPay(player,item,isInflated))
+                if (didNotPay(player, item, isInflated))
                     return;
 
 
@@ -228,18 +230,15 @@ public class ItemHelper implements IPlayerUtil
 
                     switch (toolCategory) {
                         case PICK:
-                          //  player.sendMessage("[DEBUG]: SET PICK");
                             player.setPickUpwards(possible);
                             break;
 
                         case AXE:
-                          //  player.sendMessage("[DEBUG]: SET AXE");
                             player.setAxeUpwards(possible);
                     }
                 }
 
                 if (item==SHEARS) {
-                   // player.sendMessage("[DEBUG]: SET SHEARS");
                     player.setShears();
                 }
 
@@ -322,25 +321,7 @@ public class ItemHelper implements IPlayerUtil
             }
         }
 
-        public static void replaceItem(ItemStack replaced, ItemStack toReplaceWith, Player player){
-            Inventory inv = player.getInventory();
-            for (int slot=0;slot<inv.getSize();slot++) {
-                ItemStack stack = inv.getItem(slot);
 
-                if (isItemInvalid(stack))  {
-                    if (replaced == toReplaceWith) {
-                        inv.setItem(slot, toReplaceWith);
-                        return;
-                    }
-                }
-
-
-                if (stack.isSimilar(replaced)) {
-                    inv.setItem(slot, toReplaceWith);
-                    return;
-                }
-            }
-        }
 
         public static void clearAll(ItemStack toReplace, Inventory inv){
 
@@ -410,7 +391,9 @@ public class ItemHelper implements IPlayerUtil
             case ARMOR:
             case NONE:
             case NAV:
-            case SEPARATOR:  //These invItems aren't placed into the player inventory, but instead do stuff important.
+            case SEPARATOR:
+                //These aren't placed into the player inventory, but instead do stuff important,
+                //so they're not "sold" here.
                 break;
 
             case POTION:
@@ -620,7 +603,7 @@ public class ItemHelper implements IPlayerUtil
     }
 
     //returns colored armor along with any enchantments a battle team has. does not set armor for the player
-    public static ItemStack @Nullable [] inventoryItemToArmor(@NotNull ShopItem item, BattlePlayer player)
+    public static ItemStack @Nullable [] inventoryItemToArmor(@NotNull ShopItem item,@NotNull BattlePlayer player)
     {
         if (item.category!=ARMOR)
             return null;
@@ -746,7 +729,9 @@ public class ItemHelper implements IPlayerUtil
 
             default:
             {
-                potion = new Potion(PotionType.FIRE_RESISTANCE); //adding the color to the potion
+                potion = new Potion(PotionType.FIRE_RESISTANCE);
+                //Speed potions in hypixel have the fire resistance texture.
+
                 stack = potion.toItemStack(item.sellAmount);
                 PotionMeta meta = (PotionMeta)stack.getItemMeta();
                 meta.addCustomEffect(new PotionEffect(PotionEffectType.SPEED, SPEED_DURATION.getValue(), SPEED_LEVEL.getValue(),true),true);
@@ -1153,6 +1138,15 @@ public class ItemHelper implements IPlayerUtil
         if (isItemInvalid(stack))
             return null;
 
+        ItemMeta meta = stack.getItemMeta();
+        if (meta.getDisplayName()!=null) {
+
+            ShopItem navigated = itemAssociator.getOrDefault(meta.getDisplayName(),null);
+            if (navigated != null && navigated.sellMaterial == stack.getType()) {
+                return navigated;
+            }
+        }
+
         Material mat = stack.getType();
         for (ShopItem item: ShopItem.values())
             if (mat == item.sellMaterial)
@@ -1173,11 +1167,7 @@ public class ItemHelper implements IPlayerUtil
         if (name==null)
             return ShopItem.EMPTY_SLOT;
 
-        for (ShopItem item: ShopItem.values()) {
-            if (item.name.equalsIgnoreCase(name))
-                return item;
-        }
-        return ShopItem.EMPTY_SLOT;
+        return itemAssociator.getOrDefault(name, ShopItem.EMPTY_SLOT);
     }
 
     public static @Nullable ShopItem getNavigator(ItemStack stack){
@@ -1245,17 +1235,7 @@ public class ItemHelper implements IPlayerUtil
         }
     }
 
-    public static boolean hasRoom(Inventory inv, ItemStack stack, int addAmount)
-    {
-        long freeSpace = Arrays.stream(inv.getContents()).filter(item -> item == null ||
-                (
-                        item.equals(stack) &&
-                        (item.getMaxStackSize() >= (item.getAmount()+addAmount))
-                )
-        ).count();
 
-        return freeSpace >= 1;
-    }
 
     public static ItemStack toSimpleItem(Material mat, String name){
         ItemStack stack = new ItemStack(mat, 1);
@@ -1289,9 +1269,9 @@ public class ItemHelper implements IPlayerUtil
     }
 
     //attempts to do a transaction with a player.
-    public static boolean didPay(BattlePlayer current, ShopItem item, boolean isInflated)
+    public static boolean didNotPay(BattlePlayer current, ShopItem item, boolean isInflated)
     {
-        return didPay(current,item.costMaterial,isInflated?item.inflatedPrice:item.cost);
+        return !didPay(current, item.costMaterial, isInflated ? item.inflatedPrice : item.cost);
     }
 
     public static boolean didPay(BattlePlayer current, Material priceMaterial, int price)
@@ -1376,18 +1356,6 @@ public class ItemHelper implements IPlayerUtil
         ((CraftPlayer)player).getHandle().playerConnection.sendPacket(packet);
     }
 
-    public static void dropItem(ItemStack item, Location loc, Plugin plugin)
-    {
-        new BukkitRunnable()
-        {
-            public void run()
-            {
-                World w = loc.getWorld();
-                w.dropItemNaturally(loc, item);
-               cancel();
-            }
-        }.runTask(plugin);
-    }
 
     public static int getPresent(Material mat, Inventory inv){
 

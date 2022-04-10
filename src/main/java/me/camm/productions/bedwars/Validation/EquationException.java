@@ -2,6 +2,8 @@ package me.camm.productions.bedwars.Validation;
 
 import org.bukkit.ChatColor;
 
+
+//when we try to equate something to a value but are unable to
 public class EquationException extends ParameterException
 {
    private final String result;

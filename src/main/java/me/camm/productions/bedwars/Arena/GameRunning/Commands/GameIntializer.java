@@ -2,240 +2,110 @@ package me.camm.productions.bedwars.Arena.GameRunning.Commands;
 
 import me.camm.productions.bedwars.Arena.GameRunning.Arena;
 import me.camm.productions.bedwars.Arena.GameRunning.GameRunner;
-import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
-import me.camm.productions.bedwars.Arena.Teams.BattleTeam;
-import me.camm.productions.bedwars.Arena.Teams.TeamColors;
-import me.camm.productions.bedwars.Files.FileStreams.TeamFileReader;
-import me.camm.productions.bedwars.Files.FileStreams.WorldFileReader;
 
+import me.camm.productions.bedwars.Util.Helpers.ChatSender;
 import me.camm.productions.bedwars.Validation.BedWarsException;
+
+import me.camm.productions.bedwars.Validation.ConfigException;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
+
 import org.bukkit.plugin.Plugin;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.logging.Level;
 
 
+/**
+ This class is used to setup parameters for the game.
+ @author CAMM
+ */
 public class GameIntializer implements CommandExecutor
 {
-    private boolean isSetUp;
     private final Plugin plugin;
-    private static Arena arena = null;
+    private static Arena arena;
     private GameRunner runner;
-    private Inventory joinInventory;
-    private boolean isGameRunning;
+    CommandProcessor processor;
+    private final ChatSender messager;
+    private final HashMap<String, CommandKeyword> words;
 
+    //construct
     public GameIntializer(Plugin plugin)
     {
+
        this.plugin = plugin;
-       this.isSetUp = false;
-       this.isGameRunning = false;
+       arena = null;
+       runner = null;
+       processor = new CommandProcessor();
+       messager = ChatSender.getInstance();
+       words = new HashMap<>();
+
+       for (CommandKeyword word: CommandKeyword.values())
+           words.put(word.getWord(),word);
+
 
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args)
     {
+
+        //make sure the sender is a player
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatColor.RED+"Must be a player to use this command.");
             return true;
         }
 
+        //try to get the enum value from the label.
         label = label.toLowerCase().trim();
-        CommandKeyword word = null;
-        for (CommandKeyword keyword: CommandKeyword.values()) {
-            if (keyword.getWord().equalsIgnoreCase(label)) {
-                word = keyword;
-                break;
-            }
-        }
+        CommandKeyword word = words.getOrDefault(label, null);
 
+        //if we cannot find a matching word, return
         if (word  == null) {
             return false;
         }
 
 
+//depending on the word, we do different things
 
-        switch (word) {
-            case SETUP:
+        try {
+            switch (word) {
+                case SETUP:
+                    runner = processor.initRunner(sender, plugin);
+                    arena = runner.getArena();
+                    break;
 
-                if (!sender.hasPermission("setup.do"))
-                    return true;
+                case SHOUT:
+                   processor.shout(sender,args);
+                    break;
 
-                if (isSetUp) {
-                    sender.sendMessage(ChatColor.YELLOW+"The arena already is set up!");
-                    return true;
-                }
+                case REGISTER:
+                    processor.registerPlayer((Player)sender);
+                    break;
 
-            ArrayList<BattleTeam> teams;
-            WorldFileReader fileReader = new WorldFileReader(plugin);
+                case START:
+                   processor.startGame(sender);
+                    break;
 
-            try {
-                arena = fileReader.read();
+                case UNREGISTER:
+                  processor.unregister(sender);
+                    break;
+
+                case END:
+                 processor.manualEndGame(sender);
+                    break;
             }
-            catch (BedWarsException e) {
-                broadcastMessage(e.getMessage());
-                return true;
-            }
-
-            if (arena!=null)
-            {
-
-                broadcastMessage(ChatColor.AQUA+"[BEDWARS] Registering the map. Expect some lag.");
-
-                try {
-                    teams = new TeamFileReader(plugin, arena).read();
-                }
-                catch (BedWarsException e) {
-                    plugin.getServer().broadcastMessage(e.getMessage());
-                     return true;
-                }
-
-                arena.registerMap();
-                if (teams!=null&&teams.size()!=0)
-                {
-                    arena.addTeams(teams);
-                    runner = new GameRunner(plugin, arena);
-                    arena.registerTeamZones();
-
-                    plugin.getServer().getPluginManager().registerEvents(runner, plugin);
-                    this.joinInventory = runner.getJoinInventory();
-                    this.isSetUp = true;
-                   broadcastMessage(ChatColor.GREEN+"[BEDWARS] Map is registered! Do /register to join teams.");
-
-                }
-                else
-                    broadcastMessage(ChatColor.RED+"[BEDWARS] Could not initialize teams. Make sure the teams are configured correctly. [TEAMS DNE]");
-
+        }
+        catch (BedWarsException e) {
+            if (e instanceof ConfigException) {
+                messager.sendConsoleMessage(e.getMessage(), Level.WARNING);
             }
             else
-                broadcastMessage(ChatColor.RED+"[BEDWARS] Could not Initialize the Arena. Please make sure that the configuration is initialized. [ARENA DNE]");
-            break;
-
-
-            case SHOUT:
-
-                if (!sender.hasPermission(CommandKeyword.SHOUT.getPerm())) {
-                    return true;
-                }
-
-               if (!isGameRunning) {
-                   sender.sendMessage(ChatColor.YELLOW+"The game is not running!");
-                   return true;
-               }
-
-               if (arena == null) {
-                   sender.sendMessage(ChatColor.YELLOW+"Your message could not be delivered since the arena does not exist!");
-                   return true;
-               }
-
-                ConcurrentHashMap<UUID, BattlePlayer> players = arena.getPlayers();
-               BattlePlayer current = players.getOrDefault(((Player) sender).getUniqueId(),null);
-               if (current == null)
-                   return true;
-
-               StringBuilder message = new StringBuilder();
-               for (String string: args) {
-                   message.append(string).append(" ");
-               }
-
-               TeamColors color = current.getTeam().getTeamColor();
-               broadcastMessage(ChatColor.YELLOW+"[SHOUT]"+color.getChatColor()+"["+color.getName()+"]"+
-                color.getChatColor()+"<"+current.getRawPlayer().getName()+">"+ChatColor.GRAY+message);
-
-                break;
-
-            case START:
-                if (!sender.hasPermission(CommandKeyword.START.getPerm()))
-                    return true;
-
-
-                int notOpposed;
-
-                if (!isGameRunning)
-                {
-                    Collection<BattleTeam> values = arena.getTeams().values();
-
-                    notOpposed = values.size();
-                    for (BattleTeam team: values)
-                    {
-                        if (team.getRemainingPlayers()==0)
-                            notOpposed--;
-                    }
-
-
-                    /////////////////////////////////////////////////////////////////
-                    //The check for opposing teams is disabled for testing purposes only.
-
-                    //   if (!(notOpposed<2)) //game can start b/c there are at least 2 teams
-                    //   {
-                    isGameRunning = true;
-                    runner.prepareAndStart();
-
-                    //     }
-                    //    else {
-                    //       sender.sendMessage(ChatColor.YELLOW + "The game cannot start without opposition!");
-
-                    //   }
-                    /////////////////////////////////////////////////////////////////////
-
-
-
-                }
-                else
-                    sender.sendMessage(ChatColor.YELLOW+"The game is already running!");
-                break;
-
-            case REGISTER:
-                if (!sender.hasPermission(CommandKeyword.REGISTER.getPerm()))
-                    return true;
-
-                if (runner!=null&&joinInventory!=null)
-                {
-                    if (!isGameRunning)
-                        ((Player) sender).openInventory(joinInventory);
-                    else
-                        sender.sendMessage(ChatColor.RED+"Please wait for the current game to finish first!");
-                }
-                break;
-
-            case UNREGISTER:
-                if (!sender.hasPermission(CommandKeyword.UNREGISTER.getPerm()))
-                    return true;
-
-
-
-                if (isGameRunning){
-                    sender.sendMessage(ChatColor.RED+"Sorry bud, game's already running.");
-                    return true;
-                }
-
-                if (arena!=null){
-                    arena.getTeamList().forEach((team) -> team.removePlayer(((Player) sender)));
-
-                    BattlePlayer unregistered = arena.getPlayers().get(((Player)sender).getUniqueId());
-                    unregistered.getBoard().unregister();
-                    arena.removePlayer(((Player) sender).getUniqueId());
-                }
-
-                if (runner!=null){
-                runner.removePlayer(((Player) sender).getUniqueId());
-                }
-                broadcastMessage(ChatColor.YELLOW+sender.getName()+" has unregistered!");
-
-                break;
-
-
-            case END:
-                break;
+                sender.sendMessage(e.getMessage());
         }
         return true;
     }
@@ -243,10 +113,6 @@ public class GameIntializer implements CommandExecutor
     public Arena getArena()
     {
         return arena;
-    }
-
-    public void broadcastMessage(String message) {
-        plugin.getServer().broadcastMessage(message);
     }
 
     public GameRunner getRunner()

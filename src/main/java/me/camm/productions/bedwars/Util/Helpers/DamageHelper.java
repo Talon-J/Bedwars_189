@@ -1,6 +1,6 @@
 package me.camm.productions.bedwars.Util.Helpers;
 
-import me.camm.productions.bedwars.Arena.GameRunning.Arena;
+
 import me.camm.productions.bedwars.Arena.Players.BattlePlayer;
 import me.camm.productions.bedwars.Arena.Players.DeathMessages.Cause;
 import me.camm.productions.bedwars.Arena.Players.DeathMessages.DeathFormatter;
@@ -12,7 +12,8 @@ public class DamageHelper {
 
 
 
-    public static void sendDeathMessage(BattlePlayer killer, BattlePlayer victim, IGameTeamable involved, EntityDamageEvent.DamageCause cause, Arena arena, boolean finalKill){
+
+    public static void sendDeathMessage(BattlePlayer killer, BattlePlayer victim, IGameTeamable involved, EntityDamageEvent.DamageCause cause, boolean finalKill){
 
         //sendDeathMessage(owner, player, null, EntityDamageEvent.DamageCause.BLOCK_EXPLOSION,arena,isFinal);
 
@@ -48,25 +49,28 @@ public class DamageHelper {
 
         }
 
+        ChatSender sender = ChatSender.getInstance();
         if (!finalKill)
-            arena.sendMessage(ChatColor.YELLOW+message);
+            sender.sendMessage(ChatColor.YELLOW+message);
         else
-            arena.sendMessage(ChatColor.YELLOW+message+ChatColor.AQUA+ChatColor.BOLD+" FINAL KILL!");
+            sender.sendMessage(ChatColor.YELLOW+message+ChatColor.AQUA+ChatColor.BOLD+" FINAL KILL!");
 
     }
 
 
-    public static void sendVoidNonDirectMessage(BattlePlayer killer, BattlePlayer victim, Cause cause, boolean isFinal, Arena arena){
+    public static void sendVoidNonDirectMessage(BattlePlayer killer, BattlePlayer victim, Cause cause, boolean isFinal){
         String message;
 
         if (cause != Cause.FIREBALL_VOID && cause != Cause.TNT_VOID && cause != Cause.PROJECTILE_VOID)
             return;
 
         message = DeathFormatter.format(victim,killer,cause);
+        ChatSender sender = ChatSender.getInstance();
+
         if (!isFinal)
-            arena.sendMessage(ChatColor.YELLOW+message);
+            sender.sendMessage(ChatColor.YELLOW+message);
         else
-            arena.sendMessage(ChatColor.YELLOW+message+ChatColor.AQUA+""+ChatColor.BOLD+" FINAL KILL!");
+            sender.sendMessage(ChatColor.YELLOW+message+ChatColor.AQUA+""+ChatColor.BOLD+" FINAL KILL!");
 
     }
 
