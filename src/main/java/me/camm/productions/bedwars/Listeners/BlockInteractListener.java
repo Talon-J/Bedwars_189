@@ -23,6 +23,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,7 +70,7 @@ public class BlockInteractListener implements Listener
     {
 
         //get the hashmap of the players and the event info
-        ConcurrentHashMap<UUID, BattlePlayer> players = arena.getPlayers();
+        Map<UUID, BattlePlayer> players = arena.getPlayers();
         Block block = event.getBlockPlaced();
         Player placer = event.getPlayer();
 

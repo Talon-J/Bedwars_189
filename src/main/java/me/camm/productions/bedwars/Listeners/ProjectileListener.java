@@ -21,6 +21,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.util.Vector;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -116,7 +117,7 @@ public class ProjectileListener implements Listener
 
     public void handleSnowBallHit(Snowball ball, Player shooter)
     {
-        ConcurrentHashMap<UUID, BattlePlayer> registeredPlayers = arena.getPlayers();
+        Map<UUID, BattlePlayer> registeredPlayers = arena.getPlayers();
         if (!registeredPlayers.containsKey(shooter.getUniqueId()))
             return;
 

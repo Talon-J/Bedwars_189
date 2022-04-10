@@ -25,6 +25,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,7 +40,7 @@ public class EntityActionListener implements Listener
     private final GameRunner runner;
     private static final ConcurrentHashMap<UUID, DamageSet> damageHistory;
     private static final ConcurrentHashMap<UUID, IGameTeamable> activeEntities;
-    private final ConcurrentHashMap<UUID,BattlePlayer> arenaPlayers;
+    private final Map<UUID,BattlePlayer> arenaPlayers;
     private final PacketHandler handler;
 
     static {
@@ -48,7 +49,7 @@ public class EntityActionListener implements Listener
     }
 
 
-    public static void handleDeath(BattlePlayer victim, PacketHandler handler, ConcurrentHashMap<UUID,BattlePlayer> players, GameRunner runner, EntityDamageEvent.DamageCause cause)
+    public static void handleDeath(BattlePlayer victim, PacketHandler handler, Map<UUID,BattlePlayer> players, GameRunner runner, EntityDamageEvent.DamageCause cause)
     {
 
         if (!runner.isRunning()) {
@@ -479,7 +480,7 @@ public class EntityActionListener implements Listener
             return;
         }
 
-      ConcurrentHashMap<UUID, BattlePlayer> registered = arena.getPlayers();
+      Map<UUID, BattlePlayer> registered = arena.getPlayers();
    if (!registered.containsKey(hurt.getUniqueId()))
        return;
 
@@ -735,7 +736,7 @@ public class EntityActionListener implements Listener
         @Override
         public void run()
         {
-            ConcurrentHashMap<UUID, BattlePlayer> players = arena.getPlayers();
+            Map<UUID, BattlePlayer> players = arena.getPlayers();
             new BukkitRunnable()
             {
                 public void run()

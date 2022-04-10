@@ -30,6 +30,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -736,7 +737,7 @@ public class InventoryOperationHelper
      */
     public static void doQuickBuy(InventoryClickEvent event, Arena arena, boolean isInflated)
     {
-        ConcurrentHashMap<UUID,BattlePlayer> registeredPlayers = arena.getPlayers();
+        Map<UUID,BattlePlayer> registeredPlayers = arena.getPlayers();
         Inventory clickedInv = event.getClickedInventory();
         HumanEntity player = event.getWhoClicked();
 

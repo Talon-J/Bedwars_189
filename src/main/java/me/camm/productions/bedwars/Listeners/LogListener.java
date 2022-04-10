@@ -19,6 +19,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -65,7 +66,7 @@ public class LogListener implements Listener//, IArenaChatHelper, IArenaWorldHel
         if (!runner.isRunning())
             return;
 
-        ConcurrentHashMap<UUID,BattlePlayer> registeredPlayers = arena.getPlayers();
+        Map<UUID,BattlePlayer> registeredPlayers = arena.getPlayers();
 
         if (packetHandler!=null) {
             if (packetHandler.contains(event.getPlayer()))
@@ -157,7 +158,7 @@ public class LogListener implements Listener//, IArenaChatHelper, IArenaWorldHel
         BattleTeam team;
         boolean isBedExists;
 
-        ConcurrentHashMap<UUID,BattlePlayer> registeredPlayers = arena.getPlayers();
+        Map<UUID,BattlePlayer> registeredPlayers = arena.getPlayers();
 
         if (!registeredPlayers.containsKey(event.getPlayer().getUniqueId())) //if the uuids are the same
             return;

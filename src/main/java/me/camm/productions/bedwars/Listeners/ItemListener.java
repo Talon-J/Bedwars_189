@@ -26,6 +26,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -68,7 +69,7 @@ public class ItemListener implements Listener
     @EventHandler
     public void onItemPickUp(PlayerPickupItemEvent event)
     {
-        ConcurrentHashMap<UUID, BattlePlayer> players = arena.getPlayers();
+        Map<UUID, BattlePlayer> players = arena.getPlayers();
         UUID id = event.getPlayer().getUniqueId();
 
 
@@ -143,7 +144,7 @@ public class ItemListener implements Listener
     public void onItemDrop(PlayerDropItemEvent event)
     {
         Player player = event.getPlayer();
-        ConcurrentHashMap<UUID, BattlePlayer> registered = arena.getPlayers();
+        Map<UUID, BattlePlayer> registered = arena.getPlayers();
         if (!registered.containsKey(player.getUniqueId()))
             return;
 

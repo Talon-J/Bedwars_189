@@ -248,7 +248,7 @@ public class InventoryListener implements Listener {
         String name = stack.getItemMeta().getDisplayName();
         event.setCancelled(true);
 
-        HashMap<String, BattleTeam> arenaRegistered = arena.getTeams();
+        Map<String, BattleTeam> arenaRegistered = arena.getTeams();
         BattleTeam picked = arenaRegistered.getOrDefault(name, null);
         player.closeInventory();
         if (picked == null)

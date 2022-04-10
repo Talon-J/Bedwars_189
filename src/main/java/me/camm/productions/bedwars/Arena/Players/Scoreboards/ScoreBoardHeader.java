@@ -30,8 +30,7 @@ public enum ScoreBoardHeader
     CURRENT_TEAM(ChatColor.GRAY+"You"),
     HEART(" "+ChatColor.RED+"\u2764"+ChatColor.RESET),
 
-    //changed to a randomizer
- //   SPACE_CREDIT(ChatColor.YELLOW+"not hypixel.net"),
+    SPACE_CREDIT(ChatColor.YELLOW+"credit"),
 
     DUMMY("dummy"),
     HEALTH_CATEGORY("Health"),

@@ -32,6 +32,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -138,7 +139,7 @@ public class ItemUseListener implements Listener
     @EventHandler
     public void onItemInteract(PlayerInteractEvent event) {
 
-        ConcurrentHashMap<UUID, BattlePlayer> players = arena.getPlayers();
+        Map<UUID, BattlePlayer> players = arena.getPlayers();
         Player player = event.getPlayer();
         ItemStack stack = player.getItemInHand();
         Block block = event.getClickedBlock();
@@ -273,7 +274,7 @@ public class ItemUseListener implements Listener
 
     public void updateMap(Player player)
     {
-        ConcurrentHashMap<UUID, BattlePlayer> players = arena.getPlayers();
+        Map<UUID, BattlePlayer> players = arena.getPlayers();
         if (!players.containsKey(player.getUniqueId()))
             return;
 

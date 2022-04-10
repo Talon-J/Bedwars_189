@@ -36,7 +36,7 @@ public class Arena
 
   private final int voidLevel;
 
-  private final HashMap<String, BattleTeam> teams;
+  private final ConcurrentHashMap<String, BattleTeam> teams;
   //the string is the team color
 
   private ArrayList<Generator> generators;
@@ -88,7 +88,7 @@ public class Arena
       this.plugin = plugin;
 
       this.players = new ConcurrentHashMap<>();
-      this.teams = new HashMap<>();
+      this.teams = new ConcurrentHashMap<>();
 
       //converting to a location
           specSpawn = spectatorSpawn.getAsLocation(world);
@@ -238,7 +238,7 @@ public class Arena
         return healthBoard;
     }
 
-    public HashMap<String, BattleTeam> getTeams()
+    public Map<String, BattleTeam> getTeams()
     {
         return teams;
     }
