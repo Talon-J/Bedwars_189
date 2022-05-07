@@ -165,6 +165,13 @@ public class GameRunner// implements Listener
 
         int maxPlayers = 0;
 
+        Collection<BattleTeam> teams = arena.getTeams().values();
+
+
+        //we use the loader to detect if the players are in areas like trap areas, heal pools, etc
+        boundaryLoader = new ExecutableBoundaryLoader(arena);
+        boundaryLoader.start();
+
         //init the npcs for buying, etc
         for (BattleTeam team: arena.getTeams().values()) {
             maxPlayers = Math.max(maxPlayers, team.getPlayers().size());
@@ -172,32 +179,7 @@ public class GameRunner// implements Listener
             team.showNPCs();
             keepers.add(team.getTeamQuickBuy());
             keepers.add(team.getTeamGroupBuy());
-        }
 
-        //adding the packet handler for the invisibility, etc
-        this.packetHandler = new PacketHandler(keepers, arena);
-        playerLogListener.initPacketHandler(packetHandler);
-
-
-        // bedwars has different prices depending on game mode. We just use the player number on the teams to determine that.
-        if (maxPlayers>2)
-            isInflated = true;
-
-        //spawning the generators.
-        for (Generator generator: generators) {
-            generator.spawnIntoWorld();
-            generator.setPlayerNumber(maxPlayers);
-        }
-
-
-        //we use the loader to detect if the players are in areas like trap areas, heal pools, etc
-        boundaryLoader = new ExecutableBoundaryLoader(arena);
-        boundaryLoader.start();
-
-        Collection<BattleTeam> teams = arena.getTeams().values();
-
-        for (BattleTeam team: teams)  //looping through the teams
-        {
             team.initTrackingEntries(teams);
             team.startForge();
             team.setLoader(boundaryLoader);
@@ -206,6 +188,23 @@ public class GameRunner// implements Listener
             if (team.getRemainingPlayers()==0) {
                 team.eliminate();
             }
+        }
+
+
+        // bedwars has different prices depending on game mode. We just use the player number on the teams to determine that.
+        if (maxPlayers>2)
+            isInflated = true;
+
+        //adding the packet handler for the invisibility, etc
+        this.packetHandler = new PacketHandler(keepers, arena);
+        playerLogListener.initPacketHandler(packetHandler);
+
+
+
+        //spawning the generators.
+        for (Generator generator: generators) {
+            generator.spawnIntoWorld();
+            generator.setPlayerNumber(maxPlayers);
         }
 
         //updating the team statuses for the players after we decide which ones are eliminated, etc

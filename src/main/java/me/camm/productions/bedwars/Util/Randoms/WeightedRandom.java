@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 
-//@Author CAMM
+//@author CAMM
 public class WeightedRandom<T extends WeightedItem<?>>
 {
     private final ArrayList<T> items;

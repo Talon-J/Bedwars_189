@@ -32,7 +32,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import static me.camm.productions.bedwars.Util.Helpers.DamageHelper.sendDeathMessage;
 import static me.camm.productions.bedwars.Util.Helpers.DamageHelper.sendVoidNonDirectMessage;
 
-
+/**
+ * @author CAMM
+ * This class listens and handles physical events by both entities and players
+ */
 public class EntityActionListener implements Listener
 {
     private final Plugin plugin;
@@ -43,6 +46,7 @@ public class EntityActionListener implements Listener
     private final Map<UUID,BattlePlayer> arenaPlayers;
     private final PacketHandler handler;
 
+    //hashmaps for the history of damage by entities, and for the current active entities
     static {
        damageHistory = new ConcurrentHashMap<>();
         activeEntities = new ConcurrentHashMap<>();
@@ -52,6 +56,7 @@ public class EntityActionListener implements Listener
     public static void handleDeath(BattlePlayer victim, PacketHandler handler, Map<UUID,BattlePlayer> players, GameRunner runner, EntityDamageEvent.DamageCause cause)
     {
 
+        //if the runner is not running, tp to spec spawn
         if (!runner.isRunning()) {
             victim.teleport(runner.getArena().getSpecSpawn());
             return;
@@ -65,11 +70,11 @@ public class EntityActionListener implements Listener
             DamageSet set = damageHistory.get(hurt.getUniqueId());
             long millis = set.getSystemTime();
 
+            //give the previous damager 10 seconds to kill the player. If the kill occurred more than 10 seconds later,
+            // then nobody gets the kill for the player.   todo make a final variable for the seconds
             if (System.currentTimeMillis() - millis > 10000)
             {
                 victim.handlePlayerIntoSpectator(handler, isFinal);
-
-                //  //(BattlePlayer killer, BattlePlayer victim, IGameTeamable involved, EntityDamageEvent.DamageCause cause, Arena arena)
                 sendDeathMessage(null,victim,null,cause, isFinal);
                 runner.attemptEndGame();
                 return;
@@ -85,7 +90,6 @@ public class EntityActionListener implements Listener
                 if (!victim.equals(killer))
                 handleKillerStats(killer,isFinal);
 
-                //  //(BattlePlayer killer, BattlePlayer victim, IGameTeamable involved, EntityDamageEvent.DamageCause cause, Arena arena)
                 sendDeathMessage(killer,victim,null,cause, isFinal);
 
                 victim.handlePlayerIntoSpectator(handler,isFinal, killer.getRawPlayer());
@@ -101,8 +105,6 @@ public class EntityActionListener implements Listener
 
                     if (!victim.equals(shooter))
                     handleKillerStats(shooter,isFinal);
-
-                    System.out.println("[DEBUG]: IS PROJECTILE:"+damager.getType()+" final? "+isFinal);
 
 
                     //  //(BattlePlayer killer, BattlePlayer victim, IGameTeamable involved, EntityDamageEvent.DamageCause cause, Arena arena)
@@ -139,8 +141,8 @@ public class EntityActionListener implements Listener
                     if (!victim.equals(killer))
                         handleKillerStats(killer, isFinal);
 
-                    //(BattlePlayer killer, BattlePlayer victim, IGameTeamable involved, EntityDamageEvent.DamageCause cause, Arena arena)
-                    sendDeathMessage(killer,victim,null,cause, isFinal);  //todo
+
+                    sendDeathMessage(killer,victim,null,cause, isFinal);
 
 
                     victim.handlePlayerIntoSpectator(handler,isFinal, killer.getRawPlayer());
@@ -156,7 +158,7 @@ public class EntityActionListener implements Listener
                     BattlePlayer owner = ((IGameOwnable)teamable).getOwner();
                     if (owner == null)
                     {
-                        //(BattlePlayer killer, BattlePlayer victim, IGameTeamable involved, EntityDamageEvent.DamageCause cause, Arena arena)
+
                         sendDeathMessage(null,victim,teamable, cause, isFinal);
                         victim.handlePlayerIntoSpectator(handler, isFinal);
                         runner.attemptEndGame();
@@ -176,7 +178,6 @@ public class EntityActionListener implements Listener
                 return;
             }
         }
-        //  //(BattlePlayer killer, BattlePlayer victim, IGameTeamable involved, EntityDamageEvent.DamageCause cause, Arena arena)
              sendDeathMessage(null,victim,null, cause, isFinal);
             victim.handlePlayerIntoSpectator(handler, isFinal);
         runner.attemptEndGame();
@@ -335,7 +336,7 @@ public class EntityActionListener implements Listener
                     }
 
                     // if the player will not die from this event.
-                    if (wouldPlayerSurvive(player, event))
+                    if (playerSurvives(player, event))
                         return;
 
                     event.setCancelled(true);
@@ -424,7 +425,7 @@ public class EntityActionListener implements Listener
                 }
 
                  playerHit.removeInvisibilityEffect();
-                if (wouldPlayerSurvive(playerHit.getRawPlayer(),event))
+                if (playerSurvives(playerHit.getRawPlayer(),event))
                     return;
 
                 handleDeath(playerHit,handler,arenaPlayers,runner,event.getCause());
@@ -451,7 +452,7 @@ public class EntityActionListener implements Listener
             hit.removeInvisibilityEffect();
             updateHistoryDamage(hit,event);
 
-            if (!wouldPlayerSurvive(hit.getRawPlayer(),event)) {
+            if (!playerSurvives(hit.getRawPlayer(),event)) {
                 handleDeath(hit,handler,arenaPlayers,runner,event.getCause());
             }
         }
@@ -527,7 +528,7 @@ public class EntityActionListener implements Listener
       sourcePlayer.sendMessage(ChatColor.YELLOW+hurtPlayer.getRawPlayer().getName()+" is on "+Math.max(hp,0.0)+" hp!");
             hurtPlayer.removeInvisibilityEffect();
 
-            if (!wouldPlayerSurvive((Player)hurt,event))
+            if (!playerSurvives((Player)hurt,event))
             {
                 event.setCancelled(true);
                 arrow.setVelocity(arrow.getVelocity().multiply(-1));
@@ -548,7 +549,7 @@ public class EntityActionListener implements Listener
             hurtPlayer.removeInvisibilityEffect();
 
 
-            if (!wouldPlayerSurvive(hurtPlayer.getRawPlayer(), event)) {
+            if (!playerSurvives(hurtPlayer.getRawPlayer(), event)) {
                 event.setCancelled(true);
                handleDeath(hurtPlayer,handler, arenaPlayers,runner,event.getCause());
             }
@@ -654,7 +655,7 @@ public class EntityActionListener implements Listener
         updateHistoryDamage(hurt,event);
 
         //If both players are from the same team.
-        if (wouldPlayerSurvive(hurt.getRawPlayer(),event))
+        if (playerSurvives(hurt.getRawPlayer(),event))
             return;
 
         event.setCancelled(true);
@@ -697,7 +698,8 @@ public class EntityActionListener implements Listener
         return activeEntities.getOrDefault(id, null);
     }
 
-    private boolean wouldPlayerSurvive(Player player, EntityDamageEvent event) {
+    //returns whether or not a player would survive (not die) from the damage of a damage event
+    private boolean playerSurvives(Player player, EntityDamageEvent event) {
         return player.getHealth() - event.getFinalDamage() >= 1;
     }
 

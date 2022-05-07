@@ -35,12 +35,6 @@ import java.util.Random;
 import java.util.UUID;
 
 
-/*
-
-
-TODO
-add a reference to the entityListener here so you can relate to the enderdragons. (Since their damage() method is screwed up)
- */
 public class ExplosionHandler implements Listener
 {
     private final Plugin plugin;
@@ -208,8 +202,8 @@ public class ExplosionHandler implements Listener
 
             }//for
 
-            //Advance the vectors by 0.5 blocks.
-            distance += 0.3;
+            //Advance the vectors
+            distance += 0.1;
 
         } //while
 
@@ -249,6 +243,7 @@ public class ExplosionHandler implements Listener
 
     }
 
+    //we should probably change this to be better. (I.e use final variables, make it more exact, such as a 90.5% chance instead of 90%)
     private void rollFireChance(Block block)
     {
         int setFire = rand.nextInt(11);
@@ -259,14 +254,24 @@ public class ExplosionHandler implements Listener
     private ArrayList<ExplosionVector> getBlockBreakingVectors(World world, boolean incendiary, Entity exploded)
     {
         ArrayList<ExplosionVector> directions = new ArrayList<>();
-        double xLocation = exploded.getLocation().getX();
-        double yLocation = exploded.getLocation().getY();
-        double zLocation = exploded.getLocation().getZ();
+        Location loc = exploded.getLocation();
+        double xLocation = loc.getX();
+        double yLocation = loc.getY();
+        double zLocation = loc.getZ();
 
         //Creating the vectors based on angles.
+        //minecraft angles for the vertical pitch go from -90 to 90, where -90 is directly up and 90 is directly down.
+        //minecraft angles are in radians though, but that's fine since math.sin and cos take care of that.
+
+        //unless you wanna go through the trouble of decompiling, translating, and registering a subclass of entity tnt,
+        // we're doing this instead.
         for (double vertical=90;vertical>=-90;vertical-=5.625)
         {
             double yComponent = Math.tan(vertical); //y value
+
+            //vectors going out in 360 degrees by intervals of 5.625 degrees
+            //5.625 degrees is an arbitrary amount such that most, if not all blocks in a radius are hit by vectors similar
+            //to regular tnt
             for (double horizontal=0;horizontal<=360;horizontal+=5.625)
             {
                 double xComponent = Math.sin(horizontal);  //x Value of the vector
@@ -277,7 +282,9 @@ public class ExplosionHandler implements Listener
             }
         }
 
-        //Adding vectors separately so that there aren't 16 instances of the same one.
+        //Adding vectors separately so that there aren't many instances of the same one.
+        //this is for the vectors going directly up and down cause going 360 degrees in the x and z axis when they are
+        // both 0 make a bunch of traces
         directions.add(new ExplosionVector(new Vector(0,1,0),
                 new Vector(xLocation,yLocation,zLocation),world,incendiary,colors));
 

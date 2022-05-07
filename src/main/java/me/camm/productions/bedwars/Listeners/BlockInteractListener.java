@@ -33,7 +33,7 @@ import static me.camm.productions.bedwars.Util.Locations.BlockRegisterType.*;
 
 
 
-/*
+/**
 This class listens for and handles interactions which involve blocks
 @author CAMM
  */
@@ -60,8 +60,6 @@ public class BlockInteractListener implements Listener
         this.activeSponges = new HashSet<>();
         sender = ChatSender.getInstance();
 
-
-       // Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "gamerule doFireTick false");
     }
 
 
@@ -81,6 +79,7 @@ public class BlockInteractListener implements Listener
             return;
         }
 
+        //if the player is dead, stop it
         BattlePlayer player = players.get(placer.getUniqueId());
         if (player.getIsEliminated() || (!player.getIsAlive()))
         {
@@ -102,6 +101,7 @@ public class BlockInteractListener implements Listener
             block.removeMetadata(MAP.getData(),plugin);
         }
 
+        //if the event hasn't been cancelled, test if it is a block with special operations
         if (!event.isCancelled())
         {
             Material type = event.getBlockPlaced().getType();
@@ -130,6 +130,7 @@ public class BlockInteractListener implements Listener
         }
     }
 
+    //method to handle when players try to place blocks in spectators. We just allow the event in this case.
     @EventHandler
     public void onBlockCanPlaceEvent(@NotNull BlockCanBuildEvent event)
     {
